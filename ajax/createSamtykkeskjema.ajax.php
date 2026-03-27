@@ -1,17 +1,28 @@
 <?php
 
-use UKMNorge\Samtykkeskjema\SamtykkeSkjema;
+use UKMNorge\Samtykkeskjema\Write;
+use UKMNorge\Arrangement\Arrangement;
+use UKMNorge\OAuth2\HandleAPICall;
 
-$navn = isset($_POST['navn']) ? trim($_POST['navn']) : null;
+$handleCall = new HandleAPICall(['navn'], [], ['POST'], false);
 
-if (empty($navn)) {
-    throw new Exception('Navn er påkrevd for å opprette samtykkeskjema.');
+$navn = $handleCall->getArgument('navn');
+
+$arrangement = null;
+$arrangementId = get_option('pl_id');
+if ($arrangementId) {
+    $arrangement = new Arrangement($arrangementId);
 }
 
-$skjema = SamtykkeSkjema::create($navn);
+$skjema = null;
+try {
+    $skjema = Write::create($navn, $arrangement);
+} catch (Exception $e) {
+    $handleCall->sendErrorToClient($e->getMessage(), $e->getCode() ?: 500);
+}
 
-UKMskjema::addResponseData('success', true);
-UKMskjema::addResponseData('skjema', [
-    'id'   => $skjema->getId(),
+$handleCall->sendToClient([
+    'id'   => (int)$skjema->getId(),
     'navn' => $skjema->getNavn(),
+    'success' => true,
 ]);

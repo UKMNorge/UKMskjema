@@ -2,7 +2,13 @@
 
 use UKMNorge\Samtykkeskjema\SamtykkeSkjema;
 
-$skjemaer = SamtykkeSkjema::getAll();
+
+$arrangementId = get_option('pl_id');
+if (!$arrangementId) {
+    throw new Exception('arrangementId er påkrevd.');
+}
+
+$skjemaer = SamtykkeSkjema::getAllByArrangementId($arrangementId);
 
 $result = [];
 foreach ($skjemaer as $skjema) {
