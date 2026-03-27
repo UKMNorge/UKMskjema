@@ -30,7 +30,7 @@ function register_my_custom_shortcode() {
 // Hook into WordPress initialization
 add_action('init', 'register_my_custom_shortcode');
 
-class LoremIpsumPlugin extends UKMNorge\Wordpress\Modul
+class UKMskjema extends UKMNorge\Wordpress\Modul
 {
     public static $action = 'skjemaPlaceholder';
     public static $path_plugin = null;
@@ -51,8 +51,8 @@ class LoremIpsumPlugin extends UKMNorge\Wordpress\Modul
      */
     public static function hook()
     {
-        add_action('admin_menu', ['LoremIpsumPlugin', 'meny'], 101);
-        add_action('wp_ajax_LoremIpsumPlugin_ajax', ['LoremIpsumPlugin', 'ajax']);
+        add_action('admin_menu', ['UKMskjema', 'meny'], 101);
+        add_action('wp_ajax_UKMskjema_ajax', ['UKMskjema', 'ajax']);
     }
 
     /**
@@ -87,6 +87,9 @@ class LoremIpsumPlugin extends UKMNorge\Wordpress\Modul
                 'kommentarOvernatting',
                 'lederSaveHoved',
                 'tilrettelegging',
+                'createSamtykkeskjema',
+                'saveSamtykkeskjema',
+                'getAlleSamtykkeskjemaer',
             ];
 
             if (in_array($_POST['subaction'], $supported_actions)) {
@@ -119,9 +122,8 @@ class LoremIpsumPlugin extends UKMNorge\Wordpress\Modul
         wp_enqueue_style('WPbootstrap3_css');
         wp_enqueue_script('TwigJS');
 
-        wp_enqueue_script('UKMVideresending_script_leder_app', plugin_dir_url(__FILE__) . 'javascript/loremJS.js');
-
-        wp_enqueue_script('LoremIpsumPlugin_script_videresending', plugin_dir_url(__FILE__) . 'ukmvideresending.js');
+        wp_enqueue_style('UKMskjemaVueStyle', plugin_dir_url(__FILE__) . '/client/dist/assets/build.css');
+        wp_enqueue_script('UKMskjemaVueJs', plugin_dir_url(__FILE__) . '/client/dist/assets/build.js','','',true);
     }
 
     /**
@@ -134,19 +136,19 @@ class LoremIpsumPlugin extends UKMNorge\Wordpress\Modul
             'admin_print_styles-' .
                 add_menu_page(
 
-                    'Lorem Ipsum',
-                    'Lorem Ipsum',
+                    'UKM Skjemaer 2026',
+                    'UKM Skjemaer 2026',
                     'editor',
-                    'LoremIpsumPlugin',
-                    ['LoremIpsumPlugin', 'renderAdmin'],
+                    'UKMskjema',
+                    ['UKMskjema', 'renderAdmin'],
                     'dashicons-editor-removeformatting', #'//ico.ukm.no/paper-airplane-20.png',
                     90
                 ),
-            ['LoremIpsumPlugin', 'script']
+            ['UKMskjema', 'script']
         );
     }
 }
 
 
-LoremIpsumPlugin::init(__DIR__);
-LoremIpsumPlugin::hook();
+UKMskjema::init(__DIR__);
+UKMskjema::hook();
