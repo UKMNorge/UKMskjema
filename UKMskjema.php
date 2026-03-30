@@ -72,11 +72,25 @@ class UKMskjema extends Modul
      */
     public static function ajax()
     {   
-        $reques_method = $_SERVER['REQUEST_METHOD'];
-        $subAction = $_REQUEST['controller'];
+        $allowed_namespaces = ['samtykkeskjema', 'sporreskjema'];
+
+        $subAction = $_REQUEST['controller'] ?? '';
+
+        // Validate: must be namespace/controller with no path traversal
+        if (!preg_match('/^[a-zA-Z0-9_]+\/[a-zA-Z0-9_]+$/', $subAction)) {
+            echo json_encode(['success' => false, 'message' => 'Ugyldig controller: ' . $subAction, 'code' => 400]);
+            die();
+        }
+
+        [$namespace, $controller] = explode('/', $subAction, 2);
+
+        if (!in_array($namespace, $allowed_namespaces, true)) {
+            echo json_encode(['success' => false, 'message' => 'Ukjent namespace: ' . $namespace, 'code' => 400]);
+            die();
+        }
 
         try {
-            require_once('ajax/' . $subAction . '.ajax.php');
+            require_once('ajax/' . $namespace . '/' . $controller . '.ajax.php');
 
         // Noe gikk galt
         } catch (Exception $e) {
