@@ -1,41 +1,24 @@
 <?php
 
 use UKMNorge\Samtykkeskjema\SamtykkeSkjema;
+use UKMNorge\OAuth2\HandleAPICall;
 
+
+$handleCall = new HandleAPICall([], [], ['GET', 'POST'], false);
 
 $arrangementId = get_option('pl_id');
 if (!$arrangementId) {
-    throw new Exception('arrangementId er påkrevd.');
+    $handleCall->sendErrorToClient('arrangementId er påkrevd.', 400);
 }
 
 $skjemaer = SamtykkeSkjema::getAllByArrangementId($arrangementId);
 
 $result = [];
 foreach ($skjemaer as $skjema) {
-    $lastVersjon = $skjema->getLastVersion();
-
-    $prosjekter = array_map(function ($p) {
-        return [
-            'id'             => $p->getId(),
-            'navn'           => $p->getNavn(),
-            'beskrivelse'    => $p->getBeskrivelse(),
-            'arrangement_id' => $p->getArrangementId(),
-        ];
-    }, $skjema->getProsjekter());
-
-    $result[] = [
-        'id'         => $skjema->getId(),
-        'navn'       => $skjema->getNavn(),
-        'prosjekter' => $prosjekter,
-        'versjon'    => $lastVersjon ? [
-            'id'          => $lastVersjon->getId(),
-            'versjon_nr'  => $lastVersjon->getVersjonNr(),
-            'beskrivelse' => $lastVersjon->getBeskrivelse(),
-            'body_text'   => $lastVersjon->getBodyText(),
-            'file_path'   => $lastVersjon->getFilePath(),
-        ] : null,
-    ];
+    $result[] = $skjema->getJson();
 }
 
-UKMskjema::addResponseData('success', true);
-UKMskjema::addResponseData('skjemaer', $result);
+$handleCall->sendToClient([
+    'success'  => true,
+    'skjemaer' => $result,
+]);

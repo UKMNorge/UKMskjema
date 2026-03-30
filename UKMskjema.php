@@ -14,6 +14,9 @@ Author URI: http://www.ukm.no
 // use UKMNorge\Meta\Write as WriteMeta;
 // use UKMNorge\Sensitivt\Intoleranse;
 
+use UKMNorge\Wordpress\Modul;
+
+
 require_once('UKM/Autoloader.php');
 
 
@@ -30,7 +33,7 @@ function register_my_custom_shortcode() {
 // Hook into WordPress initialization
 add_action('init', 'register_my_custom_shortcode');
 
-class UKMskjema extends UKMNorge\Wordpress\Modul
+class UKMskjema extends Modul
 {
     public static $action = 'skjemaPlaceholder';
     public static $path_plugin = null;
@@ -52,52 +55,30 @@ class UKMskjema extends UKMNorge\Wordpress\Modul
     public static function hook()
     {
         add_action('admin_menu', ['UKMskjema', 'meny'], 101);
-        add_action('wp_ajax_UKMskjema_ajax', ['UKMskjema', 'ajax']);
+        add_action(
+            'wp_ajax_UKMskjema_ajax',
+            ['UKMskjema', 'ajax']
+        );
+
+        
     }
 
-    /**
+    
+
+     /**
      * Håndterer alle ajax-kall
      *
      * @return void
      */
     public static function ajax()
-    {
-        if (is_array($_POST)) {
-            static::addResponseData('POST', $_POST);
-        }
+    {   
+        $reques_method = $_SERVER['REQUEST_METHOD'];
+        $subAction = $_REQUEST['controller'];
 
         try {
-            $supported_actions = [
-                'filmerAjax',
-                'avmeld',
-                'videresend',
-                'kontroll',
-                'kontrollSave',
-                'avmeldPerson',
-                'videresendPerson',
-                'bilderShow',
-                'bildeSet',
-                'filmerShow',
-                'playbackShow',
-                'nominasjon',
-                'lederDelete',
-                'lederSave',
-                'lederCreate',
-                'lederSaveNatt',
-                'kommentarOvernatting',
-                'lederSaveHoved',
-                'tilrettelegging',
-                'createSamtykkeskjema',
-                'saveSamtykkeskjema',
-                'getAlleSamtykkeskjemaer',
-            ];
+            require_once('ajax/' . $subAction . '.ajax.php');
 
-            if (in_array($_POST['subaction'], $supported_actions)) {
-                static::setupLogger();
-                require_once('ajax/' . $_POST['subaction'] . '.ajax.php');
-            } else {
-                throw new Exception('Beklager, støtter ikke denne handlingen!');
-            }
+        // Noe gikk galt
         } catch (Exception $e) {
             static::addResponseData('success', false);
             static::addResponseData('message', $e->getMessage());
@@ -121,6 +102,8 @@ class UKMskjema extends UKMNorge\Wordpress\Modul
         wp_enqueue_script('WPbootstrap3_js');
         wp_enqueue_style('WPbootstrap3_css');
         wp_enqueue_script('TwigJS');
+        
+        wp_enqueue_style('UKMskjemaVueMIDIcons', 'https://cdn.jsdelivr.net/npm/@mdi/font/css/materialdesignicons.min.css');
 
         wp_enqueue_style('UKMskjemaVueStyle', plugin_dir_url(__FILE__) . '/client/dist/assets/build.css');
         wp_enqueue_script('UKMskjemaVueJs', plugin_dir_url(__FILE__) . '/client/dist/assets/build.js','','',true);
