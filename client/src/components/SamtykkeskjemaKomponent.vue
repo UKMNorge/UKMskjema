@@ -435,7 +435,7 @@
 
 <script lang="ts">
 import type { PropType } from 'vue';
-import { SamtykkeSkjema } from '../objects/SamtykkeSkjema';
+import type { SamtykkeSkjema } from '../objects/SamtykkeSkjema';
 
 export default {
     props: {

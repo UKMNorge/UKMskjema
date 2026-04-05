@@ -12,44 +12,21 @@ export interface GruppeData {
     sporsmal: SporsmalData[];
 }
 
-export interface SvarData {
-    id: number;
-    sporsmal_id: number;
-    respondent_type: 'arrangement' | 'person';
-    respondent_id: number;
-    value: unknown;
-}
-
-export interface SvarSettData {
-    respondent_id: number;
-    respondent_type: 'arrangement' | 'person';
-    svar: SvarData[];
-}
-
-export interface RespondentData {
-    id: number;
-    type: 'arrangement' | 'person';
-    skjema_id: number;
-    navn?: string;
-    svar?: SvarSettData;
-}
-
 export interface SporreSkjemaData {
     id: number;
     arrangement_id: number;
-    type: 'arrangement' | 'person';
+    /** Alltid oppgave-spørreskjema i denne flyten */
+    type: 'oppgave';
     navn?: string;
     sporsmal?: SporsmalData[];
-    respondenter?: RespondentData[];
 }
 
 export class SporreSkjema {
     id: number;
     arrangementId: number;
-    type: 'arrangement' | 'person';
+    type: 'oppgave';
     navn: string;
     sporsmal: SporsmalData[];
-    respondenter: RespondentData[];
 
     // UI state (not serialised)
     expanded: boolean = false;
@@ -58,10 +35,9 @@ export class SporreSkjema {
     constructor(data?: Partial<SporreSkjemaData>) {
         this.id            = data?.id ?? 0;
         this.arrangementId = data?.arrangement_id ?? 0;
-        this.type          = data?.type ?? 'arrangement';
+        this.type          = 'oppgave';
         this.navn          = data?.navn ?? '';
         this.sporsmal      = data?.sporsmal ?? [];
-        this.respondenter  = data?.respondenter ?? [];
     }
 
     static fromData(data: Partial<SporreSkjemaData>): SporreSkjema {
@@ -72,7 +48,7 @@ export class SporreSkjema {
         return this.id;
     }
 
-    getType(): 'arrangement' | 'person' {
+    getType(): 'oppgave' {
         return this.type;
     }
 
@@ -119,10 +95,6 @@ export class SporreSkjema {
         return gruppert;
     }
 
-    getRespondenter(): RespondentData[] {
-        return this.respondenter;
-    }
-
     /**
      * Has the form been answered by the given user?
      * @override SkjemaSuper
@@ -146,7 +118,6 @@ export class SporreSkjema {
             type:           this.type,
             navn:           this.navn,
             sporsmal:       this.sporsmal,
-            respondenter:   this.respondenter,
         };
     }
 }

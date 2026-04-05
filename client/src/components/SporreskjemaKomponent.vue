@@ -8,17 +8,8 @@
         >
             <div class="d-flex justify-space-between align-center">
                 <v-list-item-title class="text-h6">
-                    {{ skjema.navn || 'Nytt spørreskjema' }}
+                    {{ skjema.navn }}
                 </v-list-item-title>
-                <v-chip
-                    v-if="skjema.id !== -1"
-                    size="small"
-                    :color="skjema.type === 'arrangement' ? 'indigo' : 'teal'"
-                    variant="tonal"
-                    class="ml-2"
-                >
-                    {{ skjema.type === 'arrangement' ? 'Arrangement' : 'Deltaker' }}
-                </v-chip>
             </div>
 
             <template v-slot:prepend>
@@ -38,7 +29,7 @@
                         <div class="tidspunkt-tittel as-margin-bottom-space-3">
                             <h5>Nytt spørreskjema</h5>
                         </div>
-                        <div class="col-xs-6 nop-impt as-margin-right-space-2">
+                        <div class="col-xs-10 nop-impt">
                             <v-text-field
                                 v-model="skjema.navn"
                                 label="Navn på skjema"
@@ -49,19 +40,6 @@
                                 hide-details="auto"
                                 autofocus
                                 @keyup.enter="skjema.navn.trim() && $emit('opprett', skjema)"
-                            />
-                        </div>
-                        <div class="col-xs-4 nop-impt">
-                            <v-select
-                                v-model="skjema.type"
-                                :items="typeOptions"
-                                item-title="label"
-                                item-value="value"
-                                label="Type"
-                                variant="outlined"
-                                class="v-text-field-arr-sys"
-                                density="comfortable"
-                                hide-details="auto"
                             />
                         </div>
                         <div class="col-xs-12 nop-impt as-margin-top-space-3">
@@ -107,13 +85,6 @@
                                     {{ skjema.sporsmal.length }}
                                 </v-chip>
                             </v-tab>
-                            <v-tab value="respondenter">
-                                <v-icon start>mdi-account-group-outline</v-icon>
-                                Respondenter
-                                <v-chip v-if="skjema.respondenter.length" size="x-small" class="ml-2" color="secondary">
-                                    {{ skjema.respondenter.length }}
-                                </v-chip>
-                            </v-tab>
                         </v-tabs>
 
                         <v-divider class="as-margin-bottom-space-3" />
@@ -126,23 +97,10 @@
                                     <div class="tidspunkt-tittel as-margin-bottom-space-3">
                                         <h5>Grunnleggende informasjon</h5>
                                     </div>
-                                    <div class="col-xs-6 nop-impt as-margin-right-space-2">
+                                    <div class="col-xs-10 nop-impt">
                                         <v-text-field
                                             v-model="skjema.navn"
                                             label="Navn på skjema"
-                                            variant="outlined"
-                                            class="v-text-field-arr-sys"
-                                            density="comfortable"
-                                            hide-details="auto"
-                                        />
-                                    </div>
-                                    <div class="col-xs-3 nop-impt">
-                                        <v-select
-                                            v-model="skjema.type"
-                                            :items="typeOptions"
-                                            item-title="label"
-                                            item-value="value"
-                                            label="Type"
                                             variant="outlined"
                                             class="v-text-field-arr-sys"
                                             density="comfortable"
@@ -267,7 +225,7 @@
                                                         icon
                                                         variant="text"
                                                         size="small"
-                                                        @click="fjernSporsmal(gruppe.overskrift)"
+                                                        @click="gruppe.overskrift && fjernSporsmal(gruppe.overskrift)"
                                                     >
                                                         <v-icon>mdi-delete-outline</v-icon>
                                                     </v-btn>
@@ -338,49 +296,6 @@
                                         <v-icon size="48" color="grey-lighten-1">mdi-comment-question-outline</v-icon>
                                         <p class="as-margin-top-space-2">Ingen spørsmål ennå</p>
                                         <p style="color: var(--color-primary-grey-dark);">Klikk «Legg til spørsmål» for å bygge opp skjemaet.</p>
-                                    </div>
-
-                                </div>
-                            </v-tabs-window-item>
-
-                            <!-- ── TAB: Respondenter ──────────── -->
-                            <v-tabs-window-item value="respondenter">
-                                <div class="col-xs-12 nop-impt">
-                                    <div class="tidspunkt-tittel as-margin-bottom-space-3">
-                                        <h5>Respondenter</h5>
-                                    </div>
-
-                                    <template v-if="skjema.respondenter.length">
-                                        <div
-                                            v-for="(r, ri) in skjema.respondenter"
-                                            :key="ri"
-                                            class="col-xs-12 respondent-item as-margin-bottom-space-2 nop-impt-fix"
-                                        >
-                                            <div class="d-flex align-center justify-space-between">
-                                                <div class="d-flex align-center">
-                                                    <v-icon class="mr-3" color="grey">
-                                                        {{ r.type === 'arrangement' ? 'mdi-calendar-star' : 'mdi-account' }}
-                                                    </v-icon>
-                                                    <div>
-                                                        <div class="respondent-navn">{{ r.navn || ('ID #' + r.id) }}</div>
-                                                        <div class="item-id-label">{{ r.type === 'arrangement' ? 'Arrangement' : 'Person' }} · ID #{{ r.id }}</div>
-                                                    </div>
-                                                </div>
-                                                <v-chip
-                                                    size="small"
-                                                    :color="r.svar ? 'success' : 'grey'"
-                                                    variant="tonal"
-                                                >
-                                                    {{ r.svar ? 'Besvart' : 'Ikke besvart' }}
-                                                </v-chip>
-                                            </div>
-                                        </div>
-                                    </template>
-
-                                    <div v-else class="col-xs-12 nop-impt as-text-center as-padding-space-4">
-                                        <v-icon size="48" color="grey-lighten-1">mdi-account-group-outline</v-icon>
-                                        <p class="as-margin-top-space-2">Ingen respondenter ennå</p>
-                                        <p style="color: var(--color-primary-grey-dark);">Ingen har besvart dette skjemaet.</p>
                                     </div>
 
                                 </div>
@@ -460,8 +375,7 @@
 
 <script lang="ts">
 import type { PropType } from 'vue';
-import { SporreSkjema } from '../objects/SporreSkjema';
-import type { SporsmalData } from '../objects/SporreSkjema';
+import type { SporreSkjema, SporsmalData } from '../objects/SporreSkjema';
 import { slettSporsmal as apiSlettSporsmal } from '../services/sporreskjemaService';
 
 export default {
@@ -483,19 +397,13 @@ export default {
             bekreftSlett:       false,
             visNyttSporsmalForm: false,
             sporsmalLoading:    false,
-            nyttSporsmal: { type: 'tekst', tittel: '', tekst: '' } as { type: string; tittel: string; tekst: string },
-
-            typeOptions: [
-                { value: 'arrangement', label: 'Arrangement' },
-                { value: 'person',      label: 'Deltaker (person)' },
-            ],
+            nyttSporsmal: { type: 'kort_tekst', tittel: '', tekst: '' } as { type: string; tittel: string; tekst: string },
 
             sporsmalTypeOptions: [
-                { value: 'tekst',      label: 'Kort tekst' },
-                { value: 'textarea',   label: 'Lang tekst' },
-                { value: 'ja_nei',     label: 'Ja / Nei' },
-                { value: 'flervalg',   label: 'Flervalg' },
-                { value: 'overskrift', label: 'Overskrift' },
+                { value: 'kontakt',    label: 'Kontaktinformasjon (navn, epost, mobil)' },
+                { value: 'janei',      label: 'Ja / nei' },
+                { value: 'kort_tekst', label: 'Kort tekst' },
+                { value: 'lang_tekst', label: 'Lang tekst' },
             ],
         };
     },
@@ -516,7 +424,7 @@ export default {
         },
 
         avbrytNyttSporsmal(): void {
-            this.nyttSporsmal = { type: 'tekst', tittel: '', tekst: '' };
+            this.nyttSporsmal = { type: 'kort_tekst', tittel: '', tekst: '' };
             this.visNyttSporsmalForm = false;
         },
 
@@ -590,17 +498,6 @@ export default {
     display: flex;
     justify-content: flex-end;
     align-items: center;
-}
-
-.respondent-item {
-    background: var(--color-primary-grey-lightest);
-    border-radius: var(--radius-normal) !important;
-    border: solid 1px var(--color-primary-grey-light);
-    padding: calc(2 * var(--initial-space-box)) !important;
-}
-.respondent-navn {
-    font-weight: 500;
-    font-size: 14px;
 }
 
 .item-id-label {

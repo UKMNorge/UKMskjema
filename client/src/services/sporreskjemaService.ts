@@ -5,7 +5,7 @@ function getSpaInteraction(): any {
 }
 
 /**
- * Henter alle spørreskjemaer (arrangement + person) for dette arrangementet.
+ * Henter alle oppgave-spørreskjemaer for dette arrangementet.
  */
 export async function hentAlleSporreskjemaer(): Promise<SporreSkjemaData[]> {
     const res = await getSpaInteraction().runAjaxCall('/', 'POST', {
@@ -21,16 +21,12 @@ export async function hentAlleSporreskjemaer(): Promise<SporreSkjemaData[]> {
 }
 
 /**
- * Oppretter et nytt spørreskjema av gitt type (arrangement|person).
- * Returnerer det opprettede skjemaet.
+ * Oppretter et nytt oppgave-spørreskjema.
  */
-export async function opprettSporreskjema(
-    type: 'arrangement' | 'person'
-): Promise<SporreSkjemaData> {
+export async function opprettSporreskjema(): Promise<SporreSkjemaData> {
     const res = await getSpaInteraction().runAjaxCall('/', 'POST', {
         action:     'UKMskjema_ajax',
         controller: 'sporreskjema/createSporreskjema',
-        type,
     });
 
     if (!res.success) {
@@ -47,14 +43,19 @@ export async function opprettSporreskjema(
  */
 export async function lagreSporreskjema(
     skjemaId: number,
-    sporsmal: SporsmalData[]
+    sporsmal: SporsmalData[],
+    navn?: string
 ): Promise<SporreSkjemaData> {
-    const res = await getSpaInteraction().runAjaxCall('/', 'POST', {
+    const payload: Record<string, unknown> = {
         action:     'UKMskjema_ajax',
         controller: 'sporreskjema/saveSporreskjema',
         skjema_id:  skjemaId,
         sporsmal:   JSON.stringify(sporsmal),
-    });
+    };
+    if (navn !== undefined) {
+        payload.navn = navn;
+    }
+    const res = await getSpaInteraction().runAjaxCall('/', 'POST', payload);
 
     if (!res.success) {
         throw new Error(res.message ?? 'Kunne ikke lagre spørreskjema');

@@ -118,7 +118,7 @@ export default {
         async opprettSporreskjema(skjema: SporreSkjema): Promise<void> {
             this.skjemaLoading = true;
             try {
-                const data = await apiOpprett(skjema.type);
+                const data = await apiOpprett();
                 this.fjernNyttSporreskjema();
                 await this.hentAlle();
                 const opprettet = this.alleSporreskjemaer.find(s => s.id === data.id);
@@ -137,7 +137,7 @@ export default {
             }
             this.skjemaLoading = true;
             try {
-                const data = await apiLagre(skjema.id, skjema.sporsmal);
+                const data = await apiLagre(skjema.id, skjema.sporsmal, skjema.navn);
                 const oppdatert = new SporreSkjema(data);
                 oppdatert.expanded  = true;
                 oppdatert.activeTab = skjema.activeTab;

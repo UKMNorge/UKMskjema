@@ -1,20 +1,29 @@
 <?php
 
 use UKMNorge\Arrangement\Skjema\Skjema;
-use UKMNorge\Arrangement\Skjema\Sporsmal;
 use UKMNorge\Arrangement\Skjema\Write;
 use UKMNorge\OAuth2\HandleAPICall;
 
 require_once('UKM/Autoloader.php');
 
-$handleCall = new HandleAPICall(['skjema_id'], ['sporsmal'], ['POST'], false);
+$handleCall = new HandleAPICall(['skjema_id'], ['sporsmal', 'navn'], ['POST'], false);
 
 $skjemaId     = (int) $handleCall->getArgument('skjema_id');
 $sporsmalRaw  = $handleCall->getOptionalArgument('sporsmal');
+$navnRaw      = $handleCall->getOptionalArgument('navn');
 $arrangementId = (int) get_option('pl_id');
 
 // Finn skjemaet og valider at det tilhører dette arrangementet
 $skjema = _hentSkjemaForArrangement($skjemaId, $arrangementId, $handleCall);
+
+if ($navnRaw !== null) {
+    try {
+        Write::saveSkjemaNavn($skjema, trim((string) $navnRaw));
+        $skjema->setNavn(trim((string) $navnRaw));
+    } catch (Exception $e) {
+        $handleCall->sendErrorToClient($e->getMessage(), $e->getCode() ?: 500);
+    }
+}
 
 // Hent eksisterende spørsmål indeksert på ID for oppslag
 $eksisterende = [];
@@ -25,13 +34,24 @@ foreach ($skjema->getSporsmal()->getAll() as $s) {
 $savedSporsmal = [];
 
 if ($sporsmalRaw) {
-    $sporsmalListe = is_array($sporsmalRaw) ? $sporsmalRaw : json_decode($sporsmalRaw, true);
+    // WordPress slasher POST-verdier; json_decode feiler på f.eks. [{\"id\":...}] uten wp_unslash.
+    if (is_array($sporsmalRaw)) {
+        $sporsmalListe = $sporsmalRaw;
+    } else {
+        $json = (string) $sporsmalRaw;
+        if (function_exists('wp_unslash')) {
+            $json = wp_unslash($json);
+        } else {
+            $json = stripslashes($json);
+        }
+        $sporsmalListe = json_decode($json, true);
+    }
 
     if (is_array($sporsmalListe)) {
         foreach ($sporsmalListe as $p) {
             $id         = isset($p['id']) ? (int) $p['id'] : 0;
             $rekkefolge = isset($p['rekkefolge']) ? (int) $p['rekkefolge'] : 1;
-            $type       = $p['type'] ?? 'tekst';
+            $type       = isset($p['type']) ? (string) $p['type'] : 'kort_tekst';
             $tittel     = $p['tittel'] ?? '';
             $tekst      = $p['tekst'] ?? '';
 
@@ -68,6 +88,7 @@ if ($sporsmalRaw) {
 $handleCall->sendToClient([
     'success'        => true,
     'id'             => (int) $skjema->getId(),
+    'navn'           => $skjema->getNavn(),
     'arrangement_id' => (int) $skjema->getArrangementId(),
     'type'           => $skjema->getType(),
     'sporsmal'       => $savedSporsmal,
@@ -86,5 +107,12 @@ function _hentSkjemaForArrangement(int $skjemaId, int $arrangementId, HandleAPIC
             }
         } catch (Exception $e) {}
     }
+    try {
+        foreach (Skjema::getOppgaveSkjemaer($arrangementId) as $s) {
+            if ((int) $s->getId() === $skjemaId) {
+                return $s;
+            }
+        }
+    } catch (Exception $e) {}
     $handleCall->sendErrorToClient('Du har ikke tilgang til dette spørreskjemaet', 403);
 }

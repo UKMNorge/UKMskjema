@@ -32,6 +32,16 @@ foreach (['getArrangementSkjema', 'getDeltakerSkjema'] as $method) {
     } catch (Exception $e) {}
 }
 if (!$skjema) {
+    try {
+        foreach (Skjema::getOppgaveSkjemaer($arrangementId) as $s) {
+            if ((int) $s->getId() === $skjemaId) {
+                $skjema = $s;
+                break;
+            }
+        }
+    } catch (Exception $e) {}
+}
+if (!$skjema) {
     $handleCall->sendErrorToClient('Du har ikke tilgang til dette spørreskjemaet', 403);
 }
 

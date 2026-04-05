@@ -11,7 +11,7 @@ $handleCall    = new HandleAPICall(['skjema_id'], [], ['POST'], false);
 $skjemaId      = (int) $handleCall->getArgument('skjema_id');
 $arrangementId = (int) get_option('pl_id');
 
-// Valider tilgang
+// Valider tilgang: arrangement- og deltakerskjema (én hver), pluss evt. flere oppgave-skjemaer
 $skjema = null;
 foreach (['getArrangementSkjema', 'getDeltakerSkjema'] as $method) {
     try {
@@ -19,6 +19,17 @@ foreach (['getArrangementSkjema', 'getDeltakerSkjema'] as $method) {
         if ((int) $s->getId() === $skjemaId) {
             $skjema = $s;
             break;
+        }
+    } catch (Exception $e) {}
+}
+
+if (!$skjema) {
+    try {
+        foreach (Skjema::getOppgaveSkjemaer($arrangementId) as $s) {
+            if ((int) $s->getId() === $skjemaId) {
+                $skjema = $s;
+                break;
+            }
         }
     } catch (Exception $e) {}
 }

@@ -14,9 +14,9 @@ if (!$arrangementId) {
 
 $result = [];
 
-foreach (['arrangement' => 'getArrangementSkjema', 'person' => 'getDeltakerSkjema'] as $type => $method) {
-    try {
-        $skjema = Skjema::$method((int) $arrangementId);
+try {
+    $skjemaer = Skjema::getOppgaveSkjemaer((int) $arrangementId);
+    foreach ($skjemaer as $skjema) {
         $sporsmal = [];
         foreach ($skjema->getSporsmal()->getAll() as $s) {
             $sporsmal[] = [
@@ -30,14 +30,16 @@ foreach (['arrangement' => 'getArrangementSkjema', 'person' => 'getDeltakerSkjem
         }
         $result[] = [
             'id'             => (int) $skjema->getId(),
+            'navn'           => $skjema->getNavn(),
             'arrangement_id' => (int) $skjema->getArrangementId(),
             'type'           => $skjema->getType(),
             'sporsmal'       => $sporsmal,
         ];
-    } catch (Exception $e) {
-        // Skjema finnes ikke for denne typen — det er OK
     }
+} catch (Exception $e) {
+    // Skjema finnes ikke for denne typen — det er OK
 }
+
 
 $handleCall->sendToClient([
     'success'    => true,
