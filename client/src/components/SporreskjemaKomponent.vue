@@ -151,8 +151,7 @@
                                                         item-value="value"
                                                         label="Type *"
                                                         variant="outlined"
-                                                        class="v-text-field-arr-sys"
-                                                        density="compact"
+                                                        class="v-autocomplete-arr-sys"
                                                         hide-details="auto"
                                                     />
                                                 </div>
@@ -232,8 +231,7 @@
                                                                 item-value="value"
                                                                 label="Type"
                                                                 variant="outlined"
-                                                                class="v-text-field-arr-sys"
-                                                                density="compact"
+                                                                class="v-autocomplete-arr-sys"
                                                                 hide-details
                                                             />
                                                         </div>
@@ -259,7 +257,7 @@
                                                             </v-btn>
                                                         </div>
                                                     </div>
-                                                    <div v-if="s.tekst !== undefined" class="col-xs-12 nop-impt as-margin-top-space-1">
+                                                    <div v-if="s.tekst !== undefined" class="col-xs-12 nop-impt as-margin-top-space-2">
                                                         <v-text-field
                                                             v-model="s.tekst"
                                                             label="Hjelpetekst"
@@ -569,7 +567,7 @@ export default {
     background: var(--color-primary-grey-lightest);
     border-radius: var(--radius-normal) !important;
     border: solid 1px var(--color-primary-grey-light);
-    padding: calc(2 * var(--initial-space-box)) !important;
+    padding: calc(4 * var(--initial-space-box)) calc(2 * var(--initial-space-box)) !important;
 }
 /* Kilden mens man drar — tydelig «tom» plass */
 .sporsmal-item--source-drag {
