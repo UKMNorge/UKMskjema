@@ -68,6 +68,7 @@ if ($sporsmalRaw) {
                     $sporsmal->setType($type);
                     $sporsmal->setTittel($tittel);
                     $sporsmal->setTekst($tekst);
+                    $sporsmal->setRekkefolge($rekkefolge);
                     Write::saveSporsmal($sporsmal);
                 }
                 $savedSporsmal[] = [

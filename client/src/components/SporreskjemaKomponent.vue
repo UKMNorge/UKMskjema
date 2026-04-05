@@ -120,6 +120,9 @@
                                     <div class="col-xs-12 nop-impt as-margin-bottom-space-3 tab-section-header">
                                         <div class="tidspunkt-tittel">
                                             <h5>Spørsmål i skjemaet</h5>
+                                            <p v-if="skjema.sporsmal.length" class="sporsmal-dnd-hint item-id-label mt-1 mb-0">
+                                                Dra håndtaket til venstre for å endre rekkefølge. Husk «Lagre skjemaet».
+                                            </p>
                                         </div>
                                         <v-btn
                                             class="v-btn-as v-btn-bla"
@@ -199,94 +202,76 @@
                                         </div>
                                     </v-expand-transition>
 
-                                    <!-- Question list grouped by overskrift -->
+                                    <!-- Spørsmål (flat liste, dra for rekkefølge) -->
                                     <template v-if="skjema.sporsmal.length">
                                         <div
-                                            v-for="(gruppe, gi) in skjema.getSporsmalPerOverskrift()"
-                                            :key="gi"
-                                            class="col-xs-12 nop-impt as-margin-bottom-space-3"
+                                            v-for="(s, index) in skjema.sporsmal"
+                                            :key="sporsmalRowKey(s, index)"
+                                            class="col-xs-12 sporsmal-item as-margin-bottom-space-2 nop-impt-fix"
+                                            :class="{ 'sporsmal-item--source-drag': sporsmalDraggingIndex === index }"
+                                            @dragover.prevent="sporsmalDragOverRow($event, index)"
+                                            @drop.prevent="sporsmalDropOnRow(index)"
                                         >
-                                            <!-- Overskrift row -->
-                                            <div v-if="gruppe.overskrift" class="sporsmal-overskrift-row as-margin-bottom-space-2">
-                                                <div class="col-xs-10 nop-impt">
-                                                    <v-text-field
-                                                        v-model="gruppe.overskrift.tittel"
-                                                        label="Overskrift"
-                                                        variant="outlined"
-                                                        class="v-text-field-arr-sys"
-                                                        density="compact"
-                                                        hide-details
-                                                        prepend-inner-icon="mdi-format-header-2"
-                                                    />
+                                            <div class="col-xs-12 nop-impt d-flex align-start">
+                                                <div
+                                                    class="sporsmal-drag-handle mr-2 mt-1"
+                                                    title="Dra for å flytte"
+                                                    draggable="true"
+                                                    @dragstart="sporsmalDragStart($event, index)"
+                                                    @dragend="sporsmalDragEnd"
+                                                >
+                                                    <v-icon color="grey">mdi-drag</v-icon>
                                                 </div>
-                                                <div class="col-xs-1 nop-impt sporsmal-delete-col">
-                                                    <v-btn
-                                                        class="v-btn-as v-btn-error"
-                                                        icon
-                                                        variant="text"
-                                                        size="small"
-                                                        @click="gruppe.overskrift && fjernSporsmal(gruppe.overskrift)"
-                                                    >
-                                                        <v-icon>mdi-delete-outline</v-icon>
-                                                    </v-btn>
-                                                </div>
-                                            </div>
-
-                                            <!-- Questions under this overskrift -->
-                                            <div
-                                                v-for="(s, si) in gruppe.sporsmal"
-                                                :key="si"
-                                                class="col-xs-12 sporsmal-item as-margin-bottom-space-2 nop-impt-fix"
-                                                :class="{ 'sporsmal-item--indented': gruppe.overskrift }"
-                                            >
-                                                <div class="col-xs-12 nop-impt">
-                                                    <div class="col-xs-2 nop-impt as-margin-right-space-2">
-                                                        <v-select
-                                                            v-model="s.type"
-                                                            :items="sporsmalTypeOptions"
-                                                            item-title="label"
-                                                            item-value="value"
-                                                            label="Type"
-                                                            variant="outlined"
-                                                            class="v-text-field-arr-sys"
-                                                            density="compact"
-                                                            hide-details
-                                                        />
+                                                <div class="flex-grow-1 nop-impt">
+                                                    <div class="col-xs-12 nop-impt d-flex flex-wrap">
+                                                        <div class="col-xs-12 col-sm-3 nop-impt as-margin-right-space-2 mb-2 mb-sm-0">
+                                                            <v-select
+                                                                v-model="s.type"
+                                                                :items="sporsmalTypeOptions"
+                                                                item-title="label"
+                                                                item-value="value"
+                                                                label="Type"
+                                                                variant="outlined"
+                                                                class="v-text-field-arr-sys"
+                                                                density="compact"
+                                                                hide-details
+                                                            />
+                                                        </div>
+                                                        <div class="col-xs-12 col-sm-6 nop-impt flex-grow-1 as-margin-right-space-2 mb-2 mb-sm-0">
+                                                            <v-text-field
+                                                                v-model="s.tittel"
+                                                                label="Spørsmålstekst"
+                                                                variant="outlined"
+                                                                class="v-text-field-arr-sys"
+                                                                density="compact"
+                                                                hide-details
+                                                            />
+                                                        </div>
+                                                        <div class="col-xs-12 col-sm-2 nop-impt sporsmal-delete-col">
+                                                            <v-btn
+                                                                class="v-btn-as v-btn-error"
+                                                                icon
+                                                                variant="text"
+                                                                size="small"
+                                                                @click="fjernSporsmal(s)"
+                                                            >
+                                                                <v-icon>mdi-delete-outline</v-icon>
+                                                            </v-btn>
+                                                        </div>
                                                     </div>
-                                                    <div class="col-xs-6 nop-impt as-margin-right-space-2">
+                                                    <div v-if="s.tekst !== undefined" class="col-xs-12 nop-impt as-margin-top-space-1">
                                                         <v-text-field
-                                                            v-model="s.tittel"
-                                                            label="Spørsmålstekst"
+                                                            v-model="s.tekst"
+                                                            label="Hjelpetekst"
                                                             variant="outlined"
                                                             class="v-text-field-arr-sys"
                                                             density="compact"
                                                             hide-details
                                                         />
                                                     </div>
-                                                    <div class="col-xs-1 nop-impt sporsmal-delete-col">
-                                                        <v-btn
-                                                            class="v-btn-as v-btn-error"
-                                                            icon
-                                                            variant="text"
-                                                            size="small"
-                                                            @click="fjernSporsmal(s)"
-                                                        >
-                                                            <v-icon>mdi-delete-outline</v-icon>
-                                                        </v-btn>
+                                                    <div v-if="s.id" class="col-xs-12 nop-impt as-margin-top-space-1 item-id-label">
+                                                        ID #{{ s.id }} · Rekkefølge {{ s.rekkefolge }}
                                                     </div>
-                                                </div>
-                                                <div v-if="s.tekst !== undefined" class="col-xs-10 nop-impt as-margin-top-space-1">
-                                                    <v-text-field
-                                                        v-model="s.tekst"
-                                                        label="Hjelpetekst"
-                                                        variant="outlined"
-                                                        class="v-text-field-arr-sys"
-                                                        density="compact"
-                                                        hide-details
-                                                    />
-                                                </div>
-                                                <div v-if="s.id" class="col-xs-12 nop-impt as-margin-top-space-1 item-id-label">
-                                                    ID #{{ s.id }} · Rekkefølge {{ s.rekkefolge }}
                                                 </div>
                                             </div>
                                         </div>
@@ -392,11 +377,19 @@ export default {
 
     emits: ['opprett', 'lagre', 'fjern', 'slett', 'feil'],
 
+    beforeUnmount() {
+        this.sporsmalRemoveDragGhost();
+    },
+
     data() {
         return {
             bekreftSlett:       false,
             visNyttSporsmalForm: false,
             sporsmalLoading:    false,
+            /** HTML5 DnD: kildeindeks i skjema.sporsmal, null når ikke aktiv */
+            sporsmalDragFromIndex: null as number | null,
+            /** Rad som visuelt «løftes» (klasse på kilden) */
+            sporsmalDraggingIndex: null as number | null,
             nyttSporsmal: { type: 'kort_tekst', tittel: '', tekst: '' } as { type: string; tittel: string; tekst: string },
 
             sporsmalTypeOptions: [
@@ -409,6 +402,90 @@ export default {
     },
 
     methods: {
+        sporsmalRowKey(s: SporsmalData, index: number): string {
+            return s.id > 0 ? `id-${s.id}` : `ny-${index}-${s.tittel}`;
+        },
+
+        sporsmalRemoveDragGhost(): void {
+            const el = (this as unknown as { _sporsmalDragGhostEl: HTMLElement | null })._sporsmalDragGhostEl;
+            if (el?.parentNode) {
+                el.parentNode.removeChild(el);
+            }
+            (this as unknown as { _sporsmalDragGhostEl: HTMLElement | null })._sporsmalDragGhostEl = null;
+        },
+
+        sporsmalDragStart(e: DragEvent, index: number): void {
+            this.sporsmalDragFromIndex = index;
+            this.sporsmalDraggingIndex = index;
+
+            const handle = e.currentTarget as HTMLElement | null;
+            const row = handle?.closest('.sporsmal-item') as HTMLElement | null;
+            const dt = e.dataTransfer;
+            if (!dt) {
+                return;
+            }
+            dt.effectAllowed = 'move';
+            dt.setData('text/plain', String(index));
+
+            if (!row) {
+                return;
+            }
+
+            const rect = row.getBoundingClientRect();
+            const clone = row.cloneNode(true) as HTMLElement;
+            clone.classList.add('sporsmal-item--drag-ghost');
+            clone.style.boxSizing = 'border-box';
+            clone.style.width = `${rect.width}px`;
+            clone.style.position = 'fixed';
+            clone.style.left = '-10000px';
+            clone.style.top = '0';
+            clone.style.zIndex = '100000';
+            clone.style.pointerEvents = 'none';
+            clone.style.margin = '0';
+            document.body.appendChild(clone);
+
+            const offsetX = Math.round(e.clientX - rect.left);
+            const offsetY = Math.round(e.clientY - rect.top);
+            dt.setDragImage(clone, offsetX, offsetY);
+
+            (this as unknown as { _sporsmalDragGhostEl: HTMLElement | null })._sporsmalDragGhostEl = clone;
+        },
+
+        sporsmalDragEnd(): void {
+            this.sporsmalRemoveDragGhost();
+            this.sporsmalDragFromIndex = null;
+            this.sporsmalDraggingIndex = null;
+        },
+
+        sporsmalDragOverRow(e: DragEvent, _index: number): void {
+            if (e.dataTransfer) {
+                e.dataTransfer.dropEffect = 'move';
+            }
+        },
+
+        sporsmalDropOnRow(dropIndex: number): void {
+            const from = this.sporsmalDragFromIndex;
+            if (from === null || from === dropIndex) {
+                this.sporsmalDragEnd();
+                return;
+            }
+            const arr = this.skjema.sporsmal;
+            if (from < 0 || from >= arr.length || dropIndex < 0 || dropIndex > arr.length) {
+                this.sporsmalDragEnd();
+                return;
+            }
+            const [moved] = arr.splice(from, 1);
+            let insertAt = dropIndex;
+            if (from < dropIndex) {
+                insertAt = dropIndex - 1;
+            }
+            arr.splice(insertAt, 0, moved);
+            arr.forEach((row, i) => {
+                row.rekkefolge = i + 1;
+            });
+            this.sporsmalDragEnd();
+        },
+
         leggTilSporsmal(): void {
             if (!this.nyttSporsmal.tittel.trim()) return;
             const nextRekkefolge = this.skjema.sporsmal.length + 1;
@@ -478,11 +555,14 @@ export default {
     justify-content: space-between;
 }
 
-.sporsmal-overskrift-row {
-    display: flex;
-    align-items: center;
-    border-bottom: 2px solid var(--color-primary-grey-light);
-    padding-bottom: calc(1 * var(--initial-space-box));
+.sporsmal-drag-handle {
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    flex-shrink: 0;
+}
+.sporsmal-drag-handle:active {
+    cursor: grabbing;
 }
 
 .sporsmal-item {
@@ -490,6 +570,17 @@ export default {
     border-radius: var(--radius-normal) !important;
     border: solid 1px var(--color-primary-grey-light);
     padding: calc(2 * var(--initial-space-box)) !important;
+}
+/* Kilden mens man drar — tydelig «tom» plass */
+.sporsmal-item--source-drag {
+    opacity: 0.45;
+    border-style: dashed;
+}
+/* Forhåndsvisning under pekeren (setDragImage) */
+.sporsmal-item--drag-ghost {
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.14);
+    border: solid 1px var(--color-primary-grey-light) !important;
+    background: var(--color-primary-grey-lightest) !important;
 }
 .sporsmal-item--indented {
     margin-left: calc(3 * var(--initial-space-box));
