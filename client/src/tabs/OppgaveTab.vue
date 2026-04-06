@@ -97,24 +97,61 @@
             </div>
             <div class="as-margin-top-space-4">
                 <p class="kjede-tittel">Skjemarekkefølge</p>
-                <ol v-if="o.skjema_kjede.length" class="kjede-liste">
-                    <li
-                        v-for="ledd in o.skjema_kjede"
+                <p v-if="o.skjema_kjede.length > 0" class="kjede-hjelp">
+                    Dra et skjema for å flytte det. Slipp på et annet for å bytte plass.
+                </p>
+                <div
+                    v-if="o.skjema_kjede.length"
+                    class="kjede-baand"
+                    :class="{ 'kjede-baand--busy': reorderOppgaveId === o.id }"
+                >
+                    <div
+                        v-for="(ledd, index) in o.skjema_kjede"
                         :key="ledd.id"
-                        class="kjede-rad"
+                        class="kjede-gruppe"
                     >
-                        <span>{{ skjemaTypeLabel(ledd.skjema_type) }}: {{ skjemaNavn(ledd) }}</span>
-                        <v-btn
-                            size="x-small"
-                            variant="text"
-                            color="error"
-                            :loading="slettLeddId === ledd.id"
-                            @click="fjernLedd(o, ledd)"
+                        <span
+                            v-if="index > 0"
+                            class="kjede-separator"
+                            aria-hidden="true"
+                        >→</span>
+                        <div
+                            class="kjede-chip"
+                            :class="{
+                                'kjede-chip--dragging': dragKilde?.radId === ledd.id,
+                                'kjede-chip--over': dragOverRadId === ledd.id && dragKilde?.radId !== ledd.id,
+                                'chip-sporsmal': ledd.skjema_type === 'ukm_videresending_skjema',
+                                'chip-samtykke': ledd.skjema_type === 'samtykkeskjema'
+                            }"
+                            draggable="true"
+                            @dragstart="onKjedeDragStart(o, ledd, $event)"
+                            @dragend="onKjedeDragEnd"
+                            @dragover.prevent="onKjedeDragOver(o, ledd, $event)"
+                            @dragleave="onKjedeDragLeave(ledd)"
+                            @drop.prevent="onKjedeDrop(o, ledd, $event)"
                         >
-                            Fjern
-                        </v-btn>
-                    </li>
-                </ol>
+                            <v-icon size="small" class="kjede-chip__grip" aria-hidden="true">
+                                mdi-drag-vertical
+                            </v-icon>
+                            <span class="kjede-chip__tekst" :title="skjemaFullTekst(ledd)">
+                                <span class="kjede-chip__type">{{ skjemaTypeLabel(ledd.skjema_type) }}</span>
+                                <span class="kjede-chip__navn">{{ skjemaNavn(ledd) }}</span>
+                            </span>
+                            <v-btn
+                                icon
+                                size="x-small"
+                                variant="text"
+                                color="error"
+                                class="kjede-chip__fjern"
+                                :loading="slettLeddId === ledd.id"
+                                tabindex="-1"
+                                @click.stop="fjernLedd(o, ledd)"
+                            >
+                                <v-icon size="small">mdi-close</v-icon>
+                            </v-btn>
+                        </div>
+                    </div>
+                </div>
                 <p v-else class="tom-kjede">Ingen skjema i kjeden ennå.</p>
 
                 <div class="legg-til-rad as-margin-top-space-3">
@@ -125,9 +162,8 @@
                         item-value="value"
                         label="Skjematype"
                         variant="outlined"
-                        density="compact"
                         hide-details="auto"
-                        class="felt"
+                        class="felt v-autocomplete-arr-sys"
                         @update:model-value="nullstillSkjemaId(o.id)"
                     />
                     <v-select
@@ -137,21 +173,23 @@
                         item-value="id"
                         label="Skjema"
                         variant="outlined"
-                        density="compact"
                         hide-details="auto"
                         :disabled="!appendModel[o.id].skjemaType"
-                        class="felt"
+                        class="felt v-autocomplete-arr-sys"
                     />
-                    <v-btn
-                        class="v-btn-as"
-                        color="primary"
-                        variant="flat"
-                        :loading="appendLoadingId === o.id"
-                        :disabled="!kanLeggeTil(o.id)"
-                        @click="leggTilLedd(o)"
-                    >
-                        Legg til i kjeden
-                    </v-btn>
+                    <div class="as-margin-auto">
+                        <v-btn
+                            class="v-btn-as v-btn-success as-margin-right-space-2"
+                            rounded="large"
+                            size="large"
+                            variant="outlined"
+                            :loading="appendLoadingId === o.id"
+                            :disabled="!kanLeggeTil(o.id)"
+                            @click="leggTilLedd(o)"
+                        >
+                            <v-icon>mdi-plus</v-icon>
+                        </v-btn>
+                    </div>
                 </div>
             </div>
         </div>
@@ -166,6 +204,7 @@ import {
     slettOppgave as apiSlettOppgave,
     leggTilSkjemaIKjede,
     fjernSkjemaFraKjede,
+    reorderOppgaveKjede,
     type OppgaveData,
     type OppgaveSkjemaKjedeItem,
 } from '../services/oppgaveService';
@@ -189,6 +228,9 @@ export default {
             appendLoadingId: null as number | null,
             slettOppgaveId: null as number | null,
             slettLeddId: null as number | null,
+            reorderOppgaveId: null as number | null,
+            dragKilde: null as { oppgaveId: number; radId: number } | null,
+            dragOverRadId: null as number | null,
             nyOppgave: {
                 navn: '',
                 beskrivelse: '',
@@ -231,6 +273,81 @@ export default {
             const liste = this.skjemaValg[ledd.skjema_type] ?? [];
             const funnet = liste.find((x) => x.id === ledd.skjema_id);
             return funnet ? funnet.navn : `#${ledd.skjema_id}`;
+        },
+
+        skjemaFullTekst(ledd: OppgaveSkjemaKjedeItem): string {
+            return `${this.skjemaTypeLabel(ledd.skjema_type)}: ${this.skjemaNavn(ledd)}`;
+        },
+
+        onKjedeDragStart(o: OppgaveData, ledd: OppgaveSkjemaKjedeItem, e: DragEvent): void {
+            if (this.reorderOppgaveId === o.id) {
+                e.preventDefault();
+                return;
+            }
+            this.dragKilde = { oppgaveId: o.id, radId: ledd.id };
+            if (e.dataTransfer) {
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', String(ledd.id));
+            }
+        },
+
+        onKjedeDragEnd(): void {
+            this.dragKilde = null;
+            this.dragOverRadId = null;
+        },
+
+        onKjedeDragOver(o: OppgaveData, ledd: OppgaveSkjemaKjedeItem, e: DragEvent): void {
+            if (!this.dragKilde || this.dragKilde.oppgaveId !== o.id) {
+                return;
+            }
+            if (e.dataTransfer) {
+                e.dataTransfer.dropEffect = 'move';
+            }
+            this.dragOverRadId = ledd.id;
+        },
+
+        onKjedeDragLeave(ledd: OppgaveSkjemaKjedeItem): void {
+            if (this.dragOverRadId === ledd.id) {
+                this.dragOverRadId = null;
+            }
+        },
+
+        async onKjedeDrop(o: OppgaveData, targetLedd: OppgaveSkjemaKjedeItem, e: DragEvent): Promise<void> {
+            const kilde = this.dragKilde;
+            this.dragOverRadId = null;
+            if (!kilde || kilde.oppgaveId !== o.id) {
+                return;
+            }
+            const fromId = kilde.radId;
+            const toId = targetLedd.id;
+            if (fromId === toId) {
+                return;
+            }
+
+            const oIdx = this.oppgaver.findIndex((x) => x.id === o.id);
+            if (oIdx === -1) {
+                return;
+            }
+            const kjede = [...this.oppgaver[oIdx].skjema_kjede];
+            const iFrom = kjede.findIndex((x) => x.id === fromId);
+            const iTo = kjede.findIndex((x) => x.id === toId);
+            if (iFrom === -1 || iTo === -1) {
+                return;
+            }
+            const [flyttet] = kjede.splice(iFrom, 1);
+            kjede.splice(iTo, 0, flyttet);
+            const radIds = kjede.map((x) => x.id);
+
+            this.reorderOppgaveId = o.id;
+            try {
+                const oppdatert = await reorderOppgaveKjede(o.id, radIds);
+                this.oppgaver[oIdx].skjema_kjede = oppdatert;
+            } catch (err: any) {
+                this.$emit('feil', err.message ?? 'Kunne ikke endre rekkefølge');
+            } finally {
+                this.reorderOppgaveId = null;
+                this.dragKilde = null;
+            }
         },
 
         nullstillSkjemaId(oppgaveId: number): void {
@@ -373,18 +490,95 @@ export default {
 }
 .kjede-tittel {
     font-weight: 600;
-    margin-bottom: 0.5rem;
-}
-.kjede-liste {
-    margin: 0;
-    padding-left: 1.25rem;
-}
-.kjede-rad {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
     margin-bottom: 0.35rem;
+}
+.kjede-hjelp {
+    font-size: 0.875rem;
+    color: var(--color-primary-grey-dark, #666);
+    margin-bottom: 0.75rem;
+    max-width: 40rem;
+}
+.kjede-baand {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.15rem;
+}
+.kjede-gruppe {
+    display: contents;
+    align-items: center;
+    gap: 0.15rem;
+}
+.kjede-baand--busy {
+    opacity: 0.65;
+    pointer-events: none;
+}
+.kjede-separator {
+    color: rgba(0, 0, 0, 0.4);
+    font-weight: 700;
+    font-size: 1rem;
+    user-select: none;
+    line-height: 1;
+    padding: 0 0.1rem;
+}
+.kjede-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    max-width: min(100%, 17.5rem);
+    padding: 0.3rem 0.35rem 0.3rem 0.25rem;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: var(--radius-high, 10px);
+    background: rgba(255, 255, 255, 0.95);
+    cursor: grab;
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease,
+        opacity 0.15s ease;
+}
+.kjede-chip:active {
+    cursor: grabbing;
+}
+.kjede-chip--dragging {
+    opacity: 0.45;
+}
+.kjede-chip--over {
+    border-color: rgb(var(--v-theme-primary, 25 118 210));
+    box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.22);
+}
+.kjede-chip.chip-sporsmal {
+    background-color: var(--as-color-primary-warning-lightest);
+}
+.kjede-chip.chip-samtykke {
+    background-color: var(--as-color-primary-info-lightest);
+}
+.kjede-chip__grip {
+    opacity: 0.5;
+    flex-shrink: 0;
+}
+.kjede-chip__tekst {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+    line-height: 1.2;
+}
+.kjede-chip__type {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 0.65;
+}
+.kjede-chip__navn {
+    font-size: 12px;
+    font-weight: 800;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.kjede-chip__fjern {
+    flex-shrink: 0;
 }
 .tom-kjede {
     color: var(--color-primary-grey-dark, #666);

@@ -113,3 +113,24 @@ export async function fjernSkjemaFraKjede(oppgaveSkjemaRadId: number): Promise<O
 
     return res.skjema_kjede as OppgaveSkjemaKjedeItem[];
 }
+
+/**
+ * Ny rekkefølge som liste av `oppgave_skjema.id` (alle ledd må være med).
+ */
+export async function reorderOppgaveKjede(
+    oppgaveId: number,
+    radIds: number[]
+): Promise<OppgaveSkjemaKjedeItem[]> {
+    const res = await getSpaInteraction().runAjaxCall('/', 'POST', {
+        action: 'UKMskjema_ajax',
+        controller: 'oppgave/reorderOppgaveSkjema',
+        oppgave_id: oppgaveId,
+        rad_ids: JSON.stringify(radIds),
+    });
+
+    if (!res.success) {
+        throw new Error(res.message ?? res.result ?? 'Kunne ikke endre rekkefølge');
+    }
+
+    return res.skjema_kjede as OppgaveSkjemaKjedeItem[];
+}
