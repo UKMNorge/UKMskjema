@@ -12,6 +12,7 @@
             >
                 <v-tab text="Samtykkeskjemaer" />
                 <v-tab text="Spørreskjemaer" />
+                <v-tab text="Oppgaver" />
             </v-tabs>
         </div>
 
@@ -39,6 +40,10 @@
                             <SporreskjemaTab @feil="feil = $event" />
                         </v-tabs-window-item>
 
+                        <v-tabs-window-item>
+                            <OppgaveTab @feil="feil = $event" />
+                        </v-tabs-window-item>
+
                     </v-tabs-window>
                 </div>
 
@@ -52,6 +57,7 @@ import { watch } from 'vue';
 import { Director } from 'ukm-spa/Director';
 import SamtykkeskjemaTab from './tabs/SamtykkeskjemaTab.vue';
 import SporreskjemaTab from './tabs/SporreskjemaTab.vue';
+import OppgaveTab from './tabs/OppgaveTab.vue';
 
 const director = new Director();
 
@@ -59,6 +65,7 @@ export default {
     components: {
         SamtykkeskjemaTab,
         SporreskjemaTab,
+        OppgaveTab,
     },
 
     data() {

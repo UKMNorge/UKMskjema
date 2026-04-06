@@ -72,7 +72,7 @@ class UKMskjema extends Modul
      */
     public static function ajax()
     {   
-        $allowed_namespaces = ['samtykkeskjema', 'sporreskjema'];
+        $allowed_namespaces = ['samtykkeskjema', 'sporreskjema', 'oppgave'];
 
         $subAction = $_REQUEST['controller'] ?? '';
 
