@@ -32,7 +32,7 @@
                     :items="oppgaveTypeValg"
                     item-title="label"
                     item-value="value"
-                    label="Type (valgfritt)"
+                    label="Type"
                     variant="outlined"
                     density="comfortable"
                     clearable
@@ -212,6 +212,8 @@ import {
 const SK_SAMTYKKE = 'samtykkeskjema';
 const SK_VIDERESENDING = 'ukm_videresending_skjema';
 const OPP_TYPE_VIDERESENDING = 'videresending';
+const OPP_TYPE_REISELEDERE = 'reiseledere';
+const OPP_TYPE_FYLKESKONTAKTER = 'fylkeskontakter';
 
 export default {
     components: { PermanentNotification },
@@ -239,6 +241,8 @@ export default {
             appendModel: {} as Record<number, { skjemaType: string | null; skjemaId: number | null }>,
             oppgaveTypeValg: [
                 { label: 'Videresending', value: OPP_TYPE_VIDERESENDING },
+                { label: 'Reiseledere', value: OPP_TYPE_REISELEDERE },
+                { label: 'Fylkeskontakter', value: OPP_TYPE_FYLKESKONTAKTER },
             ],
             skjemaTypeValg: [
                 { label: 'Samtykkeskjema', value: SK_SAMTYKKE },
@@ -255,6 +259,12 @@ export default {
         typeLabel(type: string): string {
             if (type === OPP_TYPE_VIDERESENDING) {
                 return 'Videresending';
+            }
+            if (type === OPP_TYPE_REISELEDERE) {
+                return 'Reiseledere';
+            }
+            if (type === OPP_TYPE_FYLKESKONTAKTER) {
+                return 'Fylkeskontakter';
             }
             return type;
         },

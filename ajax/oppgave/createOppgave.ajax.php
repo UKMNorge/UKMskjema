@@ -20,7 +20,7 @@ if ($name === '') {
 
 $typeRaw = $handleCall->getOptionalArgument('type');
 $type = ($typeRaw === null || $typeRaw === '') ? null : (string) $typeRaw;
-if ($type !== null && $type !== Oppgave::TYPE_VIDERESENDING) {
+if ($type !== null && $type !== Oppgave::TYPE_VIDERESENDING && $type !== Oppgave::TYPE_REISELEDERE && $type !== Oppgave::TYPE_FYLKESKONTAKTER) {
     $handleCall->sendErrorToClient('Ugyldig oppgavetype.', 400);
 }
 
