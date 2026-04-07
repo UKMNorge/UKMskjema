@@ -79,16 +79,32 @@
         >
             <div class="d-flex flex-wrap align-center justify-space-between gap-2">
                 <h4>{{ o.name }}</h4>
-                <v-btn
-                    class="v-btn-as v-btn-error"
-                    icon
-                    variant="text"
-                    size="small"
-                    :loading="slettOppgaveId === o.id"
-                    @click="bekreftSlettOppgave(o)"
-                >
-                    <v-icon>mdi-delete-outline</v-icon>
-                </v-btn>
+                <div class="oppgave-actions">
+                    <v-btn
+                        class="v-btn-as v-btn-hvit"
+                        variant="outlined"
+                        size="small"
+                        rounded="large"
+                        :loading="lockOppgaveId === o.id"
+                        @click="toggleLock(o)"
+                    >
+                        <v-icon class="as-margin-right-space-1" size="small">
+                            {{ o.locked ? 'mdi-lock-open-variant-outline' : 'mdi-lock-outline' }}
+                        </v-icon>
+                        {{ o.locked ? 'Låst' : 'Lås' }}
+                    </v-btn>
+
+                    <v-btn
+                        class="v-btn-as v-btn-error"
+                        icon
+                        variant="text"
+                        size="small"
+                        :loading="slettOppgaveId === o.id"
+                        @click="bekreftSlettOppgave(o)"
+                    >
+                        <v-icon>mdi-delete-outline</v-icon>
+                    </v-btn>
+                </div>
             </div>
             <div v-if="o.type || o.description">
                 <span v-if="o.type">{{ typeLabel(o.type) }}</span>
@@ -123,7 +139,7 @@
                                 'chip-sporsmal': ledd.skjema_type === 'ukm_videresending_skjema',
                                 'chip-samtykke': ledd.skjema_type === 'samtykkeskjema'
                             }"
-                            draggable="true"
+                            :draggable="!o.locked"
                             @dragstart="onKjedeDragStart(o, ledd, $event)"
                             @dragend="onKjedeDragEnd"
                             @dragover.prevent="onKjedeDragOver(o, ledd, $event)"
@@ -184,7 +200,7 @@
                             size="large"
                             variant="outlined"
                             :loading="appendLoadingId === o.id"
-                            :disabled="!kanLeggeTil(o.id)"
+                            :disabled="o.locked || !kanLeggeTil(o.id)"
                             @click="leggTilLedd(o)"
                         >
                             <v-icon>mdi-plus</v-icon>
@@ -205,6 +221,7 @@ import {
     leggTilSkjemaIKjede,
     fjernSkjemaFraKjede,
     reorderOppgaveKjede,
+    toggleOppgaveLock,
     type OppgaveData,
     type OppgaveSkjemaKjedeItem,
 } from '../services/oppgaveService';
@@ -230,6 +247,7 @@ export default {
             appendLoadingId: null as number | null,
             slettOppgaveId: null as number | null,
             slettLeddId: null as number | null,
+            lockOppgaveId: null as number | null,
             reorderOppgaveId: null as number | null,
             dragKilde: null as { oppgaveId: number; radId: number } | null,
             dragOverRadId: null as number | null,
@@ -290,6 +308,10 @@ export default {
         },
 
         onKjedeDragStart(o: OppgaveData, ledd: OppgaveSkjemaKjedeItem, e: DragEvent): void {
+            if (o.locked) {
+                e.preventDefault();
+                return;
+            }
             if (this.reorderOppgaveId === o.id) {
                 e.preventDefault();
                 return;
@@ -323,6 +345,9 @@ export default {
         },
 
         async onKjedeDrop(o: OppgaveData, targetLedd: OppgaveSkjemaKjedeItem, e: DragEvent): Promise<void> {
+            if (o.locked) {
+                return;
+            }
             const kilde = this.dragKilde;
             this.dragOverRadId = null;
             if (!kilde || kilde.oppgaveId !== o.id) {
@@ -401,15 +426,44 @@ export default {
             }
         },
 
+        async toggleLock(o: OppgaveData): Promise<void> {
+            this.lockOppgaveId = o.id;
+            try {
+                const ny = await toggleOppgaveLock(o.id, !o.locked);
+                const idx = this.oppgaver.findIndex((x) => x.id === o.id);
+                if (idx !== -1) {
+                    this.oppgaver[idx].locked = ny;
+                }
+            } catch (e: any) {
+                this.$emit('feil', e.message ?? 'Kunne ikke oppdatere lås');
+            } finally {
+                this.lockOppgaveId = null;
+            }
+        },
+
         async opprettOppgave(): Promise<void> {
             const navn = this.nyOppgave.navn.trim();
             if (!navn) {
                 this.$emit('feil', 'Navn er påkrevd.');
                 return;
             }
+            const type = this.nyOppgave.type || null;
+
+            // Allow only one oppgave per type (if type is set)
+            if (type) {
+                const eksisterende = this.oppgaver.find(o => o.type === type);
+                if (eksisterende) {
+                    const typeEtikett = this.typeLabel ? this.typeLabel(type) : type;
+                    this.$emit(
+                        'feil',
+                        `Det finnes allerede en oppgave av typen «${typeEtikett}».`
+                    );
+                    return;
+                }
+            }
+
             this.opprettLoading = true;
             try {
-                const type = this.nyOppgave.type || null;
                 const besk = this.nyOppgave.beskrivelse.trim() || null;
                 await apiOpprettOppgave(navn, type, besk);
                 this.nyOppgave = { navn: '', beskrivelse: '', type: null };
@@ -442,6 +496,10 @@ export default {
         },
 
         async leggTilLedd(o: OppgaveData): Promise<void> {
+            if (o.locked) {
+                this.$emit('feil', 'Oppgaven er låst.');
+                return;
+            }
             this.sikreAppendModel(o.id);
             const m = this.appendModel[o.id];
             if (!this.kanLeggeTil(o.id) || !m.skjemaType || m.skjemaId == null) {
@@ -463,6 +521,10 @@ export default {
         },
 
         async fjernLedd(o: OppgaveData, ledd: OppgaveSkjemaKjedeItem): Promise<void> {
+            if (o.locked) {
+                this.$emit('feil', 'Oppgaven er låst.');
+                return;
+            }
             this.slettLeddId = ledd.id;
             try {
                 const kjede = await fjernSkjemaFraKjede(ledd.id);
@@ -522,6 +584,11 @@ export default {
 .kjede-baand--busy {
     opacity: 0.65;
     pointer-events: none;
+}
+.oppgave-actions {
+    display: flex;
+    align-items: center;
+    gap: calc(1 * var(--initial-space-box));
 }
 .kjede-separator {
     color: rgba(0, 0, 0, 0.4);

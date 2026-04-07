@@ -35,6 +35,7 @@ try {
             'type'        => $oppgave->getType(),
             'pl_id'       => $oppgave->getPlId(),
             'description' => $oppgave->getDescription(),
+            'locked'      => $oppgave->isLocked(),
             'skjema_kjede'=> $kjede,
         ];
     }

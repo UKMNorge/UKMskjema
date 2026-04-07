@@ -13,6 +13,7 @@ export interface OppgaveData {
     type: string | null;
     pl_id: number;
     description: string | null;
+    locked: boolean;
     skjema_kjede: OppgaveSkjemaKjedeItem[];
 }
 
@@ -133,4 +134,19 @@ export async function reorderOppgaveKjede(
     }
 
     return res.skjema_kjede as OppgaveSkjemaKjedeItem[];
+}
+
+export async function toggleOppgaveLock(oppgaveId: number, locked: boolean): Promise<boolean> {
+    const res = await getSpaInteraction().runAjaxCall('/', 'POST', {
+        action: 'UKMskjema_ajax',
+        controller: 'oppgave/toggleLock',
+        oppgave_id: oppgaveId,
+        locked: locked ? 1 : 0,
+    });
+
+    if (!res.success) {
+        throw new Error(res.message ?? res.result ?? 'Kunne ikke oppdatere lås');
+    }
+
+    return !!res.locked;
 }
