@@ -219,7 +219,10 @@
                                                     @dragstart="sporsmalDragStart($event, index)"
                                                     @dragend="sporsmalDragEnd"
                                                 >
-                                                    <v-icon color="grey">mdi-drag</v-icon>
+                                                    <div class="as-display-flex">
+                                                        <h5 class="as-margin-auto-impt">{{ index + 1 }}</h5>
+                                                        <v-icon color="grey">mdi-drag</v-icon>
+                                                    </div>
                                                 </div>
                                                 <div class="flex-grow-1 nop-impt">
                                                     <div class="col-xs-12 nop-impt d-flex flex-wrap">
