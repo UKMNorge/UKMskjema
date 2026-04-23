@@ -391,10 +391,11 @@ export default {
             nyttSporsmal: { type: 'kort_tekst', tittel: '', tekst: '' } as { type: string; tittel: string; tekst: string },
 
             sporsmalTypeOptions: [
-                { value: 'kontakt',    label: 'Kontaktinformasjon (navn, epost, mobil)' },
-                { value: 'janei',      label: 'Ja / nei' },
-                { value: 'kort_tekst', label: 'Kort tekst' },
-                { value: 'lang_tekst', label: 'Lang tekst' },
+                { value: 'kontakt',       label: 'Kontaktinformasjon (navn, epost, mobil)' },
+                { value: 'janei',         label: 'Ja / nei' },
+                { value: 'kort_tekst',    label: 'Kort tekst' },
+                { value: 'lang_tekst',    label: 'Lang tekst' },
+                { value: 'filopplasting', label: 'Filopplasting' },
             ],
         };
     },
