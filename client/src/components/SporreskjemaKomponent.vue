@@ -399,6 +399,7 @@ export default {
                 { value: 'kort_tekst',    label: 'Kort tekst' },
                 { value: 'lang_tekst',    label: 'Lang tekst' },
                 { value: 'filopplasting', label: 'Filopplasting' },
+                { value: 'intoleranser', label: 'Intoleranser / allergier' },
             ],
         };
     },
