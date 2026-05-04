@@ -400,6 +400,7 @@ export default {
                 { value: 'lang_tekst',    label: 'Lang tekst' },
                 { value: 'filopplasting', label: 'Filopplasting' },
                 { value: 'intoleranser', label: 'Intoleranser / allergier' },
+                { value: 'kontaktajourfore', label: 'Bekreftelse av brukerdata' },
             ],
         };
     },
