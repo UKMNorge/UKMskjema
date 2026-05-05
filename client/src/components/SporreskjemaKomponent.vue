@@ -401,6 +401,7 @@ export default {
                 { value: 'filopplasting', label: 'Filopplasting' },
                 { value: 'intoleranser', label: 'Intoleranser / allergier' },
                 { value: 'kontaktajourfore', label: 'Bekreftelse av brukerdata' },
+                { value: 'innslagdatabekreftelse', label: 'Bekreftelse av innslagsdata' },
             ],
         };
     },
