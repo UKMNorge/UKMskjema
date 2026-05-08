@@ -8,7 +8,7 @@ require_once('UKM/Autoloader.php');
 
 $handleCall = new HandleAPICall(
     ['skjema_id', 'type', 'tittel'],
-    ['sporsmal_id', 'rekkefolge', 'tekst'],
+    ['sporsmal_id', 'rekkefolge', 'tekst', 'is_required'],
     ['POST'],
     false
 );
@@ -18,6 +18,7 @@ $sporsmalId    = (int) ($handleCall->getOptionalArgument('sporsmal_id') ?? 0);
 $type          = $handleCall->getArgument('type');
 $tittel        = $handleCall->getArgument('tittel');
 $tekst         = $handleCall->getOptionalArgument('tekst') ?? '';
+$isRequired    = $handleCall->getOptionalArgument('is_required');
 $arrangementId = (int) get_option('pl_id');
 
 // Valider tilgang til skjemaet
@@ -49,6 +50,10 @@ try {
     if ($sporsmalId === 0) {
         $rekkefolge = (int) ($handleCall->getOptionalArgument('rekkefolge') ?? ($skjema->getSporsmal()->getAntall() + 1));
         $sporsmal   = Write::createSporsmal($skjema, $rekkefolge, $type, $tittel, $tekst);
+        if ($isRequired !== null) {
+            $sporsmal->setIsRequired((bool) $isRequired);
+            Write::saveSporsmal($sporsmal);
+        }
     } else {
         // Finn eksisterende spørsmål
         $sporsmal = null;
@@ -64,6 +69,9 @@ try {
         $sporsmal->setType($type);
         $sporsmal->setTittel($tittel);
         $sporsmal->setTekst($tekst);
+        if ($isRequired !== null) {
+            $sporsmal->setIsRequired((bool) $isRequired);
+        }
         if ($handleCall->getOptionalArgument('rekkefolge') !== null) {
             // Rekkefolge can not be set via a setter in the current model;
             // pass it through on create only. Reordering is handled by saveSporreskjema.
@@ -82,4 +90,5 @@ $handleCall->sendToClient([
     'type'       => $sporsmal->getType(),
     'tittel'     => $sporsmal->getTittel(),
     'tekst'      => $sporsmal->getTekst(),
+    'is_required'=> (bool) $sporsmal->isRequired(),
 ]);

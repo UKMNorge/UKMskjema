@@ -167,6 +167,14 @@
                                                 </div>
                                             </div>
                                             <div class="col-xs-12 nop-impt as-margin-top-space-2">
+                                                <v-checkbox
+                                                    v-model="nyttSporsmal.is_required"
+                                                    label="Påkrevd (må besvares)"
+                                                    hide-details
+                                                    density="compact"
+                                                />
+                                            </div>
+                                            <div class="col-xs-12 nop-impt as-margin-top-space-2">
                                                 <v-textarea
                                                     v-model="nyttSporsmal.tekst"
                                                     label="Hjelpetekst (valgfritt)"
@@ -226,7 +234,7 @@
                                                 </div>
                                                 <div class="flex-grow-1 nop-impt">
                                                     <div class="col-xs-12 nop-impt d-flex flex-wrap">
-                                                        <div class="col-xs-12 col-sm-3 nop-impt as-margin-right-space-2 mb-2 mb-sm-0">
+                                                        <div class="col-xs-12 col-sm-2 nop-impt as-margin-right-space-2 mb-2 mb-sm-0">
                                                             <v-select
                                                                 v-model="s.type"
                                                                 :items="sporsmalTypeOptions"
@@ -248,7 +256,15 @@
                                                                 hide-details
                                                             />
                                                         </div>
-                                                        <div class="col-xs-12 col-sm-2 nop-impt sporsmal-delete-col">
+                                                        <div class="col-xs-12 col-sm-2 nop-impt as-margin-right-space-2 mb-2 mb-sm-0 d-flex align-center">
+                                                            <v-checkbox
+                                                                v-model="s.is_required"
+                                                                label="Påkrevd"
+                                                                hide-details
+                                                                density="compact"
+                                                            />
+                                                        </div>
+                                                        <div class="col-xs-12 col-sm-1 nop-impt sporsmal-delete-col">
                                                             <v-btn
                                                                 class="v-btn-as v-btn-error"
                                                                 icon
@@ -391,7 +407,7 @@ export default {
             sporsmalDragFromIndex: null as number | null,
             /** Rad som visuelt «løftes» (klasse på kilden) */
             sporsmalDraggingIndex: null as number | null,
-            nyttSporsmal: { type: 'kort_tekst', tittel: '', tekst: '' } as { type: string; tittel: string; tekst: string },
+            nyttSporsmal: { type: 'kort_tekst', tittel: '', tekst: '', is_required: true } as { type: string; tittel: string; tekst: string; is_required: boolean },
 
             sporsmalTypeOptions: [
                 { value: 'kontakt',       label: 'Kontaktinformasjon (navn, epost, mobil)' },
@@ -501,12 +517,13 @@ export default {
                 type:       this.nyttSporsmal.type,
                 tittel:     this.nyttSporsmal.tittel.trim(),
                 tekst:      this.nyttSporsmal.tekst.trim(),
+                is_required:this.nyttSporsmal.is_required,
             } as SporsmalData);
             this.avbrytNyttSporsmal();
         },
 
         avbrytNyttSporsmal(): void {
-            this.nyttSporsmal = { type: 'kort_tekst', tittel: '', tekst: '' };
+            this.nyttSporsmal = { type: 'kort_tekst', tittel: '', tekst: '', is_required: true };
             this.visNyttSporsmalForm = false;
         },
 

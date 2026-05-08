@@ -95,6 +95,7 @@ export async function lagreSporsmal(
         type:        sporsmal.type,
         tittel:      sporsmal.tittel,
         tekst:       sporsmal.tekst ?? '',
+        is_required: sporsmal.is_required,
         rekkefolge:  sporsmal.rekkefolge ?? 1,
     });
 

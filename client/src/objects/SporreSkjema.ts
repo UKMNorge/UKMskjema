@@ -5,6 +5,7 @@ export interface SporsmalData {
     type: string;
     tittel: string;
     tekst: string;
+    is_required: boolean;
 }
 
 export interface GruppeData {

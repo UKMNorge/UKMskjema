@@ -26,6 +26,7 @@ try {
                 'type'       => $s->getType(),
                 'tittel'     => $s->getTittel(),
                 'tekst'      => $s->getTekst(),
+                'is_required'=> (bool) $s->isRequired(),
             ];
         }
         $result[] = [

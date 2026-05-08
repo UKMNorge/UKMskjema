@@ -54,11 +54,14 @@ if ($sporsmalRaw) {
             $type       = isset($p['type']) ? (string) $p['type'] : 'kort_tekst';
             $tittel     = $p['tittel'] ?? '';
             $tekst      = $p['tekst'] ?? '';
+            $isRequired = isset($p['is_required']) ? (bool) $p['is_required'] : true;
 
             try {
                 if ($id === 0) {
                     // Nytt spørsmål
                     $sporsmal = Write::createSporsmal($skjema, $rekkefolge, $type, $tittel, $tekst);
+                    $sporsmal->setIsRequired($isRequired);
+                    Write::saveSporsmal($sporsmal);
                 } else {
                     // Eksisterende spørsmål
                     if (!isset($eksisterende[$id])) {
@@ -69,6 +72,7 @@ if ($sporsmalRaw) {
                     $sporsmal->setTittel($tittel);
                     $sporsmal->setTekst($tekst);
                     $sporsmal->setRekkefolge($rekkefolge);
+                    $sporsmal->setIsRequired($isRequired);
                     Write::saveSporsmal($sporsmal);
                 }
                 $savedSporsmal[] = [
@@ -78,6 +82,7 @@ if ($sporsmalRaw) {
                     'type'       => $sporsmal->getType(),
                     'tittel'     => $sporsmal->getTittel(),
                     'tekst'      => $sporsmal->getTekst(),
+                    'is_required'=> (bool) $sporsmal->isRequired(),
                 ];
             } catch (Exception $e) {
                 $handleCall->sendErrorToClient($e->getMessage(), $e->getCode() ?: 500);
