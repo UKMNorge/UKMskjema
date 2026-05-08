@@ -104,7 +104,7 @@ export default {
             for (const s of this.alleSamtykkeskjemaer) {
                 if (s.id === -1) { s.expanded = true; return; }
             }
-            const nytt = new SamtykkeSkjema({ id: -1, navn: '' } as any);
+            const nytt = new SamtykkeSkjema({ id: -1, navn: '', type: 'vanlig' } as any);
             nytt.expanded = true;
             this.alleSamtykkeskjemaer.unshift(nytt);
         },
@@ -117,7 +117,7 @@ export default {
         async opprettSamtykkeskjema(skjema: SamtykkeSkjema): Promise<void> {
             this.skjemaLoading = true;
             try {
-                const data = await apiOpprett(skjema.navn);
+                const data = await apiOpprett(skjema.navn, skjema.type);
                 this.fjernNyttSamtykkeskjema();
                 await this.hentAlle();
                 const opprettet = this.alleSamtykkeskjemaer.find(s => s.id === data.id);
@@ -139,6 +139,7 @@ export default {
                 const data = await apiLagreAllData(
                     skjema.id,
                     skjema.navn,
+                    skjema.type,
                     skjema.prosjekter,
                     skjema.versjon
                 );

@@ -34,7 +34,10 @@ export async function hentAlleSamtykkeskjemaer(): Promise<SamtykkeSkjemaData[]> 
  * Oppretter et nytt samtykkeskjema med gitt navn.
  * Returnerer det opprettede skjemaet { id, navn }.
  */
-export async function opprettSamtykkeskjema(navn: string): Promise<{ id: number; navn: string }> {
+export async function opprettSamtykkeskjema(
+    navn: string,
+    type?: string
+): Promise<{ id: number; navn: string; type?: string }> {
     var spaInteraction = (<any>window).spaInteraction;
 
     var data : any = {
@@ -42,6 +45,10 @@ export async function opprettSamtykkeskjema(navn: string): Promise<{ id: number;
         controller: 'samtykkeskjema/createSamtykkeskjema',
         navn: navn,
     };
+    
+    if (type) {
+        data.type = type;
+    }
 
     var res = await spaInteraction.runAjaxCall('/', 'POST', data);
 
@@ -49,7 +56,7 @@ export async function opprettSamtykkeskjema(navn: string): Promise<{ id: number;
         throw new Error(res.message ?? 'Kunne ikke opprette samtykkeskjema');
     }
 
-    return res as { id: number; navn: string };
+    return res as { id: number; navn: string; type?: string };
 }
 
 /**
@@ -61,6 +68,7 @@ export async function opprettSamtykkeskjema(navn: string): Promise<{ id: number;
 export async function lagreAllDataSamtykkeskjema(
     skjemaId: number,
     navn: string,
+    type?: string,
     prosjekter?: SamtykkeProsjektData[],
     versjon?: SamtykkeVersjonData | null
 ): Promise<any> {
@@ -81,6 +89,10 @@ export async function lagreAllDataSamtykkeskjema(
         skjema_id: skjemaId,
         navn: navn,
     };
+    
+    if (type) {
+        data.type = type;
+    }
 
     const res = await spaInteraction.runAjaxCall('/', 'POST', data);
 

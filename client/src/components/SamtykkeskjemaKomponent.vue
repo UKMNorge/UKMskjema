@@ -42,6 +42,18 @@
                                 @keyup.enter="skjema.navn.trim() && $emit('opprett', skjema)"
                             />
                         </div>
+                        <div class="col-xs-6 nop-impt as-margin-top-space-2">
+                            <v-select
+                                v-model="skjema.type"
+                                :items="typeOptions"
+                                item-title="title"
+                                item-value="value"
+                                label="Type"
+                                variant="outlined"
+                                class="v-autocomplete-arr-sys"
+                                hide-details="auto"
+                            />
+                        </div>
                         <div class="col-xs-12 nop-impt as-margin-top-space-3">
                             <v-btn
                                 class="v-btn-as v-btn-success as-margin-right-space-1"
@@ -104,13 +116,25 @@
                                     <div class="tidspunkt-tittel as-margin-bottom-space-3">
                                         <h5>Grunnleggende informasjon</h5>
                                     </div>
-                                    <div class="col-xs-6 nop-impt">
+                                    <div class="col-xs-8 nop-impt">
                                         <v-text-field
                                             v-model="skjema.navn"
                                             label="Navn på skjema"
                                             variant="outlined"
                                             class="v-text-field-arr-sys"
                                             density="comfortable"
+                                            hide-details="auto"
+                                        />
+                                    </div>
+                                    <div class="col-xs-4 as-padding-left-space-1">
+                                        <v-select
+                                            v-model="skjema.type"
+                                            :items="typeOptions"
+                                            item-title="title"
+                                            item-value="value"
+                                            label="Type"
+                                            variant="outlined"
+                                            class="v-autocomplete-arr-sys"
                                             hide-details="auto"
                                         />
                                     </div>
@@ -454,6 +478,11 @@ export default {
     data() {
         return {
             bekreftSlett: false,
+            typeOptions: [
+                { title: 'Vanlig samtykke', value: 'vanlig' },
+                { title: 'Samtykke med kommentarfelt', value: 'med-kommentar' },
+                { title: 'Samtykke / Samtykker ikke', value: 'janei' },
+            ],
         };
     },
 

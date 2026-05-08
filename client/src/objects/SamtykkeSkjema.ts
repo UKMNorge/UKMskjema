@@ -18,6 +18,7 @@ export interface SamtykkeVersjonData {
 export interface SamtykkeSkjemaData {
     id: number;
     navn: string;
+    type?: 'vanlig' | 'med-kommentar' | 'janei';
     prosjekter?: SamtykkeProsjektData[];
     versjon?: SamtykkeVersjonData | null;
 }
@@ -25,6 +26,7 @@ export interface SamtykkeSkjemaData {
 export class SamtykkeSkjema {
     id: number;
     navn: string;
+    type: 'vanlig' | 'med-kommentar' | 'janei';
     prosjekter: SamtykkeProsjektData[];
     versjon: SamtykkeVersjonData | null;
 
@@ -39,6 +41,7 @@ export class SamtykkeSkjema {
     constructor(data?: Partial<SamtykkeSkjemaData>) {
         this.id         = data?.id ?? 0;
         this.navn       = data?.navn ?? '';
+        this.type       = data?.type ?? 'vanlig';
         this.prosjekter = data?.prosjekter ?? [];
         this.versjon    = data?.versjon ?? null;
     }
@@ -47,6 +50,7 @@ export class SamtykkeSkjema {
         return {
             id:         this.id,
             navn:       this.navn,
+            type:       this.type,
             prosjekter: this.prosjekter,
             versjon:    this.versjon,
         };

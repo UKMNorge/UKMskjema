@@ -7,10 +7,11 @@ use UKMNorge\OAuth2\HandleAPICall;
 $arrangementId = get_option('pl_id');
 $skjemaer = SamtykkeSkjema::getAllByArrangementId($arrangementId);
 
-$handleCall = new HandleAPICall(['skjema_id', 'navn'], [], ['POST'], false);
+$handleCall = new HandleAPICall(['skjema_id', 'navn'], ['type'], ['POST'], false);
 
 $skjemaId = (int) $handleCall->getArgument('skjema_id');
 $navn = $handleCall->getArgument('navn');
+$type = $handleCall->getOptionalArgument('type');
 
 $skjema = null;
 foreach($skjemaer as $s) {
@@ -25,10 +26,14 @@ if(!$skjema) {
 }
 
 $skjema->setNavn($navn);
+if ($type !== null) {
+    $skjema->setType($type);
+}
 $skjema = Write::save($skjema);
 
 $handleCall->sendToClient([
     'id'   => (int)$skjema->getId(),
     'navn' => $skjema->getNavn(),
+    'type' => $skjema->getType(),
     'success' => true,
 ]);
