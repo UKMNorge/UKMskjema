@@ -155,7 +155,7 @@
                                                         hide-details="auto"
                                                     />
                                                 </div>
-                                                <div class="col-xs-7 nop-impt">
+                                                <div class="col-xs-5 nop-impt">
                                                     <v-text-field
                                                         v-model="nyttSporsmal.tittel"
                                                         label="Tittel / spørsmålstekst *"
@@ -166,7 +166,7 @@
                                                     />
                                                 </div>
                                             </div>
-                                            <div class="col-xs-12 nop-impt as-margin-top-space-2">
+                                            <div class="col-xs-2 nop-impt as-margin-top-space-2">
                                                 <v-checkbox
                                                     v-model="nyttSporsmal.is_required"
                                                     label="Påkrevd (må besvares)"
