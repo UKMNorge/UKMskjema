@@ -72,16 +72,7 @@ export async function lagreAllDataSamtykkeskjema(
     prosjekter?: SamtykkeProsjektData[],
     versjon?: SamtykkeVersjonData | null
 ): Promise<any> {
-    const payload: Record<string, unknown> = { skjema_id: skjemaId, navn };
     var spaInteraction = (<any>window).spaInteraction;
-
-    if (prosjekter && prosjekter.length > 0) {
-        payload.prosjekter = prosjekter;
-    }
-
-    if (versjon) {
-        lagreVersjonSamtykkeskjema(skjemaId, versjon);
-    }
 
     var data : any = {
         action: 'UKMskjema_ajax',
@@ -100,7 +91,14 @@ export async function lagreAllDataSamtykkeskjema(
         throw new Error(res.message ?? 'Kunne ikke lagre samtykkeskjema');
     }
 
-    return res as { id: number; navn: string };
+    // Lagre versjon (hvis sendt inn) før vi henter fersk skjema-data.
+    if (versjon) {
+        await lagreVersjonSamtykkeskjema(skjemaId, versjon);
+    }
+
+    // Endpointet `saveSamtykkeskjema` returnerer ikke versjon/prosjekter.
+    // Returner alltid fersk skjema-json fra `getAlleSamtykkeskjemaer` slik at UI får med `versjon`.
+    return await hentSamtykkeskjemaById(skjemaId);
 }
 
 /**
@@ -126,7 +124,6 @@ async function lagreVersjonSamtykkeskjema(
     skjemaId: number,
     versjon: SamtykkeVersjonData
 ): Promise<any> {
-    const payload: SamtykkeVersjonData = versjon;
     var spaInteraction = (<any>window).spaInteraction;
 
     var data : any = {
@@ -145,5 +142,14 @@ async function lagreVersjonSamtykkeskjema(
         throw new Error(res.message ?? 'Kunne ikke lagre versjon av samtykkeskjema');
     }
 
-    return res as { id: number; versjon_nr: string };
+    return res;
+}
+
+async function hentSamtykkeskjemaById(skjemaId: number): Promise<SamtykkeSkjemaData> {
+    const skjemaer = await hentAlleSamtykkeskjemaer();
+    const funnet = skjemaer.find(s => (s as any).id === skjemaId);
+    if (!funnet) {
+        throw new Error('Kunne ikke finne oppdatert samtykkeskjema etter lagring');
+    }
+    return funnet;
 }
