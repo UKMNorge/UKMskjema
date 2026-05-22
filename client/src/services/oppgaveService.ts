@@ -79,6 +79,78 @@ export async function hentAlleRespondenter(oppgaveId: number): Promise<OppgaveRe
     return liste.sort((a, b) => a.getNavnFullt().localeCompare(b.getNavnFullt(), 'nb'));
 }
 
+export interface OppgaveSvarLinje {
+    label: string;
+    value: string;
+}
+
+export interface OppgaveSkjemaKjedeVisning {
+    ledd_id: number;
+    skjema_id: number;
+    skjema_type: string;
+    skjema_type_label: string;
+    skjema_navn: string;
+    besvart: boolean;
+    foresatt_godkjent: boolean;
+    venter_foresatt: boolean;
+    indicator: 'success' | 'warning' | 'danger';
+    detalj: OppgaveSkjemaDetalj;
+}
+
+export interface OppgaveSamtykkeSvar {
+    svar: string;
+    kommentar: string | null;
+    created_at: string;
+    skjema_type: string;
+}
+
+export interface OppgaveSkjemaDetalj {
+    type: 'samtykkeskjema' | 'sporreskjema' | 'ukjent';
+    versjoner?: { beskrivelse: string; body_text: string }[];
+    svar?: OppgaveSamtykkeSvar | null;
+    sporsmal?: {
+        id: number;
+        type: string;
+        tittel: string;
+        hjelp: string;
+        linjer: OppgaveSvarLinje[];
+        foresatt_godkjent: boolean | null;
+    }[];
+}
+
+export interface RespondentOppgavelisteResponse {
+    success: boolean;
+    oppgave: {
+        id: number;
+        name: string;
+        description: string | null;
+    };
+    respondent: {
+        delta_user_id: number;
+        is_18: boolean;
+    };
+    person_id: number;
+    kjede: OppgaveSkjemaKjedeVisning[];
+}
+
+export async function hentRespondentOppgaveliste(
+    oppgaveId: number,
+    respondentId: number
+): Promise<RespondentOppgavelisteResponse> {
+    const res = await getSpaInteraction().runAjaxCall('/', 'POST', {
+        action: 'UKMskjema_ajax',
+        controller: 'oppgave/getRespondentOppgaveliste',
+        oppgave_id: oppgaveId,
+        respondent_id: respondentId,
+    });
+
+    if (!res.success) {
+        throw new Error(res.message ?? res.result ?? 'Kunne ikke hente oppgaveliste');
+    }
+
+    return res as RespondentOppgavelisteResponse;
+}
+
 export async function hentRespondentSvarStatus(
     oppgaveId: number,
     respondentId: number

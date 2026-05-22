@@ -6,6 +6,7 @@
             :respondent-id="valgtRespondent.respondentId"
             :respondent-navn="valgtRespondent.respondentNavn"
             @tilbake="lukkRespondent"
+            @feil="$emit('feil', $event)"
         />
 
         <template v-else>
