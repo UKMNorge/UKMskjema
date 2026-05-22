@@ -24,8 +24,19 @@
                 @click="apneRespondent(r)"
                 @keyup.enter="apneRespondent(r)"
             >
-                <span class="deltaker-rad__navn">{{ r.navn }} {{ r.etternavn }}</span>
-                <v-icon size="small" class="deltaker-rad__pil">mdi-chevron-right</v-icon>
+                <div class="deltaker-rad__hoved">
+                    <span class="deltaker-rad__navn">{{ r.navn }} {{ r.etternavn }}</span>
+                </div>
+                <div class="deltaker-rad__hoyre">
+                    <v-chip
+                        size="small"
+                        variant="tonal"
+                        :color="svarStatusColor(r.svar_status)"
+                    >
+                        {{ svarStatusLabel(r.svar_status) }}
+                    </v-chip>
+                    <v-icon size="small" class="deltaker-rad__pil">mdi-chevron-right</v-icon>
+                </div>
             </div>
         </div>
         <p v-else class="tom-kjede">Ingen respondenter på denne oppgaven ennå.</p>
@@ -34,7 +45,12 @@
 
 <script lang="ts">
 import { hentAlleRespondenter } from '../services/oppgaveService';
-import OppgaveRespondent, { type OppgaveRespondentData } from '../objects/OppgaveRespondent';
+import OppgaveRespondent, {
+    type OppgaveRespondentData,
+    type OppgaveSvarStatus,
+    oppgaveSvarStatusColor,
+    oppgaveSvarStatusLabel,
+} from '../objects/OppgaveRespondent';
 
 function tilRespondentData(r: OppgaveRespondent): OppgaveRespondentData {
     return {
@@ -42,6 +58,7 @@ function tilRespondentData(r: OppgaveRespondent): OppgaveRespondentData {
         navn: r.navn,
         etternavn: r.etternavn,
         mobil: r.mobil,
+        svar_status: r.svar_status,
     };
 }
 
@@ -87,6 +104,14 @@ export default {
             } finally {
                 this.loading = false;
             }
+        },
+
+        svarStatusLabel(status: OppgaveSvarStatus): string {
+            return oppgaveSvarStatusLabel(status);
+        },
+
+        svarStatusColor(status: OppgaveSvarStatus): string {
+            return oppgaveSvarStatusColor(status);
         },
 
         apneRespondent(respondent: OppgaveRespondentData): void {
@@ -144,10 +169,22 @@ export default {
     background: rgba(255, 255, 255, 0.95);
     outline: none;
 }
+.deltaker-rad__hoved {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
 .deltaker-rad__navn {
     font-weight: 700;
     font-size: 0.95rem;
     min-width: 0;
+}
+.deltaker-rad__hoyre {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
 }
 .deltaker-rad__pil {
     opacity: 0.45;
