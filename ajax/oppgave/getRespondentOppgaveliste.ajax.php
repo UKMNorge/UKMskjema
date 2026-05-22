@@ -38,6 +38,6 @@ if ($respondent === null) {
     $handleCall->sendErrorToClient('Fant ikke respondenten', 404);
 }
 
-$data = $oppgave->getRespondentOppgaveliste((int) $respondent->getId(), $respondent->getMobil());
+$data = $oppgave->getRespondentOppgaveliste($respondent);
 
 $handleCall->sendToClient(array_merge(['success' => true], $data));

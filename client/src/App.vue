@@ -58,6 +58,7 @@ import { Director } from 'ukm-spa/Director';
 import SamtykkeskjemaTab from './tabs/SamtykkeskjemaTab.vue';
 import SporreskjemaTab from './tabs/SporreskjemaTab.vue';
 import OppgaveTab from './tabs/OppgaveTab.vue';
+import { OPPGAVE_TAB_INDEX, readRespondentSvarFromUrl } from './utils/oppgaveUrl';
 
 const director = new Director();
 
@@ -77,7 +78,12 @@ export default {
 
     mounted() {
         const savedTab = director.getParam('tab');
-        this.tab = savedTab !== null ? Number(savedTab) : 0;
+        if (readRespondentSvarFromUrl()) {
+            this.tab = OPPGAVE_TAB_INDEX;
+            director.addParam('tab', String(OPPGAVE_TAB_INDEX));
+        } else {
+            this.tab = savedTab !== null ? Number(savedTab) : 0;
+        }
 
         watch(() => this.tab, (newTab) => {
             director.addParam('tab', newTab);

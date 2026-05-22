@@ -7,11 +7,11 @@
                 size="small"
                 rounded="large"
                 prepend-icon="mdi-arrow-left"
-                @click="$emit('tilbake')"
+                @click="tilbake"
             >
                 Tilbake til respondenter
             </v-btn>
-            <h4 class="oppgave-svar__tittel">{{ respondentNavn }}</h4>
+            <h4 class="oppgave-svar__tittel">{{ visningsNavn }}</h4>
         </div>
 
         <div v-if="laster" class="oppgave-svar__laster">
@@ -95,8 +95,8 @@
                             >
                                 {{
                                     valgtLedd.detalj.svar.svar === 'nei'
-                                        ? `${respondentNavn} har reservert seg`
-                                        : `${respondentNavn} har gitt samtykke`
+                                        ? `${visningsNavn} har reservert seg`
+                                        : `${visningsNavn} har gitt samtykke`
                                 }}
                             </v-chip>
                             <p
@@ -192,6 +192,7 @@ import {
     type RespondentOppgavelisteResponse,
     type OppgaveSkjemaKjedeVisning,
 } from '@/services/oppgaveService';
+import { clearRespondentSvarUrl } from '@/utils/oppgaveUrl';
 
 export default {
     props: {
@@ -201,10 +202,6 @@ export default {
         },
         respondentId: {
             type: Number,
-            required: true,
-        },
-        respondentNavn: {
-            type: String,
             required: true,
         },
     },
@@ -225,6 +222,14 @@ export default {
                 return null;
             }
             return this.data.kjede[this.valgtIndex] ?? null;
+        },
+
+        visningsNavn(): string {
+            const fraApi = this.data?.respondent?.navn_fullt?.trim();
+            if (fraApi) {
+                return fraApi;
+            }
+            return 'Respondent';
         },
     },
 
@@ -249,6 +254,15 @@ export default {
 
         velgSkjema(index: number) {
             this.valgtIndex = this.valgtIndex === index ? null : index;
+        },
+
+        tilbake(): void {
+            if (window.opener) {
+                window.close();
+                return;
+            }
+            clearRespondentSvarUrl();
+            this.$emit('tilbake');
         },
 
         indicatorColor(indicator: string): string {

@@ -2,7 +2,7 @@
     <div class="oppgave-deltakere as-margin-top-space-4">
         <p class="kjede-tittel">Respondenter</p>
         <p class="kjede-hjelp">
-            Klikk status for å filtrere listen. Klikk en respondent for å se oppgavelisten (skjemasvar).
+            Klikk status for å filtrere listen. Klikk en respondent for å åpne svarene i et nytt vindu.
         </p>
 
         <v-skeleton-loader
@@ -137,6 +137,7 @@ import OppgaveRespondent, {
     oppgaveSvarStatusColor,
     oppgaveSvarStatusLabel,
 } from '../objects/OppgaveRespondent';
+import { openRespondentSvarWindow } from '../utils/oppgaveUrl';
 
 type StatusFilterKey = OppgaveSvarStatus | 'laster';
 
@@ -167,7 +168,7 @@ export default {
         },
     },
 
-    emits: ['open-svar', 'feil'],
+    emits: ['feil'],
 
     data() {
         return {
@@ -312,7 +313,10 @@ export default {
         },
 
         apneRespondent(respondent: OppgaveRespondentData): void {
-            this.$emit('open-svar', OppgaveRespondent.fromAjax({ ...respondent }));
+            if (respondent.id < 1) {
+                return;
+            }
+            openRespondentSvarWindow(this.oppgaveId, respondent.id);
         },
     },
 };

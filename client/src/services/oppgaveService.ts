@@ -126,7 +126,12 @@ export interface RespondentOppgavelisteResponse {
         description: string | null;
     };
     respondent: {
+        id: number;
         delta_user_id: number;
+        navn: string;
+        etternavn: string;
+        mobil: string;
+        navn_fullt: string;
         is_18: boolean;
     };
     person_id: number;

@@ -1,10 +1,9 @@
 <template>
     <div>
         <OppgaveSvar
-            v-if="valgtRespondent"
-            :oppgave-id="valgtRespondent.oppgaveId"
-            :respondent-id="valgtRespondent.respondentId"
-            :respondent-navn="valgtRespondent.respondentNavn"
+            v-if="respondentFraUrl"
+            :oppgave-id="respondentFraUrl.oppgaveId"
+            :respondent-id="respondentFraUrl.respondentId"
             @tilbake="lukkRespondent"
             @feil="$emit('feil', $event)"
         />
@@ -221,7 +220,6 @@
 
             <OppgaveDeltakereKomponent
                 :oppgave-id="o.id"
-                @open-svar="apneSvar(o.id, $event)"
                 @feil="$emit('feil', $event)"
             />
         </div>
@@ -232,8 +230,12 @@
 <script lang="ts">
 import { PermanentNotification } from 'ukm-components-vue3';
 import OppgaveDeltakereKomponent from '../components/OppgaveDeltakereKomponent.vue';
-import OppgaveRespondent from '../objects/OppgaveRespondent';
 import OppgaveSvar from '../components/OppgaveSvar.vue';
+import {
+    clearRespondentSvarUrl,
+    readRespondentSvarFromUrl,
+    type RespondentSvarUrlParams,
+} from '../utils/oppgaveUrl';
 import {
     hentOppgaveOversikt,
     opprettOppgave as apiOpprettOppgave,
@@ -286,29 +288,28 @@ export default {
                 { label: 'Samtykkeskjema', value: SK_SAMTYKKE },
                 { label: 'Spørreskjema (oppgave)', value: SK_VIDERESENDING },
             ],
-            valgtRespondent: null as {
-                oppgaveId: number;
-                respondentId: number;
-                respondentNavn: string;
-            } | null,
+            respondentFraUrl: null as RespondentSvarUrlParams | null,
         };
     },
 
     mounted() {
+        this.synkRespondentFraUrl();
+        window.addEventListener('popstate', this.synkRespondentFraUrl);
         this.hentAlt();
     },
 
+    unmounted() {
+        window.removeEventListener('popstate', this.synkRespondentFraUrl);
+    },
+
     methods: {
-        apneSvar(oppgaveId: number, respondent: OppgaveRespondent): void {
-            this.valgtRespondent = {
-                oppgaveId,
-                respondentId: Number(respondent.id),
-                respondentNavn: respondent.getNavnFullt(),
-            };
+        synkRespondentFraUrl(): void {
+            this.respondentFraUrl = readRespondentSvarFromUrl();
         },
 
         lukkRespondent(): void {
-            this.valgtRespondent = null;
+            clearRespondentSvarUrl();
+            this.respondentFraUrl = null;
         },
 
         typeLabel(type: string): string {
