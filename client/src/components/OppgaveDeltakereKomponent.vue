@@ -53,7 +53,7 @@
                 @keyup.enter="apneRespondent(r)"
             >
                 <div class="deltaker-rad__hoved">
-                    <span class="deltaker-rad__navn">{{ r.navn }} {{ r.etternavn }}</span>
+                    <span class="deltaker-rad__navn">{{ r.navn }} {{ r.etternavn }} ({{ r.mobil }})</span>
                 </div>
                 <div class="deltaker-rad__hoyre">
                     <v-progress-circular
