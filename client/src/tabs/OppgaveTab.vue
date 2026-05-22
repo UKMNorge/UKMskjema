@@ -3,7 +3,7 @@
         <OppgaveSvar
             v-if="respondentFraUrl"
             :oppgave-id="respondentFraUrl.oppgaveId"
-            :respondent-id="respondentFraUrl.respondentId"
+            :phone="respondentFraUrl.phone"
             @feil="$emit('feil', $event)"
         />
 

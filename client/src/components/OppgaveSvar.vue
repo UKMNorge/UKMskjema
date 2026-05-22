@@ -2,6 +2,7 @@
     <div class="oppgave-svar">
         <div class="oppgave-svar__header">
             <h4 class="oppgave-svar__tittel">{{ visningsNavn }}</h4>
+            <a v-if="visningsMobil" class="oppgave-svar__mobil" :href="telHref">{{ visningsMobil }}</a>
         </div>
 
         <div v-if="laster" class="oppgave-svar__laster">
@@ -188,8 +189,8 @@ export default {
             type: Number,
             required: true,
         },
-        respondentId: {
-            type: Number,
+        phone: {
+            type: String,
             required: true,
         },
     },
@@ -219,6 +220,19 @@ export default {
             }
             return 'Respondent';
         },
+
+        visningsMobil(): string {
+            const fraApi = this.data?.respondent?.mobil?.trim();
+            if (fraApi) {
+                return fraApi;
+            }
+            return this.phone.trim();
+        },
+
+        telHref(): string {
+            const digits = this.visningsMobil.replace(/\s+/g, '');
+            return digits ? `tel:${digits}` : '';
+        },
     },
 
     mounted() {
@@ -229,7 +243,7 @@ export default {
         async lastInn() {
             this.laster = true;
             try {
-                this.data = await hentRespondentOppgaveliste(this.oppgaveId, this.respondentId);
+                this.data = await hentRespondentOppgaveliste(this.oppgaveId, this.phone);
                 if (this.data.kjede.length > 0) {
                     this.valgtIndex = 0;
                 }
@@ -298,6 +312,15 @@ export default {
 .oppgave-svar__tittel {
     margin-top: 0;
     margin-bottom: 0.25rem;
+}
+.oppgave-svar__mobil {
+    display: inline-block;
+    font-size: 1rem;
+    color: var(--color-primary, #1867c0);
+    text-decoration: none;
+}
+.oppgave-svar__mobil:hover {
+    text-decoration: underline;
 }
 .oppgave-svar__laster {
     display: flex;

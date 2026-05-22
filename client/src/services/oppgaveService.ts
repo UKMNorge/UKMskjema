@@ -140,13 +140,13 @@ export interface RespondentOppgavelisteResponse {
 
 export async function hentRespondentOppgaveliste(
     oppgaveId: number,
-    respondentId: number
+    phone: string
 ): Promise<RespondentOppgavelisteResponse> {
     const res = await getSpaInteraction().runAjaxCall('/', 'POST', {
         action: 'UKMskjema_ajax',
         controller: 'oppgave/getRespondentOppgaveliste',
         oppgave_id: oppgaveId,
-        respondent_id: respondentId,
+        phone: phone.trim(),
     });
 
     if (!res.success) {
@@ -158,13 +158,13 @@ export async function hentRespondentOppgaveliste(
 
 export async function hentRespondentSvarStatus(
     oppgaveId: number,
-    respondentId: number
+    phone: string
 ): Promise<OppgaveSvarStatus> {
     const res = await getSpaInteraction().runAjaxCall('/', 'POST', {
         action: 'UKMskjema_ajax',
         controller: 'oppgave/getRespondentSvarStatus',
         oppgave_id: oppgaveId,
-        respondent_id: respondentId,
+        phone: phone.trim(),
     });
 
     if (!res.success) {

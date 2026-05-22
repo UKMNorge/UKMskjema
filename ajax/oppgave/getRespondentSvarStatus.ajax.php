@@ -6,7 +6,7 @@ use UKMNorge\OAuth2\HandleAPICall;
 
 require_once 'UKM/Autoloader.php';
 
-$handleCall = new HandleAPICall(['oppgave_id', 'respondent_id'], [], ['GET', 'POST'], false);
+$handleCall = new HandleAPICall(['oppgave_id', 'phone'], [], ['GET', 'POST'], false);
 
 $plId = (int) get_option('pl_id');
 if (!$plId) {
@@ -14,13 +14,13 @@ if (!$plId) {
 }
 
 $oppgaveId = (int) $handleCall->getArgument('oppgave_id');
-$respondentId = (int) $handleCall->getArgument('respondent_id');
+$phone = trim((string) $handleCall->getArgument('phone'));
 
 if ($oppgaveId < 1) {
     $handleCall->sendErrorToClient('Ugyldig oppgave_id', 400);
 }
-if ($respondentId < 1) {
-    $handleCall->sendErrorToClient('Ugyldig respondent_id', 400);
+if ($phone === '') {
+    $handleCall->sendErrorToClient('Ugyldig phone', 400);
 }
 
 try {
@@ -33,12 +33,12 @@ if ($oppgave->getPlId() !== $plId) {
     $handleCall->sendErrorToClient('Oppgaven tilhører ikke dette arrangementet', 403);
 }
 
-$respondent = DeltaRespondent::loadById($respondentId);
+$respondent = DeltaRespondent::loadByMobil($phone);
 if ($respondent === null) {
-    $handleCall->sendErrorToClient('Fant ikke respondenten', 404);
+    $handleCall->sendErrorToClient('Fant ikke respondent med dette mobilnummeret', 404);
 }
 
-$svarStatus = $oppgave->getOppgaveBesvartStatusByMobil($respondent->getMobil());
+$svarStatus = $oppgave->getOppgaveBesvartStatusByMobil($phone);
 
 $handleCall->sendToClient([
     'success'     => true,

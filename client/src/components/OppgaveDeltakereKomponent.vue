@@ -284,7 +284,7 @@ export default {
             await Promise.all(
                 this.respondenter.map(async (respondent) => {
                     try {
-                        const status = await hentRespondentSvarStatus(oppgaveId, respondent.id);
+                        const status = await hentRespondentSvarStatus(oppgaveId, respondent.mobil);
                         if (hentingId !== this.statusHentingId) {
                             return;
                         }
@@ -313,10 +313,11 @@ export default {
         },
 
         apneRespondent(respondent: OppgaveRespondentData): void {
-            if (respondent.id < 1) {
+            const phone = respondent.mobil?.trim();
+            if (!phone) {
                 return;
             }
-            openRespondentSvarWindow(this.oppgaveId, respondent.id);
+            openRespondentSvarWindow(this.oppgaveId, phone);
         },
     },
 };
