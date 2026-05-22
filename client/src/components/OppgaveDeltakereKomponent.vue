@@ -89,9 +89,7 @@
                 @keyup.enter="apneRespondent(r)"
             >
                 <div class="deltaker-rad__hoved">
-                    <span class="deltaker-rad__navn">{{ r.navn }} {{ r.etternavn }} ({{ r.mobil }})</span>
-                </div>
-                <div class="deltaker-rad__hoyre">
+                    <span class="deltaker-rad__navn as-margin-right-space-1">{{ r.navn }} {{ r.etternavn }} ({{ r.mobil }})</span>
                     <v-chip
                         v-if="r.videresending_nominasjon"
                         size="small"
@@ -100,6 +98,8 @@
                     >
                         Nominasjon
                     </v-chip>
+                </div>
+                <div class="deltaker-rad__hoyre">
                     <v-progress-circular
                         v-if="r.svar_status === null"
                         indeterminate
@@ -388,14 +388,20 @@ export default {
 }
 .deltaker-rad__hoved {
     display: flex;
-    flex-direction: column;
     gap: 0.15rem;
-    min-width: 0;
+    width: 35%;
+}
+.deltaker-rad__hoved .v-chip{
+    margin: auto;
+    margin-right: 0;
+    min-width: fit-content;
 }
 .deltaker-rad__navn {
     font-weight: 700;
     font-size: 0.95rem;
     min-width: 0;
+    margin: auto;
+    margin-left: 0;
 }
 .deltaker-rad__nominasjon-chip {
     align-self: flex-start;
@@ -409,5 +415,13 @@ export default {
 .deltaker-rad__pil {
     opacity: 0.45;
     flex-shrink: 0;
+}
+@media (max-width: 768px) {
+    .deltaker-rad__hoved {
+        width: 60%;
+    }
+    .deltaker-rad__navn {
+        font-size: 0.85rem;
+    }
 }
 </style>
