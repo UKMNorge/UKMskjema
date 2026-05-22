@@ -4,7 +4,6 @@
             v-if="respondentFraUrl"
             :oppgave-id="respondentFraUrl.oppgaveId"
             :respondent-id="respondentFraUrl.respondentId"
-            @tilbake="lukkRespondent"
             @feil="$emit('feil', $event)"
         />
 
@@ -232,7 +231,6 @@ import { PermanentNotification } from 'ukm-components-vue3';
 import OppgaveDeltakereKomponent from '../components/OppgaveDeltakereKomponent.vue';
 import OppgaveSvar from '../components/OppgaveSvar.vue';
 import {
-    clearRespondentSvarUrl,
     readRespondentSvarFromUrl,
     type RespondentSvarUrlParams,
 } from '../utils/oppgaveUrl';
@@ -305,11 +303,6 @@ export default {
     methods: {
         synkRespondentFraUrl(): void {
             this.respondentFraUrl = readRespondentSvarFromUrl();
-        },
-
-        lukkRespondent(): void {
-            clearRespondentSvarUrl();
-            this.respondentFraUrl = null;
         },
 
         typeLabel(type: string): string {

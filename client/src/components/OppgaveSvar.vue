@@ -1,16 +1,6 @@
 <template>
     <div class="oppgave-svar">
         <div class="oppgave-svar__header">
-            <v-btn
-                class="v-btn-as v-btn-hvit"
-                variant="outlined"
-                size="small"
-                rounded="large"
-                prepend-icon="mdi-arrow-left"
-                @click="tilbake"
-            >
-                Tilbake til respondenter
-            </v-btn>
             <h4 class="oppgave-svar__tittel">{{ visningsNavn }}</h4>
         </div>
 
@@ -192,8 +182,6 @@ import {
     type RespondentOppgavelisteResponse,
     type OppgaveSkjemaKjedeVisning,
 } from '@/services/oppgaveService';
-import { clearRespondentSvarUrl } from '@/utils/oppgaveUrl';
-
 export default {
     props: {
         oppgaveId: {
@@ -206,7 +194,7 @@ export default {
         },
     },
 
-    emits: ['tilbake', 'feil'],
+    emits: ['feil'],
 
     data() {
         return {
@@ -254,15 +242,6 @@ export default {
 
         velgSkjema(index: number) {
             this.valgtIndex = this.valgtIndex === index ? null : index;
-        },
-
-        tilbake(): void {
-            if (window.opener) {
-                window.close();
-                return;
-            }
-            clearRespondentSvarUrl();
-            this.$emit('tilbake');
         },
 
         indicatorColor(indicator: string): string {
@@ -317,7 +296,7 @@ export default {
     margin-bottom: 1.25rem;
 }
 .oppgave-svar__tittel {
-    margin-top: 1rem;
+    margin-top: 0;
     margin-bottom: 0.25rem;
 }
 .oppgave-svar__laster {
