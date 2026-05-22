@@ -11,10 +11,38 @@
             class="as-margin-bottom-space-2"
         />
 
-        <div
-            v-else-if="respondenter.length"
-            class="deltaker-liste"
-        >
+        <template v-else-if="respondenter.length">
+            <div class="status-oppsummering as-margin-bottom-space-3">
+                <v-chip
+                    class="status-oppsummering__chip"
+                    size="small"
+                    variant="tonal"
+                    color="primary"
+                >
+                    Totalt: {{ respondenter.length }}
+                </v-chip>
+                <v-chip
+                    v-if="antallLaster > 0"
+                    class="status-oppsummering__chip"
+                    size="small"
+                    variant="tonal"
+                    color="grey"
+                >
+                    Laster: {{ antallLaster }}
+                </v-chip>
+                <v-chip
+                    v-for="s in statusOppsummeringTyper"
+                    :key="s.status"
+                    class="status-oppsummering__chip"
+                    size="small"
+                    variant="tonal"
+                    :color="s.color"
+                >
+                    {{ s.label }}: {{ tellStatus(s.status) }}
+                </v-chip>
+            </div>
+
+            <div class="deltaker-liste">
             <div
                 v-for="r in respondenter"
                 :key="r.id"
@@ -46,7 +74,8 @@
                     <v-icon size="small" class="deltaker-rad__pil">mdi-chevron-right</v-icon>
                 </div>
             </div>
-        </div>
+            </div>
+        </template>
         <p v-else class="tom-kjede">Ingen respondenter på denne oppgaven ennå.</p>
     </div>
 </template>
@@ -56,10 +85,22 @@ import { hentAlleRespondenter, hentRespondentSvarStatus } from '../services/oppg
 import OppgaveRespondent, {
     type OppgaveRespondentData,
     type OppgaveSvarStatus,
+    OPPGAVE_SVAR_STATUS_FULLFORT,
+    OPPGAVE_SVAR_STATUS_IKKE_PABEGYNT,
+    OPPGAVE_SVAR_STATUS_PABEGYNT,
     OPPGAVE_SVAR_STATUS_UKJENT,
+    OPPGAVE_SVAR_STATUS_VENTER_FORESATT,
     oppgaveSvarStatusColor,
     oppgaveSvarStatusLabel,
 } from '../objects/OppgaveRespondent';
+
+const STATUS_OPPSUMMERING_TYPER: { status: OppgaveSvarStatus; label: string; color: string }[] = [
+    { status: OPPGAVE_SVAR_STATUS_IKKE_PABEGYNT, label: oppgaveSvarStatusLabel(OPPGAVE_SVAR_STATUS_IKKE_PABEGYNT), color: oppgaveSvarStatusColor(OPPGAVE_SVAR_STATUS_IKKE_PABEGYNT) },
+    { status: OPPGAVE_SVAR_STATUS_PABEGYNT, label: oppgaveSvarStatusLabel(OPPGAVE_SVAR_STATUS_PABEGYNT), color: oppgaveSvarStatusColor(OPPGAVE_SVAR_STATUS_PABEGYNT) },
+    { status: OPPGAVE_SVAR_STATUS_VENTER_FORESATT, label: oppgaveSvarStatusLabel(OPPGAVE_SVAR_STATUS_VENTER_FORESATT), color: oppgaveSvarStatusColor(OPPGAVE_SVAR_STATUS_VENTER_FORESATT) },
+    { status: OPPGAVE_SVAR_STATUS_FULLFORT, label: oppgaveSvarStatusLabel(OPPGAVE_SVAR_STATUS_FULLFORT), color: oppgaveSvarStatusColor(OPPGAVE_SVAR_STATUS_FULLFORT) },
+    { status: OPPGAVE_SVAR_STATUS_UKJENT, label: oppgaveSvarStatusLabel(OPPGAVE_SVAR_STATUS_UKJENT), color: oppgaveSvarStatusColor(OPPGAVE_SVAR_STATUS_UKJENT) },
+];
 
 function tilRespondentData(r: OppgaveRespondent, svarStatus: OppgaveSvarStatus | null = null): OppgaveRespondentData {
     return {
@@ -98,7 +139,20 @@ export default {
         },
     },
 
+    computed: {
+        statusOppsummeringTyper(): typeof STATUS_OPPSUMMERING_TYPER {
+            return STATUS_OPPSUMMERING_TYPER;
+        },
+
+        antallLaster(): number {
+            return this.respondenter.filter((r) => r.svar_status === null).length;
+        },
+    },
+
     methods: {
+        tellStatus(status: OppgaveSvarStatus): number {
+            return this.respondenter.filter((r) => r.svar_status === status).length;
+        },
         async hentRespondenter(): Promise<void> {
             if (!this.oppgaveId) {
                 this.respondenter = [];
@@ -176,6 +230,15 @@ export default {
 .oppgave-deltakere {
     border-top: 1px solid rgba(0, 0, 0, 0.08);
     padding-top: 1rem;
+}
+.status-oppsummering {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+}
+.status-oppsummering__chip {
+    font-weight: 600;
 }
 .deltaker-liste {
     display: flex;
