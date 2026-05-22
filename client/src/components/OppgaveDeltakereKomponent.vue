@@ -52,6 +52,20 @@
                 >
                     {{ s.label }}: {{ tellStatus(s.status) }}
                 </v-chip>
+                <v-chip
+                    v-if="antallNominasjon > 0"
+                    class="status-oppsummering__chip status-oppsummering__chip--klikkbar"
+                    size="small"
+                    :variant="filterChipVariant(filterKunNominasjon)"
+                    color="primary"
+                    prepend-icon="mdi-account-arrow-right-outline"
+                    role="button"
+                    tabindex="0"
+                    @click="toggleNominasjonFilter"
+                    @keyup.enter="toggleNominasjonFilter"
+                >
+                    Nominasjon: {{ antallNominasjon }}
+                </v-chip>
             </div>
 
             <p
@@ -75,9 +89,17 @@
                 @keyup.enter="apneRespondent(r)"
             >
                 <div class="deltaker-rad__hoved">
-                    <span class="deltaker-rad__navn">{{ r.navn }} {{ r.etternavn }} ({{ r.mobil }})</span>
+                    <span class="deltaker-rad__navn">{{ r.navn }} {{ r.etternavn }}</span>
                 </div>
                 <div class="deltaker-rad__hoyre">
+                    <v-chip
+                        v-if="r.videresending_nominasjon"
+                        size="small"
+                        variant="outlined"
+                        color="primary"
+                    >
+                        Nominasjon
+                    </v-chip>
                     <v-progress-circular
                         v-if="r.svar_status === null"
                         indeterminate
@@ -132,6 +154,7 @@ function tilRespondentData(r: OppgaveRespondent, svarStatus: OppgaveSvarStatus |
         navn: r.navn,
         etternavn: r.etternavn,
         mobil: r.mobil,
+        videresending_nominasjon: r.videresending_nominasjon,
         svar_status: svarStatus,
     };
 }
@@ -152,6 +175,7 @@ export default {
             respondenter: [] as OppgaveRespondentData[],
             statusHentingId: 0,
             valgteStatusFilter: [] as StatusFilterKey[],
+            filterKunNominasjon: false,
         };
     },
 
@@ -173,15 +197,23 @@ export default {
             return this.respondenter.filter((r) => r.svar_status === null).length;
         },
 
+        antallNominasjon(): number {
+            return this.respondenter.filter((r) => r.videresending_nominasjon).length;
+        },
+
         harStatusfilter(): boolean {
-            return this.valgteStatusFilter.length > 0;
+            return this.valgteStatusFilter.length > 0 || this.filterKunNominasjon;
         },
 
         filtrerteRespondenter(): OppgaveRespondentData[] {
-            if (!this.harStatusfilter) {
-                return this.respondenter;
+            let liste = this.respondenter;
+            if (this.filterKunNominasjon) {
+                liste = liste.filter((r) => r.videresending_nominasjon);
             }
-            return this.respondenter.filter((r) => this.respondentMatcherFilter(r));
+            if (this.valgteStatusFilter.length > 0) {
+                liste = liste.filter((r) => this.respondentMatcherFilter(r));
+            }
+            return liste;
         },
     },
 
@@ -208,6 +240,11 @@ export default {
 
         velgAlleStatus(): void {
             this.valgteStatusFilter = [];
+            this.filterKunNominasjon = false;
+        },
+
+        toggleNominasjonFilter(): void {
+            this.filterKunNominasjon = !this.filterKunNominasjon;
         },
 
         toggleStatusFilter(key: StatusFilterKey): void {
@@ -227,6 +264,7 @@ export default {
             }
             this.loading = true;
             this.valgteStatusFilter = [];
+            this.filterKunNominasjon = false;
             try {
                 const hentet = await hentAlleRespondenter(this.oppgaveId);
                 this.respondenter = hentet.map((r) => tilRespondentData(r, null));
@@ -358,6 +396,9 @@ export default {
     font-weight: 700;
     font-size: 0.95rem;
     min-width: 0;
+}
+.deltaker-rad__nominasjon-chip {
+    align-self: flex-start;
 }
 .deltaker-rad__hoyre {
     display: flex;

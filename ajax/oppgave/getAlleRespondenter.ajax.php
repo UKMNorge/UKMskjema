@@ -34,10 +34,11 @@ foreach ($oppgave->getAlleRespondenter() as $respondent) {
         continue;
     }
     $respondenterUt[] = [
-        'id'        => (int) $respondent->getId(),
-        'navn'      => $respondent->getNavn(),
-        'etternavn' => $respondent->getEtternavn(),
-        'mobil'     => $respondent->getMobil(),
+        'id'                     => (int) $respondent->getId(),
+        'navn'                   => $respondent->getNavn(),
+        'etternavn'              => $respondent->getEtternavn(),
+        'mobil'                  => $respondent->getMobil(),
+        'videresending_nominasjon' => (bool) ($respondent->videresending_nominasjon ?? false),
     ];
 }
 

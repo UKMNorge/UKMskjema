@@ -13,6 +13,8 @@ export interface OppgaveRespondentData {
     navn: string;
     etternavn: string;
     mobil: string;
+    /** Fra videresending_nominasjon (kun videresending-oppgaver). */
+    videresending_nominasjon: boolean;
     /** null mens status hentes per respondent (getRespondentSvarStatus). */
     svar_status?: OppgaveSvarStatus | null;
 }
@@ -22,6 +24,7 @@ export default class OppgaveRespondent {
     navn: string;
     etternavn: string;
     mobil: string;
+    videresending_nominasjon: boolean;
     svar_status: OppgaveSvarStatus | null;
 
     constructor(data?: Partial<OppgaveRespondentData>) {
@@ -29,6 +32,7 @@ export default class OppgaveRespondent {
         this.navn = data?.navn ?? '';
         this.etternavn = data?.etternavn ?? '';
         this.mobil = data?.mobil ?? '';
+        this.videresending_nominasjon = !!data?.videresending_nominasjon;
         this.svar_status =
             data?.svar_status !== undefined && data?.svar_status !== null
                 ? (data.svar_status as OppgaveSvarStatus)
@@ -43,6 +47,7 @@ export default class OppgaveRespondent {
             navn: String(data.navn ?? ''),
             etternavn: String(data.etternavn ?? ''),
             mobil: String(data.mobil ?? ''),
+            videresending_nominasjon: Boolean(data.videresending_nominasjon),
             svar_status: harStatus ? (Number(data.svar_status) as OppgaveSvarStatus) : null,
         });
     }
