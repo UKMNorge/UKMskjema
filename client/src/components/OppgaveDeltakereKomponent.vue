@@ -16,7 +16,7 @@
                 <v-chip
                     class="status-oppsummering__chip status-oppsummering__chip--klikkbar"
                     size="small"
-                    :variant="harStatusfilter ? 'tonal' : 'flat'"
+                    :variant="filterChipVariant(!harStatusfilter)"
                     color="primary"
                     role="button"
                     tabindex="0"
@@ -29,7 +29,7 @@
                     v-if="antallLaster > 0"
                     class="status-oppsummering__chip status-oppsummering__chip--klikkbar"
                     size="small"
-                    :variant="erStatusValgt('laster') ? 'flat' : 'tonal'"
+                    :variant="filterChipVariant(erStatusValgt('laster'))"
                     color="grey"
                     role="button"
                     tabindex="0"
@@ -43,7 +43,7 @@
                     :key="s.status"
                     class="status-oppsummering__chip status-oppsummering__chip--klikkbar"
                     size="small"
-                    :variant="erStatusValgt(s.status) ? 'flat' : 'tonal'"
+                    :variant="filterChipVariant(erStatusValgt(s.status))"
                     :color="s.color"
                     role="button"
                     tabindex="0"
@@ -201,6 +201,11 @@ export default {
             return this.valgteStatusFilter.includes(key);
         },
 
+        /** Vuetify: flat = fylt med farge, outlined = kun ramme. */
+        filterChipVariant(valgt: boolean): 'flat' | 'outlined' {
+            return valgt ? 'flat' : 'outlined';
+        },
+
         velgAlleStatus(): void {
             this.valgteStatusFilter = [];
         },
@@ -310,6 +315,9 @@ export default {
 .status-oppsummering__chip--klikkbar:focus-visible {
     outline: 2px solid rgba(25, 118, 210, 0.45);
     outline-offset: 2px;
+}
+.status-oppsummering__chip.v-chip--variant-outlined {
+    background: transparent;
 }
 .deltaker-liste {
     display: flex;
