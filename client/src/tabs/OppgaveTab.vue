@@ -1,5 +1,14 @@
 <template>
     <div>
+        <OppgaveSvar
+            v-if="valgtRespondent"
+            :oppgave-id="valgtRespondent.oppgaveId"
+            :respondent-id="valgtRespondent.respondentId"
+            :respondent-navn="valgtRespondent.respondentNavn"
+            @tilbake="lukkRespondent"
+        />
+
+        <template v-else>
         <div class="section-header as-margin-bottom-space-5">
             <div class="as-padding-left-space-1">
                 <h4>Oppgaver</h4>
@@ -208,12 +217,22 @@
                     </div>
                 </div>
             </div>
+
+            <OppgaveDeltakereKomponent
+                :oppgave-id="o.id"
+                @open-svar="apneSvar(o.id, $event)"
+                @feil="$emit('feil', $event)"
+            />
         </div>
+        </template>
     </div>
 </template>
 
 <script lang="ts">
 import { PermanentNotification } from 'ukm-components-vue3';
+import OppgaveDeltakereKomponent from '../components/OppgaveDeltakereKomponent.vue';
+import OppgaveRespondent from '../objects/OppgaveRespondent';
+import OppgaveSvar from '../components/OppgaveSvar.vue';
 import {
     hentOppgaveOversikt,
     opprettOppgave as apiOpprettOppgave,
@@ -233,7 +252,7 @@ const OPP_TYPE_REISELEDERE = 'reiseledere';
 const OPP_TYPE_FYLKESKONTAKTER = 'fylkeskontakter';
 
 export default {
-    components: { PermanentNotification },
+    components: { PermanentNotification, OppgaveDeltakereKomponent, OppgaveSvar },
 
     emits: ['feil'],
 
@@ -266,6 +285,11 @@ export default {
                 { label: 'Samtykkeskjema', value: SK_SAMTYKKE },
                 { label: 'Spørreskjema (oppgave)', value: SK_VIDERESENDING },
             ],
+            valgtRespondent: null as {
+                oppgaveId: number;
+                respondentId: number;
+                respondentNavn: string;
+            } | null,
         };
     },
 
@@ -274,6 +298,18 @@ export default {
     },
 
     methods: {
+        apneSvar(oppgaveId: number, respondent: OppgaveRespondent): void {
+            this.valgtRespondent = {
+                oppgaveId,
+                respondentId: Number(respondent.id),
+                respondentNavn: respondent.getNavnFullt(),
+            };
+        },
+
+        lukkRespondent(): void {
+            this.valgtRespondent = null;
+        },
+
         typeLabel(type: string): string {
             if (type === OPP_TYPE_VIDERESENDING) {
                 return 'Videresending';

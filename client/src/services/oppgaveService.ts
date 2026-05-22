@@ -1,3 +1,5 @@
+import OppgaveRespondent, { type OppgaveRespondentData } from '@/objects/OppgaveRespondent';
+
 export interface OppgaveSkjemaKjedeItem {
     id: number;
     oppgave_id: number;
@@ -43,6 +45,35 @@ export async function hentOppgaveOversikt(): Promise<OppgaveOversiktResponse> {
     }
 
     return res as OppgaveOversiktResponse;
+}
+
+function normalizeRespondenterListe(respondenter: unknown): OppgaveRespondent[] {
+    if (!respondenter) {
+        return [];
+    }
+    const rader = Array.isArray(respondenter)
+        ? respondenter
+        : Object.values(respondenter as Record<string, unknown>);
+
+    return rader
+        .filter((r) => r && typeof r === 'object')
+        .map((r) => OppgaveRespondent.fromAjax(r as Record<string, unknown>))
+        .filter((r) => r.id > 0);
+}
+
+export async function hentAlleRespondenter(oppgaveId: number): Promise<OppgaveRespondent[]> {
+    const res = await getSpaInteraction().runAjaxCall('/', 'POST', {
+        action: 'UKMskjema_ajax',
+        controller: 'oppgave/getAlleRespondenter',
+        oppgave_id: oppgaveId,
+    });
+
+    if (!res.success) {
+        throw new Error(res.message ?? res.result ?? 'Kunne ikke hente respondenter');
+    }
+
+    const liste = normalizeRespondenterListe(res.respondenter);
+    return liste.sort((a, b) => a.getNavnFullt().localeCompare(b.getNavnFullt(), 'nb'));
 }
 
 export async function opprettOppgave(
