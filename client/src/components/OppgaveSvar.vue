@@ -38,29 +38,28 @@
                         @click="velgSkjema(index)"
                     >
                         <div class="paamelding-box skjema-box">
-                            <div class="header-top">
-                                <div class="category-tittel">
-                                    <div
-                                        class="mini-label-style label"
-                                        :class="ledd.besvart ? 'answered-skjema' : 'ikke-answered-skjema'"
+                            <div class="skjema-box__rad">
+                                <div class="skjema-box__chips">
+                                    <v-chip
+                                        size="small"
+                                        variant="tonal"
+                                        :color="ledd.besvart ? 'success' : 'warning'"
                                     >
-                                        <span>{{ ledd.besvart ? 'Besvart' : 'Ikke besvart' }}</span>
-                                    </div>
-                                </div>
-                                <div v-if="ledd.venter_foresatt" class="category-tittel">
-                                    <div class="mini-label-style label ikke-answered-skjema">
-                                        <span>Venter på svar fra foresatt</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="inner">
-                                <div class="oppgave-kjede__tekst text-body">
-                                    <h5 class="nom">{{ ledd.skjema_navn }}</h5>
-                                    <span class="small text-muted">{{ ledd.skjema_type_label }}</span>
+                                        {{ ledd.besvart ? 'Besvart' : 'Ikke besvart' }}
+                                    </v-chip>
+                                    <v-chip
+                                        v-if="ledd.venter_foresatt"
+                                        size="small"
+                                        variant="tonal"
+                                        color="warning"
+                                    >
+                                        Venter på svar fra foresatt
+                                    </v-chip>
                                 </div>
                             </div>
-                            <div class="img-indicator">
-                                <span :class="indicatorClass(ledd.indicator)"></span>
+                            <div class="oppgave-kjede__tekst text-body">
+                                <h5 class="nom">{{ ledd.skjema_navn }}</h5>
+                                <span class="small text-muted">{{ ledd.skjema_type_label }}</span>
                             </div>
                         </div>
                     </button>
@@ -87,28 +86,32 @@
                             </div>
                         </div>
 
-                        <div
-                            v-if="valgtLedd.detalj.svar"
-                            class="samtykke-text-div-signed alert"
-                            :class="
-                                valgtLedd.detalj.svar.svar === 'nei' ? 'alert-warning' : 'alert-info'
-                            "
-                        >
-                            <div v-if="valgtLedd.detalj.svar.svar === 'nei'">
-                                {{ respondentNavn }} har reservert seg
-                            </div>
-                            <div v-else>{{ respondentNavn }} har gitt samtykke</div>
-                            <div
+                        <div v-if="valgtLedd.detalj.svar" class="samtykke-svar as-margin-top-space-3">
+                            <v-chip
+                                size="small"
+                                variant="tonal"
+                                :color="valgtLedd.detalj.svar.svar === 'nei' ? 'warning' : 'success'"
+                                class="as-margin-bottom-space-2"
+                            >
+                                {{
+                                    valgtLedd.detalj.svar.svar === 'nei'
+                                        ? `${respondentNavn} har reservert seg`
+                                        : `${respondentNavn} har gitt samtykke`
+                                }}
+                            </v-chip>
+                            <p
                                 v-if="
                                     valgtLedd.detalj.svar.skjema_type === 'med-kommentar' &&
                                     valgtLedd.detalj.svar.kommentar
                                 "
+                                class="mb-1"
                             >
-                                Kommentar: {{ valgtLedd.detalj.svar.kommentar }}
-                            </div>
-                            <div v-if="valgtLedd.detalj.svar.created_at">
+                                <span class="text-muted">Kommentar:</span>
+                                {{ valgtLedd.detalj.svar.kommentar }}
+                            </p>
+                            <p v-if="valgtLedd.detalj.svar.created_at" class="text-muted small mb-0">
                                 Tidspunkt: {{ formatTid(valgtLedd.detalj.svar.created_at) }}
-                            </div>
+                            </p>
                         </div>
                         <p v-else class="text-muted">Ingen samtykke registrert.</p>
                     </template>
@@ -119,22 +122,19 @@
                             :key="sporsmal.id"
                             class="oppgave-svar__sporsmal"
                         >
-                            <div v-if="sporsmal.foresatt_godkjent !== null" class="mb-2 small">
-                                <span
-                                    class="badge"
-                                    :class="
-                                        sporsmal.foresatt_godkjent
-                                            ? 'badge-success'
-                                            : 'badge-warning'
-                                    "
-                                >
-                                    {{
-                                        sporsmal.foresatt_godkjent
-                                            ? 'Godkjent av foresatt'
-                                            : 'Ikke godkjent av foresatt'
-                                    }}
-                                </span>
-                            </div>
+                            <v-chip
+                                v-if="sporsmal.foresatt_godkjent !== null"
+                                size="small"
+                                variant="tonal"
+                                :color="sporsmal.foresatt_godkjent ? 'success' : 'warning'"
+                                class="as-margin-bottom-space-2"
+                            >
+                                {{
+                                    sporsmal.foresatt_godkjent
+                                        ? 'Godkjent av foresatt'
+                                        : 'Ikke godkjent av foresatt'
+                                }}
+                            </v-chip>
                             <label class="bold d-block">{{ sporsmal.tittel }}</label>
                             <div class="oppgave-svar__svar-linjer">
                                 <p
@@ -150,9 +150,28 @@
                                     >Last ned fil</a>
                                     <template v-else-if="linje.label">
                                         <span class="text-muted">{{ linje.label }}:</span>
-                                        {{ linje.value }}
+                                        <v-chip
+                                            v-if="erJaNei(linje.value)"
+                                            size="x-small"
+                                            variant="tonal"
+                                            :color="linje.value === 'Ja' ? 'success' : 'grey'"
+                                            class="as-margin-left-space-1"
+                                        >
+                                            {{ linje.value }}
+                                        </v-chip>
+                                        <template v-else>{{ linje.value }}</template>
                                     </template>
-                                    <template v-else>{{ linje.value }}</template>
+                                    <template v-else>
+                                        <v-chip
+                                            v-if="erJaNei(linje.value)"
+                                            size="x-small"
+                                            variant="tonal"
+                                            :color="linje.value === 'Ja' ? 'success' : 'grey'"
+                                        >
+                                            {{ linje.value }}
+                                        </v-chip>
+                                        <template v-else>{{ linje.value }}</template>
+                                    </template>
                                 </p>
                             </div>
                             <p v-if="sporsmal.hjelp" class="text-muted help-text">{{ sporsmal.hjelp }}</p>
@@ -232,14 +251,28 @@ export default {
             this.valgtIndex = this.valgtIndex === index ? null : index;
         },
 
-        indicatorClass(indicator: string): string {
+        indicatorColor(indicator: string): string {
             if (indicator === 'success') {
-                return 'checked-success';
+                return 'success';
             }
             if (indicator === 'warning') {
-                return 'checked-warning';
+                return 'warning';
             }
-            return 'checked-danger';
+            return 'error';
+        },
+
+        indicatorIcon(indicator: string): string {
+            if (indicator === 'success') {
+                return 'mdi-check-circle';
+            }
+            if (indicator === 'warning') {
+                return 'mdi-clock-outline';
+            }
+            return 'mdi-close-circle';
+        },
+
+        erJaNei(value: string): boolean {
+            return value === 'Ja' || value === 'Nei';
         },
 
         nl2br(text: string): string {
@@ -297,6 +330,8 @@ export default {
 }
 .oppgave-kjede__item {
     margin-bottom: 0.5rem;
+    overflow: hidden !important;
+    border-radius: 10px;
 }
 .oppgave-kjede__knapp {
     display: block;
@@ -308,55 +343,33 @@ export default {
     cursor: pointer;
 }
 .oppgave-kjede__knapp--valgt .skjema-box {
-    outline: 2px solid rgba(116, 82, 184, 0.5);
+    opacity: 1;
+    background: #e3edf7;
+    border: solid 2px #1867c0;
 }
 .skjema-box {
-    position: relative;
-    padding: 15px 40px 15px 15px;
+    padding: 15px;
     min-height: 70px;
-    border-radius: 8px;
+    border-radius: 10px;
     background: #fff;
     margin-bottom: 0;
 }
-.skjema-box .header-top {
-    display: inline-flex;
+.skjema-box__rad {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+.skjema-box__chips {
+    display: flex;
     flex-wrap: wrap;
     gap: 0.35rem;
+    flex: 1;
+    min-width: 0;
 }
-.skjema-box .category-tittel .mini-label-style.answered-skjema {
-    background: rgba(193, 205, 58, 0.74);
-    color: #585858 !important;
-}
-.skjema-box .category-tittel .mini-label-style {
-    color: #ffbf00 !important;
-    font-size: 12px;
-    padding: 0 8px;
-    border-radius: 4px;
-}
-.mini-label-style.label.ikke-answered-skjema {
-    background: rgba(255, 191, 0, 0.35);
-}
-.img-indicator {
-    position: absolute;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    display: flex;
-    min-width: 30px;
-}
-.img-indicator span {
-    border-radius: 0;
-    width: 30px;
-    height: 100%;
-}
-.checked-success {
-    background: #28a745;
-}
-.checked-warning {
-    background: #ff4800;
-}
-.checked-danger {
-    background: #ff4800;
+.skjema-box__indikator {
+    flex-shrink: 0;
 }
 .oppgave-kjede__tekst h5.nom {
     margin: 0;
@@ -375,44 +388,15 @@ export default {
 .oppgave-svar__sporsmal .bold {
     font-weight: 600;
 }
-.badge-success {
-    background: #28a745;
-    color: #fff;
-    padding: 0.2em 0.5em;
-    border-radius: 4px;
-}
-.badge-warning {
-    background: #ffc107;
-    color: #212529;
-    padding: 0.2em 0.5em;
-    border-radius: 4px;
-}
 .help-text {
     font-size: 0.875rem;
 }
 .samtykke-body {
     white-space: pre-wrap;
 }
-.alert {
-    padding: 1rem;
-    border-radius: 6px;
-    margin-top: 1rem;
-}
-.alert-info {
-    background: #d1ecf1;
-    color: #0c5460;
-}
-.alert-warning {
-    background: #fff3cd;
-    color: #856404;
-}
 @media (max-width: 575px) {
     .skjema-box {
-        padding-right: 35px;
         min-height: 60px !important;
-    }
-    .img-indicator span {
-        width: 20px;
     }
 }
 </style>
