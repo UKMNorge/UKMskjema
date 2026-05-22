@@ -2,7 +2,7 @@
     <div class="oppgave-deltakere as-margin-top-space-4">
         <p class="kjede-tittel">Respondenter</p>
         <p class="kjede-hjelp">
-            Klikk en respondent for å se oppgavelisten (skjemasvar).
+            Klikk status for å filtrere listen. Klikk en respondent for å se oppgavelisten (skjemasvar).
         </p>
 
         <v-skeleton-loader
@@ -14,37 +14,59 @@
         <template v-else-if="respondenter.length">
             <div class="status-oppsummering as-margin-bottom-space-3">
                 <v-chip
-                    class="status-oppsummering__chip"
+                    class="status-oppsummering__chip status-oppsummering__chip--klikkbar"
                     size="small"
-                    variant="tonal"
+                    :variant="harStatusfilter ? 'tonal' : 'flat'"
                     color="primary"
+                    role="button"
+                    tabindex="0"
+                    @click="velgAlleStatus"
+                    @keyup.enter="velgAlleStatus"
                 >
                     Totalt: {{ respondenter.length }}
                 </v-chip>
                 <v-chip
                     v-if="antallLaster > 0"
-                    class="status-oppsummering__chip"
+                    class="status-oppsummering__chip status-oppsummering__chip--klikkbar"
                     size="small"
-                    variant="tonal"
+                    :variant="erStatusValgt('laster') ? 'flat' : 'tonal'"
                     color="grey"
+                    role="button"
+                    tabindex="0"
+                    @click="toggleStatusFilter('laster')"
+                    @keyup.enter="toggleStatusFilter('laster')"
                 >
                     Laster: {{ antallLaster }}
                 </v-chip>
                 <v-chip
                     v-for="s in statusOppsummeringTyper"
                     :key="s.status"
-                    class="status-oppsummering__chip"
+                    class="status-oppsummering__chip status-oppsummering__chip--klikkbar"
                     size="small"
-                    variant="tonal"
+                    :variant="erStatusValgt(s.status) ? 'flat' : 'tonal'"
                     :color="s.color"
+                    role="button"
+                    tabindex="0"
+                    @click="toggleStatusFilter(s.status)"
+                    @keyup.enter="toggleStatusFilter(s.status)"
                 >
                     {{ s.label }}: {{ tellStatus(s.status) }}
                 </v-chip>
             </div>
 
-            <div class="deltaker-liste">
+            <p
+                v-if="harStatusfilter && filtrerteRespondenter.length === 0"
+                class="tom-kjede as-margin-bottom-space-2"
+            >
+                Ingen respondenter med valgt status.
+            </p>
+
             <div
-                v-for="r in respondenter"
+                v-else
+                class="deltaker-liste"
+            >
+            <div
+                v-for="r in filtrerteRespondenter"
                 :key="r.id"
                 class="deltaker-rad deltaker-rad--klikkbar"
                 role="button"
@@ -94,6 +116,8 @@ import OppgaveRespondent, {
     oppgaveSvarStatusLabel,
 } from '../objects/OppgaveRespondent';
 
+type StatusFilterKey = OppgaveSvarStatus | 'laster';
+
 const STATUS_OPPSUMMERING_TYPER: { status: OppgaveSvarStatus; label: string; color: string }[] = [
     { status: OPPGAVE_SVAR_STATUS_IKKE_PABEGYNT, label: oppgaveSvarStatusLabel(OPPGAVE_SVAR_STATUS_IKKE_PABEGYNT), color: oppgaveSvarStatusColor(OPPGAVE_SVAR_STATUS_IKKE_PABEGYNT) },
     { status: OPPGAVE_SVAR_STATUS_PABEGYNT, label: oppgaveSvarStatusLabel(OPPGAVE_SVAR_STATUS_PABEGYNT), color: oppgaveSvarStatusColor(OPPGAVE_SVAR_STATUS_PABEGYNT) },
@@ -127,6 +151,7 @@ export default {
             loading: false,
             respondenter: [] as OppgaveRespondentData[],
             statusHentingId: 0,
+            valgteStatusFilter: [] as StatusFilterKey[],
         };
     },
 
@@ -147,18 +172,56 @@ export default {
         antallLaster(): number {
             return this.respondenter.filter((r) => r.svar_status === null).length;
         },
+
+        harStatusfilter(): boolean {
+            return this.valgteStatusFilter.length > 0;
+        },
+
+        filtrerteRespondenter(): OppgaveRespondentData[] {
+            if (!this.harStatusfilter) {
+                return this.respondenter;
+            }
+            return this.respondenter.filter((r) => this.respondentMatcherFilter(r));
+        },
     },
 
     methods: {
         tellStatus(status: OppgaveSvarStatus): number {
             return this.respondenter.filter((r) => r.svar_status === status).length;
         },
+
+        respondentMatcherFilter(respondent: OppgaveRespondentData): boolean {
+            if (respondent.svar_status === null || respondent.svar_status === undefined) {
+                return this.valgteStatusFilter.includes('laster');
+            }
+            return this.valgteStatusFilter.includes(respondent.svar_status);
+        },
+
+        erStatusValgt(key: StatusFilterKey): boolean {
+            return this.valgteStatusFilter.includes(key);
+        },
+
+        velgAlleStatus(): void {
+            this.valgteStatusFilter = [];
+        },
+
+        toggleStatusFilter(key: StatusFilterKey): void {
+            const idx = this.valgteStatusFilter.indexOf(key);
+            if (idx === -1) {
+                this.valgteStatusFilter = [...this.valgteStatusFilter, key];
+            } else {
+                this.valgteStatusFilter = this.valgteStatusFilter.filter((k) => k !== key);
+            }
+        },
+
         async hentRespondenter(): Promise<void> {
             if (!this.oppgaveId) {
                 this.respondenter = [];
+                this.valgteStatusFilter = [];
                 return;
             }
             this.loading = true;
+            this.valgteStatusFilter = [];
             try {
                 const hentet = await hentAlleRespondenter(this.oppgaveId);
                 this.respondenter = hentet.map((r) => tilRespondentData(r, null));
@@ -239,6 +302,14 @@ export default {
 }
 .status-oppsummering__chip {
     font-weight: 600;
+}
+.status-oppsummering__chip--klikkbar {
+    cursor: pointer;
+    user-select: none;
+}
+.status-oppsummering__chip--klikkbar:focus-visible {
+    outline: 2px solid rgba(25, 118, 210, 0.45);
+    outline-offset: 2px;
 }
 .deltaker-liste {
     display: flex;
