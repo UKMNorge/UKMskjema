@@ -28,7 +28,15 @@
                     <span class="deltaker-rad__navn">{{ r.navn }} {{ r.etternavn }}</span>
                 </div>
                 <div class="deltaker-rad__hoyre">
+                    <v-progress-circular
+                        v-if="r.svar_status === null"
+                        indeterminate
+                        size="18"
+                        width="2"
+                        color="primary"
+                    />
                     <v-chip
+                        v-else
                         size="small"
                         variant="tonal"
                         :color="svarStatusColor(r.svar_status)"
@@ -44,21 +52,22 @@
 </template>
 
 <script lang="ts">
-import { hentAlleRespondenter } from '../services/oppgaveService';
+import { hentAlleRespondenter, hentRespondentSvarStatus } from '../services/oppgaveService';
 import OppgaveRespondent, {
     type OppgaveRespondentData,
     type OppgaveSvarStatus,
+    OPPGAVE_SVAR_STATUS_UKJENT,
     oppgaveSvarStatusColor,
     oppgaveSvarStatusLabel,
 } from '../objects/OppgaveRespondent';
 
-function tilRespondentData(r: OppgaveRespondent): OppgaveRespondentData {
+function tilRespondentData(r: OppgaveRespondent, svarStatus: OppgaveSvarStatus | null = null): OppgaveRespondentData {
     return {
         id: r.id,
         navn: r.navn,
         etternavn: r.etternavn,
         mobil: r.mobil,
-        svar_status: r.svar_status,
+        svar_status: svarStatus,
     };
 }
 
@@ -76,6 +85,7 @@ export default {
         return {
             loading: false,
             respondenter: [] as OppgaveRespondentData[],
+            statusHentingId: 0,
         };
     },
 
@@ -97,20 +107,47 @@ export default {
             this.loading = true;
             try {
                 const hentet = await hentAlleRespondenter(this.oppgaveId);
-                this.respondenter = hentet.map(tilRespondentData);
+                this.respondenter = hentet.map((r) => tilRespondentData(r, null));
+                this.loading = false;
+                await this.hentSvarStatusForAlle();
             } catch (e: any) {
                 this.respondenter = [];
                 this.$emit('feil', e.message ?? 'Kunne ikke hente respondenter');
-            } finally {
                 this.loading = false;
             }
         },
 
-        svarStatusLabel(status: OppgaveSvarStatus): string {
+        async hentSvarStatusForAlle(): Promise<void> {
+            const oppgaveId = this.oppgaveId;
+            const hentingId = ++this.statusHentingId;
+            await Promise.all(
+                this.respondenter.map(async (respondent) => {
+                    try {
+                        const status = await hentRespondentSvarStatus(oppgaveId, respondent.id);
+                        if (hentingId !== this.statusHentingId) {
+                            return;
+                        }
+                        respondent.svar_status = status;
+                    } catch {
+                        if (hentingId === this.statusHentingId) {
+                            respondent.svar_status = OPPGAVE_SVAR_STATUS_UKJENT;
+                        }
+                    }
+                })
+            );
+        },
+
+        svarStatusLabel(status: OppgaveSvarStatus | null | undefined): string {
+            if (status === null || status === undefined) {
+                return '';
+            }
             return oppgaveSvarStatusLabel(status);
         },
 
-        svarStatusColor(status: OppgaveSvarStatus): string {
+        svarStatusColor(status: OppgaveSvarStatus | null | undefined): string {
+            if (status === null || status === undefined) {
+                return 'grey';
+            }
             return oppgaveSvarStatusColor(status);
         },
 

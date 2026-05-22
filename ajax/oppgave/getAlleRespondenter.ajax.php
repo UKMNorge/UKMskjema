@@ -38,7 +38,6 @@ foreach ($oppgave->getAlleRespondenter() as $respondent) {
         'navn'      => $respondent->getNavn(),
         'etternavn' => $respondent->getEtternavn(),
         'mobil'     => $respondent->getMobil(),
-        'svar_status' => $oppgave->getOppgaveBesvartStatusByMobil($respondent->getMobil()),
     ];
 }
 

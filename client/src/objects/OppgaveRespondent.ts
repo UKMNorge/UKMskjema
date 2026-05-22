@@ -13,7 +13,8 @@ export interface OppgaveRespondentData {
     navn: string;
     etternavn: string;
     mobil: string;
-    svar_status: OppgaveSvarStatus;
+    /** null mens status hentes per respondent (getRespondentSvarStatus). */
+    svar_status?: OppgaveSvarStatus | null;
 }
 
 export default class OppgaveRespondent {
@@ -21,28 +22,28 @@ export default class OppgaveRespondent {
     navn: string;
     etternavn: string;
     mobil: string;
-    svar_status: OppgaveSvarStatus;
+    svar_status: OppgaveSvarStatus | null;
 
     constructor(data?: Partial<OppgaveRespondentData>) {
         this.id = data?.id ?? 0;
         this.navn = data?.navn ?? '';
         this.etternavn = data?.etternavn ?? '';
         this.mobil = data?.mobil ?? '';
-        this.svar_status = (data?.svar_status ?? OPPGAVE_SVAR_STATUS_IKKE_PABEGYNT) as OppgaveSvarStatus;
+        this.svar_status =
+            data?.svar_status !== undefined && data?.svar_status !== null
+                ? (data.svar_status as OppgaveSvarStatus)
+                : null;
     }
 
     static fromAjax(row: Partial<OppgaveRespondentData> | Record<string, unknown>): OppgaveRespondent {
         const data = row as Record<string, unknown>;
+        const harStatus = data.svar_status !== undefined && data.svar_status !== null;
         return new OppgaveRespondent({
             id: Number(data.id) || 0,
             navn: String(data.navn ?? ''),
             etternavn: String(data.etternavn ?? ''),
             mobil: String(data.mobil ?? ''),
-            svar_status: Number(
-                data.svar_status !== undefined && data.svar_status !== null
-                    ? data.svar_status
-                    : OPPGAVE_SVAR_STATUS_IKKE_PABEGYNT
-            ) as OppgaveSvarStatus,
+            svar_status: harStatus ? (Number(data.svar_status) as OppgaveSvarStatus) : null,
         });
     }
 
@@ -51,10 +52,16 @@ export default class OppgaveRespondent {
     }
 
     getSvarStatusLabel(): string {
+        if (this.svar_status === null) {
+            return '';
+        }
         return oppgaveSvarStatusLabel(this.svar_status);
     }
 
     getSvarStatusColor(): string {
+        if (this.svar_status === null) {
+            return 'grey';
+        }
         return oppgaveSvarStatusColor(this.svar_status);
     }
 }

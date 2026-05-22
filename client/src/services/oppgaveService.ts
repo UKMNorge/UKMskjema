@@ -1,4 +1,7 @@
-import OppgaveRespondent, { type OppgaveRespondentData } from '@/objects/OppgaveRespondent';
+import OppgaveRespondent, {
+    type OppgaveRespondentData,
+    type OppgaveSvarStatus,
+} from '@/objects/OppgaveRespondent';
 
 export interface OppgaveSkjemaKjedeItem {
     id: number;
@@ -74,6 +77,24 @@ export async function hentAlleRespondenter(oppgaveId: number): Promise<OppgaveRe
 
     const liste = normalizeRespondenterListe(res.respondenter);
     return liste.sort((a, b) => a.getNavnFullt().localeCompare(b.getNavnFullt(), 'nb'));
+}
+
+export async function hentRespondentSvarStatus(
+    oppgaveId: number,
+    respondentId: number
+): Promise<OppgaveSvarStatus> {
+    const res = await getSpaInteraction().runAjaxCall('/', 'POST', {
+        action: 'UKMskjema_ajax',
+        controller: 'oppgave/getRespondentSvarStatus',
+        oppgave_id: oppgaveId,
+        respondent_id: respondentId,
+    });
+
+    if (!res.success) {
+        throw new Error(res.message ?? res.result ?? 'Kunne ikke hente svarstatus');
+    }
+
+    return Number(res.svar_status) as OppgaveSvarStatus;
 }
 
 export async function opprettOppgave(
