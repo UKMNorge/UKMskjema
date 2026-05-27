@@ -89,7 +89,20 @@
                 @keyup.enter="apneRespondent(r)"
             >
                 <div class="deltaker-rad__hoved">
-                    <span class="deltaker-rad__navn as-margin-right-space-1">{{ r.navn }} {{ r.etternavn }} ({{ r.mobil }})</span>
+                    <div class="deltaker-rad__info">
+                        <span class="deltaker-rad__navn">{{ r.navn }} {{ r.etternavn }} ({{ r.mobil }})</span>
+                        <span
+                            v-if="r.fylke || r.arrangement || r.foresatt_mobil"
+                            class="deltaker-rad__meta"
+                        >
+                            <template v-if="r.fylke">{{ r.fylke }}</template>
+                            <template v-if="r.fylke && r.arrangement"> · </template>
+                            <template v-if="r.arrangement">{{ r.arrangement }}</template>
+                            <template v-if="r.foresatt_mobil">
+                                <template v-if="r.fylke || r.arrangement"> · </template>
+                            </template>
+                        </span>
+                    </div>
                     <v-chip
                         v-if="r.videresending_nominasjon"
                         size="small"
@@ -156,6 +169,9 @@ function tilRespondentData(r: OppgaveRespondent, svarStatus: OppgaveSvarStatus |
         etternavn: r.etternavn,
         mobil: r.mobil,
         videresending_nominasjon: r.videresending_nominasjon,
+        fylke: r.fylke,
+        arrangement: r.arrangement,
+        foresatt_mobil: r.foresatt_mobil,
         svar_status: svarStatus,
     };
 }
@@ -393,20 +409,30 @@ export default {
 }
 .deltaker-rad__hoved {
     display: flex;
-    gap: 0.15rem;
-    width: 35%;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 0;
 }
-.deltaker-rad__hoved .v-chip{
-    margin: auto;
-    margin-right: 0;
+.deltaker-rad__hoved .v-chip {
+    flex-shrink: 0;
     min-width: fit-content;
+}
+.deltaker-rad__info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
 }
 .deltaker-rad__navn {
     font-weight: 700;
     font-size: 0.95rem;
     min-width: 0;
-    margin: auto;
-    margin-left: 0;
+}
+.deltaker-rad__meta {
+    font-size: 0.8rem;
+    color: var(--color-primary-grey-dark, #666);
+    min-width: 0;
 }
 .deltaker-rad__nominasjon-chip {
     align-self: flex-start;
@@ -422,11 +448,11 @@ export default {
     flex-shrink: 0;
 }
 @media (max-width: 768px) {
-    .deltaker-rad__hoved {
-        width: 60%;
-    }
     .deltaker-rad__navn {
         font-size: 0.85rem;
+    }
+    .deltaker-rad__meta {
+        font-size: 0.75rem;
     }
 }
 </style>

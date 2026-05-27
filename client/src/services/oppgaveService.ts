@@ -131,6 +131,7 @@ export interface RespondentOppgavelisteResponse {
         navn: string;
         etternavn: string;
         mobil: string;
+        foresatt_mobil: string | null;
         navn_fullt: string;
         is_18: boolean;
     };

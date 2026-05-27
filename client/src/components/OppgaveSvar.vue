@@ -2,8 +2,47 @@
     <div class="oppgave-svar">
         <div class="oppgave-svar__header">
             <h4 class="oppgave-svar__tittel">{{ visningsNavn }}</h4>
-            <a v-if="visningsMobil" class="oppgave-svar__mobil" :href="telHref">{{ visningsMobil }}</a>
+            <div v-if="visningsMobil || visningsForesattMobil" class="oppgave-svar__kontakt">
+                <a v-if="visningsMobil" class="oppgave-svar__mobil" :href="telHref">{{ visningsMobil }}</a>
+                <a
+                    v-if="visningsForesattMobil"
+                    class="oppgave-svar__mobil oppgave-svar__mobil--foresatt"
+                    :href="foresattTelHref"
+                >
+                    Foresatt: {{ visningsForesattMobil }}
+                </a>
+            </div>
         </div>
+
+        <form action="?page=UKMSMS_gui" method="POST" id="nominasjon-reminder">
+            <input type="hidden" name="UKMSMS_message" :value="'Hei, ' + visningsNavn + '! Du har en oppgave som du må besvare. Klikk på lenken for å besvare oppgaven: https://delta.ukm.no/ukmid/oppgaveliste/'" />
+            <input type="hidden" name="UKMSMS_recipients" :value="`${ visningsMobil }`" id="nominasjon-reminder-recipient" />
+            <v-btn
+                class="v-btn-as v-btn-hvit as-margin-right-space-2"
+                prepend-icon="mdi-message-processing"
+                type="submit" 
+                color="#000"
+                rounded="large"
+                variant="outlined"
+            >
+            Send SMS til deltaker
+            </v-btn>
+        </form>
+
+        <form action="?page=UKMSMS_gui" method="POST" id="foresatt-reminder" class="as-margin-top-space-1 as-margin-bottom-space-2">
+            <input type="hidden" name="UKMSMS_message" :value="'Hei! Du er oppgit som foresatt for ' + visningsNavn + '. Du må derfor godkjenne noen samtykker og opplysninger. Klikk på lenken for å godkjenne: https://delta.ukm.no/ukmid/oppgaveliste/'" />
+            <input type="hidden" name="UKMSMS_recipients" :value="`${ visningsForesattMobil }`" id="foresatt-reminder-recipient" />
+            <v-btn
+                class="v-btn-as v-btn-hvit as-margin-right-space-2"
+                prepend-icon="mdi-message-processing"
+                type="submit" 
+                color="#000"
+                rounded="large"
+                variant="outlined"
+            >
+            Send SMS til foresatt
+            </v-btn>
+        </form>
 
         <div v-if="laster" class="oppgave-svar__laster">
             <v-progress-circular indeterminate color="primary" size="32" />
@@ -233,6 +272,15 @@ export default {
             const digits = this.visningsMobil.replace(/\s+/g, '');
             return digits ? `tel:${digits}` : '';
         },
+
+        visningsForesattMobil(): string {
+            return this.data?.respondent?.foresatt_mobil?.trim() ?? '';
+        },
+
+        foresattTelHref(): string {
+            const digits = this.visningsForesattMobil.replace(/\s+/g, '');
+            return digits ? `tel:${digits}` : '';
+        },
     },
 
     mounted() {
@@ -313,11 +361,19 @@ export default {
     margin-top: 0;
     margin-bottom: 0.25rem;
 }
+.oppgave-svar__kontakt {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
 .oppgave-svar__mobil {
     display: inline-block;
     font-size: 1rem;
     color: var(--color-primary, #1867c0);
     text-decoration: none;
+}
+.oppgave-svar__mobil--foresatt {
+    font-size: 0.9rem;
 }
 .oppgave-svar__mobil:hover {
     text-decoration: underline;

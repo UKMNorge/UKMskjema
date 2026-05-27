@@ -15,6 +15,12 @@ export interface OppgaveRespondentData {
     mobil: string;
     /** Fra videresending_nominasjon (kun videresending-oppgaver). */
     videresending_nominasjon: boolean;
+    /** Fylke for avsender-arrangement (videresending). */
+    fylke?: string | null;
+    /** Navn på avsender-arrangement (videresending). */
+    arrangement?: string | null;
+    /** Foresatts mobilnummer (Delta). */
+    foresatt_mobil?: string | null;
     /** null mens status hentes per respondent (getRespondentSvarStatus). */
     svar_status?: OppgaveSvarStatus | null;
 }
@@ -25,6 +31,9 @@ export default class OppgaveRespondent {
     etternavn: string;
     mobil: string;
     videresending_nominasjon: boolean;
+    fylke: string | null;
+    arrangement: string | null;
+    foresatt_mobil: string | null;
     svar_status: OppgaveSvarStatus | null;
 
     constructor(data?: Partial<OppgaveRespondentData>) {
@@ -33,6 +42,9 @@ export default class OppgaveRespondent {
         this.etternavn = data?.etternavn ?? '';
         this.mobil = data?.mobil ?? '';
         this.videresending_nominasjon = !!data?.videresending_nominasjon;
+        this.fylke = data?.fylke ?? null;
+        this.arrangement = data?.arrangement ?? null;
+        this.foresatt_mobil = data?.foresatt_mobil ?? null;
         this.svar_status =
             data?.svar_status !== undefined && data?.svar_status !== null
                 ? (data.svar_status as OppgaveSvarStatus)
@@ -48,6 +60,10 @@ export default class OppgaveRespondent {
             etternavn: String(data.etternavn ?? ''),
             mobil: String(data.mobil ?? ''),
             videresending_nominasjon: Boolean(data.videresending_nominasjon),
+            fylke: data.fylke != null && data.fylke !== '' ? String(data.fylke) : null,
+            arrangement: data.arrangement != null && data.arrangement !== '' ? String(data.arrangement) : null,
+            foresatt_mobil:
+                data.foresatt_mobil != null && data.foresatt_mobil !== '' ? String(data.foresatt_mobil) : null,
             svar_status: harStatus ? (Number(data.svar_status) as OppgaveSvarStatus) : null,
         });
     }
