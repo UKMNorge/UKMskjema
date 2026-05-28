@@ -507,7 +507,11 @@ export default {
         },
 
         bekreftSlettOppgave(o: OppgaveData): void {
-            if (!window.confirm(`Slette oppgaven «${o.name}» og tilhørende kjedeelementer?`)) {
+            if(o.skjema_kjede.length > 0) {
+                this.$emit('feil', 'Oppgaven har kjedeelementer. Slett kjedeelementene først.');
+                return;
+            }
+            if (!window.confirm(`Slette oppgaven «${o.name}»? Husk at du mister alle skjemaer og svar som er knyttet til denne oppgaven.`)) {
                 return;
             }
             this.slettOppgave(o);
