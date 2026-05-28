@@ -29,7 +29,8 @@ if ($oppgave->getPlId() !== $plId) {
 }
 
 $respondenterUt = [];
-foreach ($oppgave->getAlleRespondenter() as $respondent) {
+$isVideresending = $oppgave->getType() === Oppgave::TYPE_VIDERESENDING;
+foreach ($oppgave->getAlleRespondenter($isVideresending ? true : false) as $respondent) {
     if (!($respondent instanceof DeltaRespondent)) {
         continue;
     }
