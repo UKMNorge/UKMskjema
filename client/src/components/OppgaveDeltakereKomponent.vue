@@ -1,17 +1,30 @@
 <template>
     <div class="oppgave-deltakere as-margin-top-space-4">
-        <p class="kjede-tittel">Respondenter</p>
-        <p class="kjede-hjelp">
-            Klikk status for å filtrere listen. Klikk en respondent for å åpne svarene i et nytt vindu.
-        </p>
+        <button
+            type="button"
+            class="deltakere-header"
+            :aria-expanded="utvidet"
+            @click="toggleUtvidet"
+        >
+            <span class="kjede-tittel">Respondenter</span>
+            <v-icon size="small" class="deltakere-header__pil">
+                {{ utvidet ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
+            </v-icon>
+        </button>
 
-        <v-skeleton-loader
-            v-if="loading"
-            type="list-item-two-line"
-            class="as-margin-bottom-space-2"
-        />
+        <v-expand-transition>
+            <div v-if="utvidet" class="deltakere-innhold">
+                <p class="kjede-hjelp">
+                    Klikk status for å filtrere listen. Klikk en respondent for å åpne svarene i et nytt vindu.
+                </p>
 
-        <template v-else-if="respondenter.length">
+                <v-skeleton-loader
+                    v-if="loading"
+                    type="list-item-two-line"
+                    class="as-margin-bottom-space-2"
+                />
+
+                <template v-else-if="respondenter.length">
             <div class="status-oppsummering as-margin-bottom-space-3">
                 <v-chip
                     class="status-oppsummering__chip status-oppsummering__chip--klikkbar"
@@ -132,8 +145,10 @@
                 </div>
             </div>
             </div>
-        </template>
-        <p v-else class="tom-kjede">Ingen respondenter på denne oppgaven ennå.</p>
+                </template>
+                <p v-else class="tom-kjede">Ingen respondenter på denne oppgaven ennå.</p>
+            </div>
+        </v-expand-transition>
     </div>
 </template>
 
@@ -188,6 +203,8 @@ export default {
 
     data() {
         return {
+            utvidet: false,
+            respondenterHentet: false,
             loading: false,
             respondenter: [] as OppgaveRespondentData[],
             statusHentingId: 0,
@@ -197,11 +214,13 @@ export default {
     },
 
     watch: {
-        oppgaveId: {
-            immediate: true,
-            handler() {
-                this.hentRespondenter();
-            },
+        oppgaveId() {
+            this.utvidet = false;
+            this.respondenterHentet = false;
+            this.respondenter = [];
+            this.valgteStatusFilter = [];
+            this.filterKunNominasjon = false;
+            this.statusHentingId += 1;
         },
     },
 
@@ -235,6 +254,13 @@ export default {
     },
 
     methods: {
+        async toggleUtvidet(): Promise<void> {
+            this.utvidet = !this.utvidet;
+            if (this.utvidet && !this.respondenterHentet) {
+                await this.hentRespondenter();
+            }
+        },
+
         tellStatus(status: OppgaveSvarStatus): number {
             return this.respondenter.filter((r) => r.svar_status === status).length;
         },
@@ -285,10 +311,12 @@ export default {
             try {
                 const hentet = await hentAlleRespondenter(this.oppgaveId);
                 this.respondenter = hentet.map((r) => tilRespondentData(r, null));
+                this.respondenterHentet = true;
                 this.loading = false;
                 await this.hentSvarStatusForAlle();
             } catch (e: any) {
                 this.respondenter = [];
+                this.respondenterHentet = false;
                 this.$emit('feil', e.message ?? 'Kunne ikke hente respondenter');
                 this.loading = false;
             }
@@ -357,6 +385,27 @@ export default {
 .oppgave-deltakere {
     border-top: 1px solid rgba(0, 0, 0, 0.08);
     padding-top: 1rem;
+}
+.deltakere-header {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    text-align: center;
+}
+.deltakere-header:focus-visible {
+    outline: 2px solid rgba(25, 118, 210, 0.45);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+.deltakere-header__pil {
+    opacity: 0.55;
+    flex-shrink: 0;
+}
+.deltakere-innhold {
+    padding-top: 0.75rem;
 }
 .status-oppsummering {
     display: flex;
