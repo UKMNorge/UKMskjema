@@ -34,19 +34,22 @@
                     class="sporsmal-velger as-margin-bottom-space-3"
                     @update:model-value="paSporsmalValgt"
                 />
-                <p
+                <div
                     v-if="sporsmalSvarLaster"
                     class="sporsmal-henting-status as-margin-bottom-space-3"
                 >
-                    <v-progress-circular
-                        indeterminate
-                        size="16"
-                        width="2"
+                    <div class="sporsmal-henting-status__rad">
+                        <span>Henter svar for alle respondenter…</span>
+                        <strong class="sporsmal-henting-status__prosent">{{ sporsmalSvarFremdriftProsent }}%</strong>
+                    </div>
+                    <v-progress-linear
+                        :model-value="sporsmalSvarFremdriftProsent"
                         color="primary"
-                        class="sporsmal-henting-status__ikon"
+                        height="6"
+                        rounded
+                        class="sporsmal-henting-status__bar"
                     />
-                    Henter svar for alle respondenter…
-                </p>
+                </div>
 
                 <v-skeleton-loader
                     v-if="loading"
@@ -322,6 +325,8 @@ export default {
             sporsmalValg: [] as SporsmalValgMedKey[],
             sporsmalListeLaster: false,
             sporsmalSvarLaster: false,
+            sporsmalSvarHentet: 0,
+            sporsmalSvarTotalt: 0,
             valgtSporsmal: null as SporsmalValgMedKey | null,
             sporsmalHentingId: 0,
         };
@@ -338,11 +343,19 @@ export default {
             this.sporsmalValg = [];
             this.valgtSporsmal = null;
             this.sporsmalSvarLaster = false;
+            this.sporsmalSvarHentet = 0;
+            this.sporsmalSvarTotalt = 0;
             this.sporsmalHentingId += 1;
         },
     },
 
     computed: {
+        sporsmalSvarFremdriftProsent(): number {
+            if (this.sporsmalSvarTotalt <= 0) {
+                return 0;
+            }
+            return Math.min(100, Math.round((this.sporsmalSvarHentet / this.sporsmalSvarTotalt) * 100));
+        },
         statusOppsummeringTyper(): typeof STATUS_OPPSUMMERING_TYPER {
             return STATUS_OPPSUMMERING_TYPER;
         },
@@ -530,6 +543,8 @@ export default {
                 await this.hentSporsmalSvarForAlle();
             } finally {
                 this.sporsmalSvarLaster = false;
+                this.sporsmalSvarHentet = 0;
+                this.sporsmalSvarTotalt = 0;
             }
         },
 
@@ -553,6 +568,9 @@ export default {
             }
 
             const respondenter = this.respondenter;
+            this.sporsmalSvarTotalt = respondenter.length;
+            this.sporsmalSvarHentet = 0;
+
             for (let i = 0; i < respondenter.length; i += RESPONDENT_HENTING_BATCH_STORRELSE) {
                 if (hentingId !== this.sporsmalHentingId) {
                     return;
@@ -573,28 +591,34 @@ export default {
             sporsmalId: number,
             hentingId: number
         ): Promise<void> {
-            const phone = respondent.mobil?.trim();
-            if (!phone) {
-                if (hentingId === this.sporsmalHentingId) {
-                    respondent.sporsmal_svar = { linjer: [{ label: '', value: '—' }], foresatt_godkjent: null };
-                }
-                return;
-            }
             try {
-                const svar = await hentRespondentSporsmalSvar(oppgaveId, phone, skjemaId, sporsmalId);
-                if (hentingId !== this.sporsmalHentingId) {
+                const phone = respondent.mobil?.trim();
+                if (!phone) {
+                    if (hentingId === this.sporsmalHentingId) {
+                        respondent.sporsmal_svar = { linjer: [{ label: '', value: '—' }], foresatt_godkjent: null };
+                    }
                     return;
                 }
-                respondent.sporsmal_svar = {
-                    linjer: svar.linjer,
-                    foresatt_godkjent: svar.foresatt_godkjent,
-                };
-            } catch {
-                if (hentingId === this.sporsmalHentingId) {
+                try {
+                    const svar = await hentRespondentSporsmalSvar(oppgaveId, phone, skjemaId, sporsmalId);
+                    if (hentingId !== this.sporsmalHentingId) {
+                        return;
+                    }
                     respondent.sporsmal_svar = {
-                        linjer: [{ label: '', value: 'Kunne ikke hente svar' }],
-                        foresatt_godkjent: null,
+                        linjer: svar.linjer,
+                        foresatt_godkjent: svar.foresatt_godkjent,
                     };
+                } catch {
+                    if (hentingId === this.sporsmalHentingId) {
+                        respondent.sporsmal_svar = {
+                            linjer: [{ label: '', value: 'Kunne ikke hente svar' }],
+                            foresatt_godkjent: null,
+                        };
+                    }
+                }
+            } finally {
+                if (hentingId === this.sporsmalHentingId) {
+                    this.sporsmalSvarHentet += 1;
                 }
             }
         },
@@ -670,14 +694,23 @@ export default {
     max-width: 36rem;
 }
 .sporsmal-henting-status {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    max-width: 36rem;
     font-size: 0.875rem;
     color: var(--color-primary-grey-dark, #666);
 }
-.sporsmal-henting-status__ikon {
-    flex-shrink: 0;
+.sporsmal-henting-status__rad {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.35rem;
+}
+.sporsmal-henting-status__prosent {
+    color: var(--color-primary, #1867c0);
+    font-variant-numeric: tabular-nums;
+}
+.sporsmal-henting-status__bar {
+    width: 100%;
 }
 .deltaker-liste {
     display: flex;
