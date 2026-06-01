@@ -29,7 +29,7 @@
                     hide-details="auto"
                     :clearable="!sporsmalSvarLaster"
                     :disabled="sporsmalSvarLaster || antallLaster > 0"
-                    :loading="sporsmalListeLaster || sporsmalSvarLaster"
+                    :loading="sporsmalListeLaster || sporsmalSvarLaster || antallLaster > 0"
                     class="sporsmal-velger as-margin-bottom-space-3"
                     @update:model-value="paSporsmalValgt"
                 />
