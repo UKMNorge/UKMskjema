@@ -28,11 +28,25 @@
                     label="Vis svar på spørsmål"
                     variant="outlined"
                     hide-details="auto"
-                    clearable
-                    :loading="sporsmalListeLaster"
+                    :clearable="!sporsmalSvarLaster"
+                    :disabled="sporsmalSvarLaster"
+                    :loading="sporsmalListeLaster || sporsmalSvarLaster"
                     class="sporsmal-velger as-margin-bottom-space-3"
                     @update:model-value="paSporsmalValgt"
                 />
+                <p
+                    v-if="sporsmalSvarLaster"
+                    class="sporsmal-henting-status as-margin-bottom-space-3"
+                >
+                    <v-progress-circular
+                        indeterminate
+                        size="16"
+                        width="2"
+                        color="primary"
+                        class="sporsmal-henting-status__ikon"
+                    />
+                    Henter svar for alle respondenter…
+                </p>
 
                 <v-skeleton-loader
                     v-if="loading"
@@ -307,6 +321,7 @@ export default {
             filterKunNominasjon: false,
             sporsmalValg: [] as SporsmalValgMedKey[],
             sporsmalListeLaster: false,
+            sporsmalSvarLaster: false,
             valgtSporsmal: null as SporsmalValgMedKey | null,
             sporsmalHentingId: 0,
         };
@@ -322,6 +337,7 @@ export default {
             this.statusHentingId += 1;
             this.sporsmalValg = [];
             this.valgtSporsmal = null;
+            this.sporsmalSvarLaster = false;
             this.sporsmalHentingId += 1;
         },
     },
@@ -500,11 +516,20 @@ export default {
             }
         },
 
-        paSporsmalValgt(valgt: SporsmalValgMedKey | null): void {
+        async paSporsmalValgt(valgt: SporsmalValgMedKey | null): Promise<void> {
+            if (this.sporsmalSvarLaster) {
+                return;
+            }
             this.valgtSporsmal = valgt;
             this.nullstillSporsmalSvar();
-            if (valgt) {
-                void this.hentSporsmalSvarForAlle();
+            if (!valgt) {
+                return;
+            }
+            this.sporsmalSvarLaster = true;
+            try {
+                await this.hentSporsmalSvarForAlle();
+            } finally {
+                this.sporsmalSvarLaster = false;
             }
         },
 
@@ -643,6 +668,16 @@ export default {
 }
 .sporsmal-velger {
     max-width: 36rem;
+}
+.sporsmal-henting-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--color-primary-grey-dark, #666);
+}
+.sporsmal-henting-status__ikon {
+    flex-shrink: 0;
 }
 .deltaker-liste {
     display: flex;
