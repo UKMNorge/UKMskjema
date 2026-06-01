@@ -7,7 +7,7 @@ use UKMNorge\OAuth2\HandleAPICall;
 
 require_once 'UKM/Autoloader.php';
 
-$handleCall = new HandleAPICall(['oppgave_id', 'phone', 'skjema_id', 'sporsmal_id'], [], ['GET', 'POST'], false);
+$handleCall = new HandleAPICall(['oppgave_id', 'phone', 'skjema_type', 'skjema_id', 'sporsmal_id'], [], ['GET', 'POST'], false);
 
 $plId = (int) get_option('pl_id');
 if (!$plId) {
@@ -16,6 +16,7 @@ if (!$plId) {
 
 $oppgaveId = (int) $handleCall->getArgument('oppgave_id');
 $phone = trim((string) $handleCall->getArgument('phone'));
+$skjemaType = trim((string) $handleCall->getArgument('skjema_type'));
 $skjemaId = (int) $handleCall->getArgument('skjema_id');
 $sporsmalId = (int) $handleCall->getArgument('sporsmal_id');
 
@@ -24,6 +25,9 @@ if ($oppgaveId < 1) {
 }
 if ($phone === '') {
     $handleCall->sendErrorToClient('Ugyldig phone', 400);
+}
+if ($skjemaType === '') {
+    $handleCall->sendErrorToClient('Ugyldig skjema_type', 400);
 }
 if ($skjemaId < 1 || $sporsmalId < 1) {
     $handleCall->sendErrorToClient('Ugyldig skjema_id eller sporsmal_id', 400);
@@ -45,7 +49,7 @@ if ($respondent === null) {
 }
 
 try {
-    $svar = OppgaveRespondentVisning::sporsmalSvarForRespondent($oppgave, $respondent, $skjemaId, $sporsmalId);
+    $svar = OppgaveRespondentVisning::sporsmalSvarForRespondent($oppgave, $respondent, $skjemaType, $skjemaId, $sporsmalId);
 } catch (Exception $e) {
     $code = $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 404;
     $handleCall->sendErrorToClient($e->getMessage(), $code);

@@ -163,6 +163,7 @@ export async function hentRespondentOppgaveliste(
 }
 
 export interface OppgaveSporsmalValg {
+    skjema_type: string;
     skjema_id: number;
     skjema_navn: string;
     sporsmal_id: number;
@@ -195,6 +196,7 @@ export async function hentOppgaveSporsmalListe(oppgaveId: number): Promise<Oppga
 export async function hentRespondentSporsmalSvar(
     oppgaveId: number,
     phone: string,
+    skjemaType: string,
     skjemaId: number,
     sporsmalId: number
 ): Promise<RespondentSporsmalSvar> {
@@ -203,6 +205,7 @@ export async function hentRespondentSporsmalSvar(
         controller: 'oppgave/getRespondentSporsmalSvar',
         oppgave_id: oppgaveId,
         phone: phone.trim(),
+        skjema_type: skjemaType,
         skjema_id: skjemaId,
         sporsmal_id: sporsmalId,
     });

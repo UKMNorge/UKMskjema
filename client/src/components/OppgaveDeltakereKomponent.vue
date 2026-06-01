@@ -615,7 +615,7 @@ export default {
                 const liste = await hentOppgaveSporsmalListe(this.oppgaveId);
                 this.sporsmalValg = liste.map((s) => ({
                     ...s,
-                    key: `${s.skjema_id}:${s.sporsmal_id}`,
+                    key: `${s.skjema_type}:${s.skjema_id}:${s.sporsmal_id}`,
                 }));
             } catch (e: any) {
                 this.sporsmalValg = [];
@@ -725,7 +725,7 @@ export default {
             }
             const hentingId = ++this.sporsmalHentingId;
             const oppgaveId = this.oppgaveId;
-            const { skjema_id: skjemaId, sporsmal_id: sporsmalId } = sporsmal;
+            const { skjema_type: skjemaType, skjema_id: skjemaId, sporsmal_id: sporsmalId } = sporsmal;
 
             for (const respondent of this.respondenter) {
                 respondent.sporsmal_svar = null;
@@ -742,7 +742,14 @@ export default {
                 const batch = respondenter.slice(i, i + RESPONDENT_HENTING_BATCH_STORRELSE);
                 await Promise.all(
                     batch.map((respondent) =>
-                        this.hentSporsmalSvarForRespondent(respondent, oppgaveId, skjemaId, sporsmalId, hentingId)
+                        this.hentSporsmalSvarForRespondent(
+                            respondent,
+                            oppgaveId,
+                            skjemaType,
+                            skjemaId,
+                            sporsmalId,
+                            hentingId
+                        )
                     )
                 );
             }
@@ -751,6 +758,7 @@ export default {
         async hentSporsmalSvarForRespondent(
             respondent: OppgaveRespondentData,
             oppgaveId: number,
+            skjemaType: string,
             skjemaId: number,
             sporsmalId: number,
             hentingId: number
@@ -764,7 +772,13 @@ export default {
                     return;
                 }
                 try {
-                    const svar = await hentRespondentSporsmalSvar(oppgaveId, phone, skjemaId, sporsmalId);
+                    const svar = await hentRespondentSporsmalSvar(
+                        oppgaveId,
+                        phone,
+                        skjemaType,
+                        skjemaId,
+                        sporsmalId
+                    );
                     if (hentingId !== this.sporsmalHentingId) {
                         return;
                     }
