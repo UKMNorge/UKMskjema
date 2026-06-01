@@ -7,6 +7,11 @@ export const OPPGAVE_SVAR_STATUS_PABEGYNT = 1 as const;
 export const OPPGAVE_SVAR_STATUS_VENTER_FORESATT = 2 as const;
 export const OPPGAVE_SVAR_STATUS_FULLFORT = 3 as const;
 
+export interface OppgaveRespondentSporsmalSvar {
+    linjer: { label: string; value: string }[];
+    foresatt_godkjent: boolean | null;
+}
+
 /** Delta-bruker som respondent på en oppgave (fra getAlleRespondenter). */
 export interface OppgaveRespondentData {
     id: number;
@@ -23,6 +28,8 @@ export interface OppgaveRespondentData {
     foresatt_mobil?: string | null;
     /** null mens status hentes per respondent (getRespondentSvarStatus). */
     svar_status?: OppgaveSvarStatus | null;
+    /** undefined = ikke hentet, null = laster, objekt = hentet svar for valgt spørsmål. */
+    sporsmal_svar?: OppgaveRespondentSporsmalSvar | null;
 }
 
 export default class OppgaveRespondent {

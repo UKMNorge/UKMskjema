@@ -15,8 +15,24 @@
         <v-expand-transition>
             <div v-if="utvidet" class="deltakere-innhold">
                 <p class="kjede-hjelp">
-                    Klikk status for å filtrere listen. Klikk en respondent for å åpne svarene i et nytt vindu.
+                    Klikk status for å filtrere listen. Velg et spørsmål for å vise svaret på hver respondent her.
+                    Klikk en respondent for å åpne alle svarene i et nytt vindu.
                 </p>
+
+                <v-select
+                    v-if="sporsmalValg.length"
+                    v-model="valgtSporsmal"
+                    :items="sporsmalValg"
+                    item-title="label"
+                    return-object
+                    label="Vis svar på spørsmål"
+                    variant="outlined"
+                    hide-details="auto"
+                    clearable
+                    :loading="sporsmalListeLaster"
+                    class="sporsmal-velger as-margin-bottom-space-3"
+                    @update:model-value="paSporsmalValgt"
+                />
 
                 <v-skeleton-loader
                     v-if="loading"
@@ -95,53 +111,122 @@
             <div
                 v-for="r in filtrerteRespondenter"
                 :key="r.id"
-                class="deltaker-rad deltaker-rad--klikkbar"
-                role="button"
-                tabindex="0"
-                @click="apneRespondent(r)"
-                @keyup.enter="apneRespondent(r)"
+                class="deltaker-blokk"
             >
-                <div class="deltaker-rad__hoved">
-                    <div class="deltaker-rad__info">
-                        <span class="deltaker-rad__navn">{{ r.navn }} {{ r.etternavn }} ({{ r.mobil }})</span>
-                        <span
-                            v-if="r.fylke || r.arrangement || r.foresatt_mobil"
-                            class="deltaker-rad__meta"
+                <div
+                    class="deltaker-rad deltaker-rad--klikkbar"
+                    role="button"
+                    tabindex="0"
+                    @click="apneRespondent(r)"
+                    @keyup.enter="apneRespondent(r)"
+                >
+                    <div class="deltaker-rad__hoved">
+                        <div class="deltaker-rad__info">
+                            <span class="deltaker-rad__navn">{{ r.navn }} {{ r.etternavn }} ({{ r.mobil }})</span>
+                            <span
+                                v-if="r.fylke || r.arrangement || r.foresatt_mobil"
+                                class="deltaker-rad__meta"
+                            >
+                                <template v-if="r.fylke">{{ r.fylke }}</template>
+                                <template v-if="r.fylke && r.arrangement"> · </template>
+                                <template v-if="r.arrangement">{{ r.arrangement }}</template>
+                                <template v-if="r.foresatt_mobil">
+                                    <template v-if="r.fylke || r.arrangement"> · </template>
+                                </template>
+                            </span>
+                        </div>
+                        <v-chip
+                            v-if="r.videresending_nominasjon"
+                            size="small"
+                            variant="outlined"
+                            color="primary"
                         >
-                            <template v-if="r.fylke">{{ r.fylke }}</template>
-                            <template v-if="r.fylke && r.arrangement"> · </template>
-                            <template v-if="r.arrangement">{{ r.arrangement }}</template>
-                            <template v-if="r.foresatt_mobil">
-                                <template v-if="r.fylke || r.arrangement"> · </template>
-                            </template>
-                        </span>
+                            Nominasjon
+                        </v-chip>
                     </div>
-                    <v-chip
-                        v-if="r.videresending_nominasjon"
-                        size="small"
-                        variant="outlined"
-                        color="primary"
-                    >
-                        Nominasjon
-                    </v-chip>
+                    <div class="deltaker-rad__hoyre">
+                        <v-progress-circular
+                            v-if="r.svar_status === null"
+                            indeterminate
+                            size="18"
+                            width="2"
+                            color="primary"
+                        />
+                        <v-chip
+                            v-else
+                            size="small"
+                            variant="tonal"
+                            :color="svarStatusColor(r.svar_status)"
+                        >
+                            {{ svarStatusLabel(r.svar_status) }}
+                        </v-chip>
+                        <v-icon size="small" class="deltaker-rad__pil">mdi-chevron-right</v-icon>
+                    </div>
                 </div>
-                <div class="deltaker-rad__hoyre">
+                <div
+                    v-if="valgtSporsmal"
+                    class="deltaker-rad__sporsmal-svar"
+                    @click.stop
+                >
                     <v-progress-circular
-                        v-if="r.svar_status === null"
+                        v-if="r.sporsmal_svar === null"
                         indeterminate
-                        size="18"
+                        size="16"
                         width="2"
                         color="primary"
                     />
-                    <v-chip
-                        v-else
-                        size="small"
-                        variant="tonal"
-                        :color="svarStatusColor(r.svar_status)"
-                    >
-                        {{ svarStatusLabel(r.svar_status) }}
-                    </v-chip>
-                    <v-icon size="small" class="deltaker-rad__pil">mdi-chevron-right</v-icon>
+                    <template v-else-if="r.sporsmal_svar">
+                        <v-chip
+                            v-if="r.sporsmal_svar.foresatt_godkjent !== null"
+                            size="x-small"
+                            variant="tonal"
+                            :color="r.sporsmal_svar.foresatt_godkjent ? 'success' : 'warning'"
+                            class="as-margin-bottom-space-1"
+                        >
+                            {{
+                                r.sporsmal_svar.foresatt_godkjent
+                                    ? 'Godkjent av foresatt'
+                                    : 'Ikke godkjent av foresatt'
+                            }}
+                        </v-chip>
+                        <div class="deltaker-rad__svar-linjer">
+                            <p
+                                v-for="(linje, li) in r.sporsmal_svar.linjer"
+                                :key="li"
+                                class="deltaker-rad__svar-linje"
+                            >
+                                <a
+                                    v-if="linje.label === 'Lenke' && linje.value.startsWith('/')"
+                                    :href="linje.value"
+                                    target="_blank"
+                                    rel="noopener"
+                                >Last ned fil</a>
+                                <template v-else-if="linje.label">
+                                    <span class="deltaker-rad__svar-label">{{ linje.label }}:</span>
+                                    <v-chip
+                                        v-if="erJaNei(linje.value)"
+                                        size="x-small"
+                                        variant="tonal"
+                                        :color="linje.value === 'Ja' ? 'success' : 'grey'"
+                                    >
+                                        {{ linje.value }}
+                                    </v-chip>
+                                    <template v-else>{{ linje.value }}</template>
+                                </template>
+                                <template v-else>
+                                    <v-chip
+                                        v-if="erJaNei(linje.value)"
+                                        size="x-small"
+                                        variant="tonal"
+                                        :color="linje.value === 'Ja' ? 'success' : 'grey'"
+                                    >
+                                        {{ linje.value }}
+                                    </v-chip>
+                                    <template v-else>{{ linje.value }}</template>
+                                </template>
+                            </p>
+                        </div>
+                    </template>
                 </div>
             </div>
             </div>
@@ -153,7 +238,13 @@
 </template>
 
 <script lang="ts">
-import { hentAlleRespondenter, hentRespondentSvarStatus } from '../services/oppgaveService';
+import {
+    hentAlleRespondenter,
+    hentOppgaveSporsmalListe,
+    hentRespondentSporsmalSvar,
+    hentRespondentSvarStatus,
+    type OppgaveSporsmalValg,
+} from '../services/oppgaveService';
 import OppgaveRespondent, {
     type OppgaveRespondentData,
     type OppgaveSvarStatus,
@@ -168,6 +259,8 @@ import OppgaveRespondent, {
 import { openRespondentSvarWindow } from '../utils/oppgaveUrl';
 
 type StatusFilterKey = OppgaveSvarStatus | 'laster';
+
+type SporsmalValgMedKey = OppgaveSporsmalValg & { key: string };
 
 const STATUS_OPPSUMMERING_TYPER: { status: OppgaveSvarStatus; label: string; color: string }[] = [
     { status: OPPGAVE_SVAR_STATUS_IKKE_PABEGYNT, label: oppgaveSvarStatusLabel(OPPGAVE_SVAR_STATUS_IKKE_PABEGYNT), color: oppgaveSvarStatusColor(OPPGAVE_SVAR_STATUS_IKKE_PABEGYNT) },
@@ -210,6 +303,10 @@ export default {
             statusHentingId: 0,
             valgteStatusFilter: [] as StatusFilterKey[],
             filterKunNominasjon: false,
+            sporsmalValg: [] as SporsmalValgMedKey[],
+            sporsmalListeLaster: false,
+            valgtSporsmal: null as SporsmalValgMedKey | null,
+            sporsmalHentingId: 0,
         };
     },
 
@@ -221,6 +318,9 @@ export default {
             this.valgteStatusFilter = [];
             this.filterKunNominasjon = false;
             this.statusHentingId += 1;
+            this.sporsmalValg = [];
+            this.valgtSporsmal = null;
+            this.sporsmalHentingId += 1;
         },
     },
 
@@ -313,7 +413,7 @@ export default {
                 this.respondenter = hentet.map((r) => tilRespondentData(r, null));
                 this.respondenterHentet = true;
                 this.loading = false;
-                await this.hentSvarStatusForAlle();
+                await Promise.all([this.hentSvarStatusForAlle(), this.hentSporsmalListe()]);
             } catch (e: any) {
                 this.respondenter = [];
                 this.respondenterHentet = false;
@@ -362,6 +462,87 @@ export default {
                 return;
             }
             openRespondentSvarWindow(this.oppgaveId, phone);
+        },
+
+        async hentSporsmalListe(): Promise<void> {
+            if (!this.oppgaveId) {
+                this.sporsmalValg = [];
+                return;
+            }
+            this.sporsmalListeLaster = true;
+            try {
+                const liste = await hentOppgaveSporsmalListe(this.oppgaveId);
+                this.sporsmalValg = liste.map((s) => ({
+                    ...s,
+                    key: `${s.skjema_id}:${s.sporsmal_id}`,
+                }));
+            } catch (e: any) {
+                this.sporsmalValg = [];
+                this.$emit('feil', e.message ?? 'Kunne ikke hente spørsmål');
+            } finally {
+                this.sporsmalListeLaster = false;
+            }
+        },
+
+        paSporsmalValgt(valgt: SporsmalValgMedKey | null): void {
+            this.valgtSporsmal = valgt;
+            this.nullstillSporsmalSvar();
+            if (valgt) {
+                void this.hentSporsmalSvarForAlle();
+            }
+        },
+
+        nullstillSporsmalSvar(): void {
+            for (const respondent of this.respondenter) {
+                respondent.sporsmal_svar = undefined;
+            }
+        },
+
+        async hentSporsmalSvarForAlle(): Promise<void> {
+            const sporsmal = this.valgtSporsmal;
+            if (!sporsmal || !this.oppgaveId) {
+                return;
+            }
+            const hentingId = ++this.sporsmalHentingId;
+            const oppgaveId = this.oppgaveId;
+            const { skjema_id: skjemaId, sporsmal_id: sporsmalId } = sporsmal;
+
+            for (const respondent of this.respondenter) {
+                respondent.sporsmal_svar = null;
+            }
+
+            await Promise.all(
+                this.respondenter.map(async (respondent) => {
+                    const phone = respondent.mobil?.trim();
+                    if (!phone) {
+                        if (hentingId === this.sporsmalHentingId) {
+                            respondent.sporsmal_svar = { linjer: [{ label: '', value: '—' }], foresatt_godkjent: null };
+                        }
+                        return;
+                    }
+                    try {
+                        const svar = await hentRespondentSporsmalSvar(oppgaveId, phone, skjemaId, sporsmalId);
+                        if (hentingId !== this.sporsmalHentingId) {
+                            return;
+                        }
+                        respondent.sporsmal_svar = {
+                            linjer: svar.linjer,
+                            foresatt_godkjent: svar.foresatt_godkjent,
+                        };
+                    } catch {
+                        if (hentingId === this.sporsmalHentingId) {
+                            respondent.sporsmal_svar = {
+                                linjer: [{ label: '', value: 'Kunne ikke hente svar' }],
+                                foresatt_godkjent: null,
+                            };
+                        }
+                    }
+                })
+            );
+        },
+
+        erJaNei(value: string): boolean {
+            return value === 'Ja' || value === 'Nei';
         },
     },
 };
@@ -427,10 +608,18 @@ export default {
 .status-oppsummering__chip.v-chip--variant-outlined {
     background: transparent;
 }
+.sporsmal-velger {
+    max-width: 36rem;
+}
 .deltaker-liste {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+}
+.deltaker-blokk {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
 }
 .deltaker-rad {
     display: flex;
@@ -495,6 +684,28 @@ export default {
 .deltaker-rad__pil {
     opacity: 0.45;
     flex-shrink: 0;
+}
+.deltaker-rad__sporsmal-svar {
+    margin: 0 0.75rem 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-top: none;
+    border-radius: 0 0 var(--radius-high, 10px) var(--radius-high, 10px);
+    background: rgba(25, 118, 210, 0.04);
+    font-size: 0.875rem;
+}
+.deltaker-rad__svar-linjer {
+    margin: 0;
+}
+.deltaker-rad__svar-linje {
+    margin: 0 0 0.25rem;
+}
+.deltaker-rad__svar-linje:last-child {
+    margin-bottom: 0;
+}
+.deltaker-rad__svar-label {
+    color: var(--color-primary-grey-dark, #666);
+    margin-right: 0.25rem;
 }
 @media (max-width: 768px) {
     .deltaker-rad__navn {

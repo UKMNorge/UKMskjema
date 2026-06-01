@@ -162,6 +162,57 @@ export async function hentRespondentOppgaveliste(
     return res as RespondentOppgavelisteResponse;
 }
 
+export interface OppgaveSporsmalValg {
+    skjema_id: number;
+    skjema_navn: string;
+    sporsmal_id: number;
+    tittel: string;
+    label: string;
+}
+
+export interface RespondentSporsmalSvar {
+    sporsmal_id: number;
+    tittel: string;
+    linjer: OppgaveSvarLinje[];
+    foresatt_godkjent: boolean | null;
+}
+
+export async function hentOppgaveSporsmalListe(oppgaveId: number): Promise<OppgaveSporsmalValg[]> {
+    const res = await getSpaInteraction().runAjaxCall('/', 'POST', {
+        action: 'UKMskjema_ajax',
+        controller: 'oppgave/getOppgaveSporsmalListe',
+        oppgave_id: oppgaveId,
+    });
+
+    if (!res.success) {
+        throw new Error(res.message ?? res.result ?? 'Kunne ikke hente spørsmål');
+    }
+
+    return (res.sporsmal ?? []) as OppgaveSporsmalValg[];
+}
+
+export async function hentRespondentSporsmalSvar(
+    oppgaveId: number,
+    phone: string,
+    skjemaId: number,
+    sporsmalId: number
+): Promise<RespondentSporsmalSvar> {
+    const res = await getSpaInteraction().runAjaxCall('/', 'POST', {
+        action: 'UKMskjema_ajax',
+        controller: 'oppgave/getRespondentSporsmalSvar',
+        oppgave_id: oppgaveId,
+        phone: phone.trim(),
+        skjema_id: skjemaId,
+        sporsmal_id: sporsmalId,
+    });
+
+    if (!res.success) {
+        throw new Error(res.message ?? res.result ?? 'Kunne ikke hente svar');
+    }
+
+    return res as RespondentSporsmalSvar;
+}
+
 export async function hentRespondentSvarStatus(
     oppgaveId: number,
     phone: string
