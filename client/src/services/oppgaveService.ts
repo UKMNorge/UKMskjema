@@ -167,6 +167,7 @@ export interface OppgaveSporsmalValg {
     skjema_navn: string;
     sporsmal_id: number;
     tittel: string;
+    type: string;
     label: string;
 }
 
@@ -211,6 +212,26 @@ export async function hentRespondentSporsmalSvar(
     }
 
     return res as RespondentSporsmalSvar;
+}
+
+export async function importRespondentIntoleranser(
+    oppgaveId: number,
+    phone: string,
+    skjemaId: number,
+    sporsmalId: number
+): Promise<void> {
+    const res = await getSpaInteraction().runAjaxCall('/', 'POST', {
+        action: 'UKMskjema_ajax',
+        controller: 'oppgave/importRespondentIntoleranser',
+        oppgave_id: oppgaveId,
+        phone: phone.trim(),
+        skjema_id: skjemaId,
+        sporsmal_id: sporsmalId,
+    });
+
+    if (!res.success) {
+        throw new Error(res.message ?? res.result ?? 'Kunne ikke importere intoleranser');
+    }
 }
 
 export async function hentRespondentSvarStatus(

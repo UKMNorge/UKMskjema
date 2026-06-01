@@ -27,9 +27,9 @@
                     label="Vis svar på spørsmål"
                     variant="outlined"
                     hide-details="auto"
-                    :clearable="!sporsmalSvarLaster"
-                    :disabled="sporsmalSvarLaster || antallLaster > 0"
-                    :loading="sporsmalListeLaster || sporsmalSvarLaster || antallLaster > 0"
+                    :clearable="!sporsmalSvarLaster && !intoleranseImportLaster"
+                    :disabled="sporsmalSvarLaster || antallLaster > 0 || intoleranseImportLaster"
+                    :loading="sporsmalListeLaster || sporsmalSvarLaster || antallLaster > 0 || intoleranseImportLaster"
                     class="sporsmal-velger as-margin-bottom-space-3"
                     @update:model-value="paSporsmalValgt"
                 />
@@ -48,6 +48,47 @@
                         rounded
                         class="sporsmal-henting-status__bar"
                     />
+                </div>
+
+                <div
+                    v-if="erValgtIntoleranserSporsmal && valgtSporsmal && !sporsmalSvarLaster"
+                    class="sporsmal-import as-margin-bottom-space-3"
+                >
+                    <v-btn
+                        v-if="!intoleranseImportFerdig"
+                        variant="outlined"
+                        color="primary"
+                        class="sporsmal-import__knapp"
+                        :loading="intoleranseImportLaster"
+                        :disabled="intoleranseImportLaster || !respondenter.length"
+                        @click="intoleranseImportBekreftDialog = true"
+                    >
+                        Importer til brukeren i hele systemet
+                    </v-btn>
+                    <v-chip
+                        v-else
+                        size="small"
+                        variant="tonal"
+                        color="success"
+                    >
+                        Importert til hele systemet for alle respondenter
+                    </v-chip>
+                    <div
+                        v-if="intoleranseImportLaster"
+                        class="sporsmal-import__fremdrift"
+                    >
+                        <div class="sporsmal-henting-status__rad">
+                            <span>Importerer for alle respondenter…</span>
+                            <strong class="sporsmal-henting-status__prosent">{{ intoleranseImportFremdriftProsent }}%</strong>
+                        </div>
+                        <v-progress-linear
+                            :model-value="intoleranseImportFremdriftProsent"
+                            color="primary"
+                            height="6"
+                            rounded
+                            class="sporsmal-henting-status__bar"
+                        />
+                    </div>
                 </div>
 
                 <v-skeleton-loader
@@ -250,6 +291,42 @@
                 <p v-else class="tom-kjede">Ingen respondenter på denne oppgaven ennå.</p>
             </div>
         </v-expand-transition>
+
+        <v-dialog v-model="intoleranseImportBekreftDialog" max-width="480" persistent>
+            <v-card rounded="lg">
+                <v-card-title class="text-h6 pt-5 px-5">
+                    <v-icon color="warning" class="mr-2">mdi-alert-outline</v-icon>
+                    Importer intoleranser
+                </v-card-title>
+                <v-card-text class="px-5">
+                    Dette vil importere svarene fra oppgaven til hver respondents allergi- og
+                    intoleransedata i hele systemet.
+                    <strong>Eksisterende lagrede verdier vil bli erstattet.</strong>
+                </v-card-text>
+                <v-card-actions class="px-5 pb-5">
+                    <v-spacer />
+                    <v-btn
+                        class="v-btn-as v-btn-grey"
+                        rounded="large"
+                        variant="outlined"
+                        :disabled="intoleranseImportLaster"
+                        @click="intoleranseImportBekreftDialog = false"
+                    >
+                        Avbryt
+                    </v-btn>
+                    <v-btn
+                        class="v-btn-as v-btn-hvit"
+                        rounded="large"
+                        variant="outlined"
+                        color="primary"
+                        :loading="intoleranseImportLaster"
+                        @click="bekreftIntoleranseImport"
+                    >
+                        Fortsett import
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </div>
 </template>
 
@@ -259,6 +336,7 @@ import {
     hentOppgaveSporsmalListe,
     hentRespondentSporsmalSvar,
     hentRespondentSvarStatus,
+    importRespondentIntoleranser,
     type OppgaveSporsmalValg,
 } from '../services/oppgaveService';
 import OppgaveRespondent, {
@@ -328,6 +406,11 @@ export default {
             sporsmalSvarTotalt: 0,
             valgtSporsmal: null as SporsmalValgMedKey | null,
             sporsmalHentingId: 0,
+            intoleranseImportLaster: false,
+            intoleranseImportHentet: 0,
+            intoleranseImportTotalt: 0,
+            intoleranseImportFerdig: false,
+            intoleranseImportBekreftDialog: false,
         };
     },
 
@@ -345,6 +428,7 @@ export default {
             this.sporsmalSvarHentet = 0;
             this.sporsmalSvarTotalt = 0;
             this.sporsmalHentingId += 1;
+            this.nullstillIntoleranseImport();
         },
     },
 
@@ -354,6 +438,17 @@ export default {
                 return 0;
             }
             return Math.min(100, Math.round((this.sporsmalSvarHentet / this.sporsmalSvarTotalt) * 100));
+        },
+
+        erValgtIntoleranserSporsmal(): boolean {
+            return this.valgtSporsmal?.type === 'intoleranser';
+        },
+
+        intoleranseImportFremdriftProsent(): number {
+            if (this.intoleranseImportTotalt <= 0) {
+                return 0;
+            }
+            return Math.min(100, Math.round((this.intoleranseImportHentet / this.intoleranseImportTotalt) * 100));
         },
         statusOppsummeringTyper(): typeof STATUS_OPPSUMMERING_TYPER {
             return STATUS_OPPSUMMERING_TYPER;
@@ -551,6 +646,74 @@ export default {
             for (const respondent of this.respondenter) {
                 respondent.sporsmal_svar = undefined;
             }
+            this.nullstillIntoleranseImport();
+        },
+
+        nullstillIntoleranseImport(): void {
+            this.intoleranseImportLaster = false;
+            this.intoleranseImportHentet = 0;
+            this.intoleranseImportTotalt = 0;
+            this.intoleranseImportFerdig = false;
+            this.intoleranseImportBekreftDialog = false;
+        },
+
+        async bekreftIntoleranseImport(): Promise<void> {
+            await this.importerAlleIntoleranser();
+            if (!this.intoleranseImportLaster) {
+                this.intoleranseImportBekreftDialog = false;
+            }
+        },
+
+        async importerAlleIntoleranser(): Promise<void> {
+            const sporsmal = this.valgtSporsmal;
+            if (!sporsmal || !this.oppgaveId || this.intoleranseImportLaster) {
+                return;
+            }
+
+            const oppgaveId = this.oppgaveId;
+            const { skjema_id: skjemaId, sporsmal_id: sporsmalId } = sporsmal;
+            const respondenter = this.respondenter.filter((r) => r.mobil?.trim());
+
+            if (respondenter.length === 0) {
+                return;
+            }
+
+            this.intoleranseImportLaster = true;
+            this.intoleranseImportHentet = 0;
+            this.intoleranseImportTotalt = respondenter.length;
+            this.intoleranseImportFerdig = false;
+
+            let feilet = 0;
+
+            try {
+                for (let i = 0; i < respondenter.length; i += RESPONDENT_HENTING_BATCH_STORRELSE) {
+                    const batch = respondenter.slice(i, i + RESPONDENT_HENTING_BATCH_STORRELSE);
+                    await Promise.all(
+                        batch.map(async (respondent) => {
+                            const phone = respondent.mobil.trim();
+                            try {
+                                await importRespondentIntoleranser(oppgaveId, phone, skjemaId, sporsmalId);
+                            } catch {
+                                feilet += 1;
+                            } finally {
+                                this.intoleranseImportHentet += 1;
+                            }
+                        })
+                    );
+                }
+
+                this.intoleranseImportFerdig = true;
+
+                if (feilet > 0) {
+                    const ok = respondenter.length - feilet;
+                    this.$emit(
+                        'feil',
+                        `Importert ${ok} av ${respondenter.length} respondenter. ${feilet} feilet.`
+                    );
+                }
+            } finally {
+                this.intoleranseImportLaster = false;
+            }
         },
 
         async hentSporsmalSvarForAlle(): Promise<void> {
@@ -710,6 +873,16 @@ export default {
 }
 .sporsmal-henting-status__bar {
     width: 100%;
+}
+.sporsmal-import {
+    max-width: 36rem;
+}
+.sporsmal-import__knapp {
+    text-transform: none;
+    letter-spacing: normal;
+}
+.sporsmal-import__fremdrift {
+    margin-top: 0.5rem;
 }
 .deltaker-liste {
     display: flex;
