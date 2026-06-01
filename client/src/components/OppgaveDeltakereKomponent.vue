@@ -242,11 +242,6 @@
                             :color="r.sporsmal_svar.foresatt_godkjent ? 'success' : 'warning'"
                             class="as-margin-bottom-space-1"
                         >
-                            {{
-                                r.sporsmal_svar.foresatt_godkjent
-                                    ? 'Godkjent av foresatt'
-                                    : 'Ikke godkjent av foresatt'
-                            }}
                         </v-chip>
                         <div class="deltaker-rad__svar-linjer">
                             <p
