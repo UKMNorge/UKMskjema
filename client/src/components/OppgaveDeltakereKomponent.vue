@@ -262,7 +262,7 @@ type StatusFilterKey = OppgaveSvarStatus | 'laster';
 
 type SporsmalValgMedKey = OppgaveSporsmalValg & { key: string };
 
-const SPORSMAL_SVAR_BATCH_STORRELSE = 10;
+const RESPONDENT_HENTING_BATCH_STORRELSE = 10;
 
 const STATUS_OPPSUMMERING_TYPER: { status: OppgaveSvarStatus; label: string; color: string }[] = [
     { status: OPPGAVE_SVAR_STATUS_IKKE_PABEGYNT, label: oppgaveSvarStatusLabel(OPPGAVE_SVAR_STATUS_IKKE_PABEGYNT), color: oppgaveSvarStatusColor(OPPGAVE_SVAR_STATUS_IKKE_PABEGYNT) },
@@ -427,21 +427,35 @@ export default {
         async hentSvarStatusForAlle(): Promise<void> {
             const oppgaveId = this.oppgaveId;
             const hentingId = ++this.statusHentingId;
-            await Promise.all(
-                this.respondenter.map(async (respondent) => {
-                    try {
-                        const status = await hentRespondentSvarStatus(oppgaveId, respondent.mobil);
-                        if (hentingId !== this.statusHentingId) {
-                            return;
-                        }
-                        respondent.svar_status = status;
-                    } catch {
-                        if (hentingId === this.statusHentingId) {
-                            respondent.svar_status = OPPGAVE_SVAR_STATUS_UKJENT;
-                        }
-                    }
-                })
-            );
+            const respondenter = this.respondenter;
+
+            for (let i = 0; i < respondenter.length; i += RESPONDENT_HENTING_BATCH_STORRELSE) {
+                if (hentingId !== this.statusHentingId) {
+                    return;
+                }
+                const batch = respondenter.slice(i, i + RESPONDENT_HENTING_BATCH_STORRELSE);
+                await Promise.all(
+                    batch.map((respondent) => this.hentSvarStatusForRespondent(respondent, oppgaveId, hentingId))
+                );
+            }
+        },
+
+        async hentSvarStatusForRespondent(
+            respondent: OppgaveRespondentData,
+            oppgaveId: number,
+            hentingId: number
+        ): Promise<void> {
+            try {
+                const status = await hentRespondentSvarStatus(oppgaveId, respondent.mobil);
+                if (hentingId !== this.statusHentingId) {
+                    return;
+                }
+                respondent.svar_status = status;
+            } catch {
+                if (hentingId === this.statusHentingId) {
+                    respondent.svar_status = OPPGAVE_SVAR_STATUS_UKJENT;
+                }
+            }
         },
 
         svarStatusLabel(status: OppgaveSvarStatus | null | undefined): string {
@@ -514,11 +528,11 @@ export default {
             }
 
             const respondenter = this.respondenter;
-            for (let i = 0; i < respondenter.length; i += SPORSMAL_SVAR_BATCH_STORRELSE) {
+            for (let i = 0; i < respondenter.length; i += RESPONDENT_HENTING_BATCH_STORRELSE) {
                 if (hentingId !== this.sporsmalHentingId) {
                     return;
                 }
-                const batch = respondenter.slice(i, i + SPORSMAL_SVAR_BATCH_STORRELSE);
+                const batch = respondenter.slice(i, i + RESPONDENT_HENTING_BATCH_STORRELSE);
                 await Promise.all(
                     batch.map((respondent) =>
                         this.hentSporsmalSvarForRespondent(respondent, oppgaveId, skjemaId, sporsmalId, hentingId)
