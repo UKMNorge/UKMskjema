@@ -20,7 +20,6 @@
                 </p>
 
                 <v-select
-                    v-if="sporsmalValg.length"
                     v-model="valgtSporsmal"
                     :items="sporsmalValg"
                     item-title="label"
@@ -29,7 +28,7 @@
                     variant="outlined"
                     hide-details="auto"
                     :clearable="!sporsmalSvarLaster"
-                    :disabled="sporsmalSvarLaster"
+                    :disabled="sporsmalSvarLaster || antallLaster > 0"
                     :loading="sporsmalListeLaster || sporsmalSvarLaster"
                     class="sporsmal-velger as-margin-bottom-space-3"
                     @update:model-value="paSporsmalValgt"
