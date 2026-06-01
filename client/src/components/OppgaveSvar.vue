@@ -2,15 +2,21 @@
     <div class="oppgave-svar">
         <div class="oppgave-svar__header">
             <h4 class="oppgave-svar__tittel">{{ visningsNavn }}</h4>
-            <div v-if="visningsMobil || visningsForesattMobil" class="oppgave-svar__kontakt">
+            <div v-if="visningsMobil || visningsForesattNavn || visningsForesattMobil" class="oppgave-svar__kontakt">
                 <a v-if="visningsMobil" class="oppgave-svar__mobil" :href="telHref">{{ visningsMobil }}</a>
-                <a
-                    v-if="visningsForesattMobil"
-                    class="oppgave-svar__mobil oppgave-svar__mobil--foresatt"
-                    :href="foresattTelHref"
+                <span
+                    v-if="visningsForesattNavn || visningsForesattMobil"
+                    class="oppgave-svar__foresatt"
                 >
-                    Foresatt: {{ visningsForesattMobil }}
-                </a>
+                    <span v-if="visningsForesattNavn" class="oppgave-svar__foresatt-navn">Foresatt: {{ visningsForesattNavn }}</span>
+                    <a
+                        v-if="visningsForesattMobil"
+                        class="oppgave-svar__mobil oppgave-svar__mobil--foresatt"
+                        :href="foresattTelHref"
+                    >
+                        {{ visningsForesattNavn ? visningsForesattMobil : `Foresatt: ${visningsForesattMobil}` }}
+                    </a>
+                </span>
             </div>
         </div>
 
@@ -271,6 +277,10 @@ export default {
             return digits ? `tel:${digits}` : '';
         },
 
+        visningsForesattNavn(): string {
+            return this.data?.respondent?.foresatt_navn?.trim() ?? '';
+        },
+
         visningsForesattMobil(): string {
             return this.data?.respondent?.foresatt_mobil?.trim() ?? '';
         },
@@ -380,6 +390,15 @@ export default {
     font-size: 1rem;
     color: var(--color-primary, #1867c0);
     text-decoration: none;
+}
+.oppgave-svar__foresatt {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    font-size: 0.9rem;
+}
+.oppgave-svar__foresatt-navn {
+    color: var(--color-primary-grey-dark, #666);
 }
 .oppgave-svar__mobil--foresatt {
     font-size: 0.9rem;
