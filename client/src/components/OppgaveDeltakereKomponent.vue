@@ -235,14 +235,6 @@
                         color="primary"
                     />
                     <template v-else-if="r.sporsmal_svar">
-                        <v-chip
-                            v-if="r.sporsmal_svar.foresatt_godkjent !== null"
-                            size="x-small"
-                            variant="tonal"
-                            :color="r.sporsmal_svar.foresatt_godkjent ? 'success' : 'warning'"
-                            class="as-margin-bottom-space-1"
-                        >
-                        </v-chip>
                         <div class="deltaker-rad__svar-linjer">
                             <p
                                 v-for="(linje, li) in r.sporsmal_svar.linjer"
