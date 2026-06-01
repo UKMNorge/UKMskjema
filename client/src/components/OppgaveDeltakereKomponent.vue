@@ -262,6 +262,8 @@ type StatusFilterKey = OppgaveSvarStatus | 'laster';
 
 type SporsmalValgMedKey = OppgaveSporsmalValg & { key: string };
 
+const SPORSMAL_SVAR_BATCH_STORRELSE = 10;
+
 const STATUS_OPPSUMMERING_TYPER: { status: OppgaveSvarStatus; label: string; color: string }[] = [
     { status: OPPGAVE_SVAR_STATUS_IKKE_PABEGYNT, label: oppgaveSvarStatusLabel(OPPGAVE_SVAR_STATUS_IKKE_PABEGYNT), color: oppgaveSvarStatusColor(OPPGAVE_SVAR_STATUS_IKKE_PABEGYNT) },
     { status: OPPGAVE_SVAR_STATUS_PABEGYNT, label: oppgaveSvarStatusLabel(OPPGAVE_SVAR_STATUS_PABEGYNT), color: oppgaveSvarStatusColor(OPPGAVE_SVAR_STATUS_PABEGYNT) },
@@ -511,34 +513,51 @@ export default {
                 respondent.sporsmal_svar = null;
             }
 
-            await Promise.all(
-                this.respondenter.map(async (respondent) => {
-                    const phone = respondent.mobil?.trim();
-                    if (!phone) {
-                        if (hentingId === this.sporsmalHentingId) {
-                            respondent.sporsmal_svar = { linjer: [{ label: '', value: '—' }], foresatt_godkjent: null };
-                        }
-                        return;
-                    }
-                    try {
-                        const svar = await hentRespondentSporsmalSvar(oppgaveId, phone, skjemaId, sporsmalId);
-                        if (hentingId !== this.sporsmalHentingId) {
-                            return;
-                        }
-                        respondent.sporsmal_svar = {
-                            linjer: svar.linjer,
-                            foresatt_godkjent: svar.foresatt_godkjent,
-                        };
-                    } catch {
-                        if (hentingId === this.sporsmalHentingId) {
-                            respondent.sporsmal_svar = {
-                                linjer: [{ label: '', value: 'Kunne ikke hente svar' }],
-                                foresatt_godkjent: null,
-                            };
-                        }
-                    }
-                })
-            );
+            const respondenter = this.respondenter;
+            for (let i = 0; i < respondenter.length; i += SPORSMAL_SVAR_BATCH_STORRELSE) {
+                if (hentingId !== this.sporsmalHentingId) {
+                    return;
+                }
+                const batch = respondenter.slice(i, i + SPORSMAL_SVAR_BATCH_STORRELSE);
+                await Promise.all(
+                    batch.map((respondent) =>
+                        this.hentSporsmalSvarForRespondent(respondent, oppgaveId, skjemaId, sporsmalId, hentingId)
+                    )
+                );
+            }
+        },
+
+        async hentSporsmalSvarForRespondent(
+            respondent: OppgaveRespondentData,
+            oppgaveId: number,
+            skjemaId: number,
+            sporsmalId: number,
+            hentingId: number
+        ): Promise<void> {
+            const phone = respondent.mobil?.trim();
+            if (!phone) {
+                if (hentingId === this.sporsmalHentingId) {
+                    respondent.sporsmal_svar = { linjer: [{ label: '', value: '—' }], foresatt_godkjent: null };
+                }
+                return;
+            }
+            try {
+                const svar = await hentRespondentSporsmalSvar(oppgaveId, phone, skjemaId, sporsmalId);
+                if (hentingId !== this.sporsmalHentingId) {
+                    return;
+                }
+                respondent.sporsmal_svar = {
+                    linjer: svar.linjer,
+                    foresatt_godkjent: svar.foresatt_godkjent,
+                };
+            } catch {
+                if (hentingId === this.sporsmalHentingId) {
+                    respondent.sporsmal_svar = {
+                        linjer: [{ label: '', value: 'Kunne ikke hente svar' }],
+                        foresatt_godkjent: null,
+                    };
+                }
+            }
         },
 
         erJaNei(value: string): boolean {
