@@ -19,75 +19,77 @@
                     Klikk en respondent for å åpne alle svarene i et nytt vindu.
                 </p>
 
-                <v-select
-                    v-model="valgtSporsmal"
-                    :items="sporsmalValg"
-                    item-title="label"
-                    return-object
-                    label="Vis svar på spørsmål"
-                    variant="outlined"
-                    hide-details="auto"
-                    :clearable="!sporsmalSvarLaster && !intoleranseImportLaster"
-                    :disabled="sporsmalSvarLaster || antallLaster > 0 || intoleranseImportLaster"
-                    :loading="sporsmalListeLaster || sporsmalSvarLaster || antallLaster > 0 || intoleranseImportLaster"
-                    class="sporsmal-velger as-margin-bottom-space-3"
-                    @update:model-value="paSporsmalValgt"
-                />
-                <div
-                    v-if="sporsmalSvarLaster"
-                    class="sporsmal-henting-status as-margin-bottom-space-3"
-                >
-                    <div class="sporsmal-henting-status__rad">
-                        <span>Henter svar for alle respondenter…</span>
-                        <strong class="sporsmal-henting-status__prosent">{{ sporsmalSvarFremdriftProsent }}%</strong>
-                    </div>
-                    <v-progress-linear
-                        :model-value="sporsmalSvarFremdriftProsent"
-                        color="primary"
-                        height="6"
-                        rounded
-                        class="sporsmal-henting-status__bar"
-                    />
-                </div>
-
-                <div
-                    v-if="erValgtIntoleranserSporsmal && valgtSporsmal && !sporsmalSvarLaster"
-                    class="sporsmal-import as-margin-bottom-space-3"
-                >
-                    <v-btn
-                        v-if="!intoleranseImportFerdig"
+                <div class="deltakere-sticky-verktoy">
+                    <v-select
+                        v-model="valgtSporsmal"
+                        :items="sporsmalValg"
+                        item-title="label"
+                        return-object
+                        label="Vis svar på spørsmål"
                         variant="outlined"
-                        color="primary"
-                        class="sporsmal-import__knapp"
-                        :loading="intoleranseImportLaster"
-                        :disabled="intoleranseImportLaster || !respondenter.length"
-                        @click="intoleranseImportBekreftDialog = true"
-                    >
-                        Importer til brukeren i hele systemet
-                    </v-btn>
-                    <v-chip
-                        v-else
-                        size="small"
-                        variant="tonal"
-                        color="success"
-                    >
-                        Importert til hele systemet for alle respondenter
-                    </v-chip>
+                        hide-details="auto"
+                        :clearable="!sporsmalSvarLaster && !intoleranseImportLaster"
+                        :disabled="sporsmalSvarLaster || antallLaster > 0 || intoleranseImportLaster"
+                        :loading="sporsmalListeLaster || sporsmalSvarLaster || antallLaster > 0 || intoleranseImportLaster"
+                        class="sporsmal-velger"
+                        @update:model-value="paSporsmalValgt"
+                    />
                     <div
-                        v-if="intoleranseImportLaster"
-                        class="sporsmal-import__fremdrift"
+                        v-if="sporsmalSvarLaster"
+                        class="sporsmal-henting-status"
                     >
                         <div class="sporsmal-henting-status__rad">
-                            <span>Importerer for alle respondenter…</span>
-                            <strong class="sporsmal-henting-status__prosent">{{ intoleranseImportFremdriftProsent }}%</strong>
+                            <span>Henter svar for alle respondenter…</span>
+                            <strong class="sporsmal-henting-status__prosent">{{ sporsmalSvarFremdriftProsent }}%</strong>
                         </div>
                         <v-progress-linear
-                            :model-value="intoleranseImportFremdriftProsent"
+                            :model-value="sporsmalSvarFremdriftProsent"
                             color="primary"
                             height="6"
                             rounded
                             class="sporsmal-henting-status__bar"
                         />
+                    </div>
+
+                    <div
+                        v-if="erValgtIntoleranserSporsmal && valgtSporsmal && !sporsmalSvarLaster"
+                        class="sporsmal-import"
+                    >
+                        <v-btn
+                            v-if="!intoleranseImportFerdig"
+                            variant="outlined"
+                            color="primary"
+                            class="sporsmal-import__knapp"
+                            :loading="intoleranseImportLaster"
+                            :disabled="intoleranseImportLaster || !respondenter.length"
+                            @click="intoleranseImportBekreftDialog = true"
+                        >
+                            Importer til brukeren i hele systemet
+                        </v-btn>
+                        <v-chip
+                            v-else
+                            size="small"
+                            variant="tonal"
+                            color="success"
+                        >
+                            Importert til hele systemet
+                        </v-chip>
+                        <div
+                            v-if="intoleranseImportLaster"
+                            class="sporsmal-import__fremdrift"
+                        >
+                            <div class="sporsmal-henting-status__rad">
+                                <span>Importerer for alle respondenter…</span>
+                                <strong class="sporsmal-henting-status__prosent">{{ intoleranseImportFremdriftProsent }}%</strong>
+                            </div>
+                            <v-progress-linear
+                                :model-value="intoleranseImportFremdriftProsent"
+                                color="primary"
+                                height="6"
+                                rounded
+                                class="sporsmal-henting-status__bar"
+                            />
+                        </div>
                     </div>
                 </div>
 
@@ -832,6 +834,25 @@ export default {
 .deltakere-innhold {
     padding-top: 0.75rem;
 }
+.deltakere-sticky-verktoy {
+    position: sticky;
+    top: 0;
+    z-index: 4;
+    background: #fff;
+    padding: 0.75rem 0 1rem;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 12px -8px rgba(0, 0, 0, 0.2);
+}
+.deltakere-sticky-verktoy .sporsmal-velger,
+.deltakere-sticky-verktoy .sporsmal-henting-status,
+.deltakere-sticky-verktoy .sporsmal-import {
+    max-width: 36rem;
+}
+.deltakere-sticky-verktoy .sporsmal-henting-status,
+.deltakere-sticky-verktoy .sporsmal-import {
+    margin-top: 0.75rem;
+}
 .status-oppsummering {
     display: flex;
     flex-wrap: wrap;
@@ -852,11 +873,7 @@ export default {
 .status-oppsummering__chip.v-chip--variant-outlined {
     background: transparent;
 }
-.sporsmal-velger {
-    max-width: 36rem;
-}
 .sporsmal-henting-status {
-    max-width: 36rem;
     font-size: 0.875rem;
     color: var(--color-primary-grey-dark, #666);
 }
@@ -873,9 +890,6 @@ export default {
 }
 .sporsmal-henting-status__bar {
     width: 100%;
-}
-.sporsmal-import {
-    max-width: 36rem;
 }
 .sporsmal-import__knapp {
     text-transform: none;

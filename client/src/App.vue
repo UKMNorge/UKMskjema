@@ -16,18 +16,18 @@
             </v-tabs>
         </div>
 
+        <div v-if="feil" class="app-feil-topp container-fluid">
+            <v-alert
+                type="error"
+                variant="tonal"
+                closable
+                class="mb-0"
+                @click:close="feil = ''"
+            >{{ feil }}</v-alert>
+        </div>
+
         <div class="as-container">
             <div class="container skjema-container">
-
-                <!-- Global error -->
-                <v-alert
-                    v-if="feil"
-                    type="error"
-                    variant="tonal"
-                    closable
-                    class="as-margin-top-space-3 as-margin-bottom-space-3"
-                    @click:close="feil = ''"
-                >{{ feil }}</v-alert>
 
                 <div class="as-margin-top-space-4">
                     <v-tabs-window v-model="tab">
@@ -96,5 +96,17 @@ export default {
 .skjema-container {
     padding: 0;
     max-width: 100%;
+}
+.app-feil-topp {
+    position: sticky;
+    top: 50px !important;
+    z-index: 10;
+    background: #fff;
+    padding: .75rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, .08);
+    box-shadow: 0 4px 12px -8px #00000026;
+    margin-top: 15px !important;
+    margin-right: 15px;
+    padding: 0;
 }
 </style>
