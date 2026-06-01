@@ -130,14 +130,11 @@
                                 }}
                             </v-chip>
                             <p
-                                v-if="
-                                    valgtLedd.detalj.svar.skjema_type === 'med-kommentar' &&
-                                    valgtLedd.detalj.svar.kommentar
-                                "
-                                class="mb-1"
+                                v-if="harSamtykkeKommentar(valgtLedd.detalj)"
+                                class="mb-1 oppgave-svar__kommentar"
                             >
                                 <span class="text-muted">Kommentar:</span>
-                                {{ valgtLedd.detalj.svar.kommentar }}
+                                {{ samtykkeKommentar(valgtLedd.detalj) }}
                             </p>
                             <p v-if="valgtLedd.detalj.svar.created_at" class="text-muted small mb-0">
                                 Tidspunkt: {{ formatTid(valgtLedd.detalj.svar.created_at) }}
@@ -221,6 +218,7 @@ import {
     hentRespondentOppgaveliste,
     type RespondentOppgavelisteResponse,
     type OppgaveSkjemaKjedeVisning,
+    type OppgaveSkjemaDetalj,
 } from '@/services/oppgaveService';
 export default {
     props: {
@@ -328,6 +326,17 @@ export default {
 
         erJaNei(value: string): boolean {
             return value === 'Ja' || value === 'Nei';
+        },
+
+        /** Kun samtykkeskjema med type med-kommentar har valgfritt kommentarfelt. */
+        harSamtykkeKommentar(detalj: OppgaveSkjemaDetalj): boolean {
+            const type = detalj.samtykke_type ?? detalj.svar?.skjema_type;
+            const kommentar = detalj.svar?.kommentar?.trim() ?? '';
+            return type === 'med-kommentar' && kommentar !== '';
+        },
+
+        samtykkeKommentar(detalj: OppgaveSkjemaDetalj): string {
+            return detalj.svar?.kommentar?.trim() ?? '';
         },
 
         nl2br(text: string): string {
@@ -464,6 +473,9 @@ export default {
     font-size: 0.875rem;
 }
 .samtykke-body {
+    white-space: pre-wrap;
+}
+.oppgave-svar__kommentar {
     white-space: pre-wrap;
 }
 @media (max-width: 575px) {

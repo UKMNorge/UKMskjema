@@ -104,8 +104,12 @@ export interface OppgaveSamtykkeSvar {
     skjema_type: string;
 }
 
+export type SamtykkeSkjemaType = 'vanlig' | 'med-kommentar' | 'janei';
+
 export interface OppgaveSkjemaDetalj {
     type: 'samtykkeskjema' | 'sporreskjema' | 'ukjent';
+    /** Samtykkeskjema: vanlig | med-kommentar | janei (kun type med-kommentar har kommentarfelt) */
+    samtykke_type?: SamtykkeSkjemaType;
     versjoner?: { beskrivelse: string; body_text: string }[];
     svar?: OppgaveSamtykkeSvar | null;
     sporsmal?: {
