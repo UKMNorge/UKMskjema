@@ -262,7 +262,7 @@ type StatusFilterKey = OppgaveSvarStatus | 'laster';
 
 type SporsmalValgMedKey = OppgaveSporsmalValg & { key: string };
 
-const RESPONDENT_HENTING_BATCH_STORRELSE = 10;
+const RESPONDENT_HENTING_BATCH_STORRELSE = 20;
 
 const STATUS_OPPSUMMERING_TYPER: { status: OppgaveSvarStatus; label: string; color: string }[] = [
     { status: OPPGAVE_SVAR_STATUS_IKKE_PABEGYNT, label: oppgaveSvarStatusLabel(OPPGAVE_SVAR_STATUS_IKKE_PABEGYNT), color: oppgaveSvarStatusColor(OPPGAVE_SVAR_STATUS_IKKE_PABEGYNT) },
