@@ -19,7 +19,7 @@
                     Klikk en respondent for å åpne alle svarene i et nytt vindu.
                 </p>
 
-                <div class="deltakere-sticky-verktoy">
+                <div class="deltakere-sticky-verktoy as-margin-bottom-space-2">
                     <v-select
                         v-model="valgtSporsmal"
                         :items="sporsmalValg"
@@ -34,6 +34,99 @@
                         class="sporsmal-velger"
                         @update:model-value="paSporsmalValgt"
                     />
+
+                    <div
+                        v-if="valgtSporsmal && !sporsmalSvarLaster && svarFilterAlternativer.length"
+                        class="status-oppsummering svar-filter as-margin-bottom-space-3 as-margin-top-space-1 as-padding-top-space-1"
+                    >
+                        <p>Svarfilter:</p>
+                        <v-chip
+                            class="status-oppsummering__chip status-oppsummering__chip--klikkbar"
+                            size="small"
+                            :variant="filterChipVariant(!harSvarfilter)"
+                            color="primary"
+                            role="button"
+                            tabindex="0"
+                            @click="velgAlleSvarFilter"
+                            @keyup.enter="velgAlleSvarFilter"
+                        >
+                            Alle svar
+                        </v-chip>
+                        <v-chip
+                            v-for="a in svarFilterAlternativer"
+                            :key="a.key"
+                            class="status-oppsummering__chip status-oppsummering__chip--klikkbar"
+                            size="small"
+                            :variant="filterChipVariant(erSvarFilterValgt(a.key))"
+                            :color="a.color"
+                            role="button"
+                            tabindex="0"
+                            @click="toggleSvarFilter(a.key)"
+                            @keyup.enter="toggleSvarFilter(a.key)"
+                        >
+                            {{ a.label }}: {{ a.antall }}
+                        </v-chip>
+                    </div>
+
+                    <div
+                        v-if="!loading && respondenter.length"
+                        class="status-oppsummering status-oppsummering--under-sporsmal"
+                    >
+                        <v-chip
+                            class="status-oppsummering__chip status-oppsummering__chip--klikkbar"
+                            size="small"
+                            :variant="filterChipVariant(!harStatusfilter)"
+                            color="primary"
+                            role="button"
+                            tabindex="0"
+                            @click="velgAlleStatus"
+                            @keyup.enter="velgAlleStatus"
+                        >
+                            Totalt: {{ respondenter.length }}
+                        </v-chip>
+                        <v-chip
+                            v-if="antallLaster > 0"
+                            class="status-oppsummering__chip status-oppsummering__chip--klikkbar"
+                            size="small"
+                            :variant="filterChipVariant(erStatusValgt('laster'))"
+                            color="grey"
+                            role="button"
+                            tabindex="0"
+                            @click="toggleStatusFilter('laster')"
+                            @keyup.enter="toggleStatusFilter('laster')"
+                        >
+                            Laster: {{ antallLaster }}
+                        </v-chip>
+                        <v-chip
+                            v-for="s in statusOppsummeringTyper"
+                            :key="s.status"
+                            class="status-oppsummering__chip status-oppsummering__chip--klikkbar"
+                            size="small"
+                            :variant="filterChipVariant(erStatusValgt(s.status))"
+                            :color="s.color"
+                            role="button"
+                            tabindex="0"
+                            @click="toggleStatusFilter(s.status)"
+                            @keyup.enter="toggleStatusFilter(s.status)"
+                        >
+                            {{ s.label }}: {{ tellStatus(s.status) }}
+                        </v-chip>
+                        <v-chip
+                            v-if="antallNominasjon > 0"
+                            class="status-oppsummering__chip status-oppsummering__chip--klikkbar"
+                            size="small"
+                            :variant="filterChipVariant(filterKunNominasjon)"
+                            color="primary"
+                            prepend-icon="mdi-account-arrow-right-outline"
+                            role="button"
+                            tabindex="0"
+                            @click="toggleNominasjonFilter"
+                            @keyup.enter="toggleNominasjonFilter"
+                        >
+                            Nominasjon: {{ antallNominasjon }}
+                        </v-chip>
+                    </div>
+
                     <div
                         v-if="sporsmalSvarLaster"
                         class="sporsmal-henting-status"
@@ -100,67 +193,11 @@
                 />
 
                 <template v-else-if="respondenter.length">
-            <div class="status-oppsummering as-margin-bottom-space-3">
-                <v-chip
-                    class="status-oppsummering__chip status-oppsummering__chip--klikkbar"
-                    size="small"
-                    :variant="filterChipVariant(!harStatusfilter)"
-                    color="primary"
-                    role="button"
-                    tabindex="0"
-                    @click="velgAlleStatus"
-                    @keyup.enter="velgAlleStatus"
-                >
-                    Totalt: {{ respondenter.length }}
-                </v-chip>
-                <v-chip
-                    v-if="antallLaster > 0"
-                    class="status-oppsummering__chip status-oppsummering__chip--klikkbar"
-                    size="small"
-                    :variant="filterChipVariant(erStatusValgt('laster'))"
-                    color="grey"
-                    role="button"
-                    tabindex="0"
-                    @click="toggleStatusFilter('laster')"
-                    @keyup.enter="toggleStatusFilter('laster')"
-                >
-                    Laster: {{ antallLaster }}
-                </v-chip>
-                <v-chip
-                    v-for="s in statusOppsummeringTyper"
-                    :key="s.status"
-                    class="status-oppsummering__chip status-oppsummering__chip--klikkbar"
-                    size="small"
-                    :variant="filterChipVariant(erStatusValgt(s.status))"
-                    :color="s.color"
-                    role="button"
-                    tabindex="0"
-                    @click="toggleStatusFilter(s.status)"
-                    @keyup.enter="toggleStatusFilter(s.status)"
-                >
-                    {{ s.label }}: {{ tellStatus(s.status) }}
-                </v-chip>
-                <v-chip
-                    v-if="antallNominasjon > 0"
-                    class="status-oppsummering__chip status-oppsummering__chip--klikkbar"
-                    size="small"
-                    :variant="filterChipVariant(filterKunNominasjon)"
-                    color="primary"
-                    prepend-icon="mdi-account-arrow-right-outline"
-                    role="button"
-                    tabindex="0"
-                    @click="toggleNominasjonFilter"
-                    @keyup.enter="toggleNominasjonFilter"
-                >
-                    Nominasjon: {{ antallNominasjon }}
-                </v-chip>
-            </div>
-
             <p
-                v-if="harStatusfilter && filtrerteRespondenter.length === 0"
+                v-if="(harStatusfilter || harSvarfilter) && filtrerteRespondenter.length === 0"
                 class="tom-kjede as-margin-bottom-space-2"
             >
-                Ingen respondenter med valgt status.
+                Ingen respondenter med valgt filter.
             </p>
 
             <div
@@ -343,7 +380,73 @@ import { openRespondentSvarWindow } from '../utils/oppgaveUrl';
 
 type StatusFilterKey = OppgaveSvarStatus | 'laster';
 
+type SvarFilterKey = 'besvart' | 'ikke_besvart' | string;
+
 type SporsmalValgMedKey = OppgaveSporsmalValg & { key: string };
+
+interface SvarFilterAlternativ {
+    key: SvarFilterKey;
+    label: string;
+    color: string;
+    antall: number;
+}
+
+const SPORSMAL_SVAR_META_LABELS = new Set(['Kommentar', 'Tidspunkt', 'Lenke', 'Fil']);
+
+const SVAR_FILTER_FASTE: { key: 'besvart' | 'ikke_besvart'; label: string; color: string }[] = [
+    { key: 'besvart', label: 'Besvart', color: 'success' },
+    { key: 'ikke_besvart', label: 'Ikke besvart', color: 'error' },
+];
+
+function erSporsmalSvarTomtVerdi(value: string): boolean {
+    const val = value.trim();
+    return val === '' || val === '—' || val === 'Kunne ikke hente svar';
+}
+
+function hentSporsmalSvarVerdi(respondent: OppgaveRespondentData): string | null {
+    const svar = respondent.sporsmal_svar;
+    if (!svar) {
+        return null;
+    }
+    for (const linje of svar.linjer) {
+        if (SPORSMAL_SVAR_META_LABELS.has(linje.label)) {
+            continue;
+        }
+        const val = (linje.value ?? '').trim();
+        if (!erSporsmalSvarTomtVerdi(val)) {
+            return val;
+        }
+    }
+    return null;
+}
+
+function erSporsmalSvarBesvart(respondent: OppgaveRespondentData): boolean {
+    return respondent.sporsmal_svar !== undefined && respondent.sporsmal_svar !== null && hentSporsmalSvarVerdi(respondent) !== null;
+}
+
+function erSporsmalSvarIkkeBesvart(respondent: OppgaveRespondentData): boolean {
+    return respondent.sporsmal_svar !== undefined && respondent.sporsmal_svar !== null && hentSporsmalSvarVerdi(respondent) === null;
+}
+
+function svarFilterVerdiFarge(verdi: string): string {
+    if (verdi === 'Ja') {
+        return 'success';
+    }
+    if (verdi === 'Nei') {
+        return 'grey';
+    }
+    return 'primary';
+}
+
+function sorterSvarFilterVerdier(a: string, b: string): number {
+    const prioritet = (v: string) => (v === 'Ja' ? 0 : v === 'Nei' ? 1 : 2);
+    const pa = prioritet(a);
+    const pb = prioritet(b);
+    if (pa !== pb) {
+        return pa - pb;
+    }
+    return a.localeCompare(b, 'nb');
+}
 
 const RESPONDENT_HENTING_BATCH_STORRELSE = 50;
 
@@ -388,6 +491,7 @@ export default {
             statusHentingId: 0,
             valgteStatusFilter: [] as StatusFilterKey[],
             filterKunNominasjon: false,
+            valgteSvarFilter: [] as SvarFilterKey[],
             sporsmalValg: [] as SporsmalValgMedKey[],
             sporsmalListeLaster: false,
             sporsmalSvarLaster: false,
@@ -409,6 +513,7 @@ export default {
             this.respondenterHentet = false;
             this.respondenter = [];
             this.valgteStatusFilter = [];
+            this.valgteSvarFilter = [];
             this.filterKunNominasjon = false;
             this.statusHentingId += 1;
             this.sporsmalValg = [];
@@ -455,13 +560,61 @@ export default {
             return this.valgteStatusFilter.length > 0 || this.filterKunNominasjon;
         },
 
+        harSvarfilter(): boolean {
+            return this.valgteSvarFilter.length > 0;
+        },
+
+        svarFilterAlternativer(): SvarFilterAlternativ[] {
+            if (!this.valgtSporsmal || this.sporsmalSvarLaster) {
+                return [];
+            }
+
+            let antallBesvart = 0;
+            let antallIkkeBesvart = 0;
+            const verdiTelling: Record<string, number> = {};
+
+            for (const respondent of this.respondenter) {
+                if (respondent.sporsmal_svar === null || respondent.sporsmal_svar === undefined) {
+                    continue;
+                }
+                const verdi = hentSporsmalSvarVerdi(respondent);
+                if (verdi === null) {
+                    antallIkkeBesvart += 1;
+                } else {
+                    antallBesvart += 1;
+                    verdiTelling[verdi] = (verdiTelling[verdi] ?? 0) + 1;
+                }
+            }
+
+            const alternativer: SvarFilterAlternativ[] = SVAR_FILTER_FASTE.map((fast) => ({
+                key: fast.key,
+                label: fast.label,
+                color: fast.color,
+                antall: fast.key === 'besvart' ? antallBesvart : antallIkkeBesvart,
+            }));
+
+            for (const verdi of Object.keys(verdiTelling).sort(sorterSvarFilterVerdier)) {
+                alternativer.push({
+                    key: verdi,
+                    label: verdi,
+                    color: svarFilterVerdiFarge(verdi),
+                    antall: verdiTelling[verdi],
+                });
+            }
+
+            return alternativer;
+        },
+
         filtrerteRespondenter(): OppgaveRespondentData[] {
             let liste = this.respondenter;
             if (this.filterKunNominasjon) {
                 liste = liste.filter((r) => r.videresending_nominasjon);
             }
             if (this.valgteStatusFilter.length > 0) {
-                liste = liste.filter((r) => this.respondentMatcherFilter(r));
+                liste = liste.filter((r) => this.respondentMatcherStatusFilter(r));
+            }
+            if (this.harSvarfilter) {
+                liste = liste.filter((r) => this.respondentMatcherSvarFilter(r));
             }
             return liste;
         },
@@ -479,11 +632,52 @@ export default {
             return this.respondenter.filter((r) => r.svar_status === status).length;
         },
 
-        respondentMatcherFilter(respondent: OppgaveRespondentData): boolean {
+        respondentMatcherStatusFilter(respondent: OppgaveRespondentData): boolean {
             if (respondent.svar_status === null || respondent.svar_status === undefined) {
                 return this.valgteStatusFilter.includes('laster');
             }
             return this.valgteStatusFilter.includes(respondent.svar_status);
+        },
+
+        erSvarFilterValgt(key: SvarFilterKey): boolean {
+            return this.valgteSvarFilter.includes(key);
+        },
+
+        velgAlleSvarFilter(): void {
+            this.valgteSvarFilter = [];
+        },
+
+        toggleSvarFilter(key: SvarFilterKey): void {
+            const idx = this.valgteSvarFilter.indexOf(key);
+            if (idx === -1) {
+                this.valgteSvarFilter = [...this.valgteSvarFilter, key];
+            } else {
+                this.valgteSvarFilter = this.valgteSvarFilter.filter((k) => k !== key);
+            }
+        },
+
+        respondentMatcherSvarFilter(respondent: OppgaveRespondentData): boolean {
+            if (this.valgteSvarFilter.length === 0) {
+                return true;
+            }
+            if (respondent.sporsmal_svar === null || respondent.sporsmal_svar === undefined) {
+                return false;
+            }
+
+            const verdi = hentSporsmalSvarVerdi(respondent);
+
+            for (const key of this.valgteSvarFilter) {
+                if (key === 'besvart' && erSporsmalSvarBesvart(respondent)) {
+                    return true;
+                }
+                if (key === 'ikke_besvart' && erSporsmalSvarIkkeBesvart(respondent)) {
+                    return true;
+                }
+                if (verdi !== null && key === verdi) {
+                    return true;
+                }
+            }
+            return false;
         },
 
         erStatusValgt(key: StatusFilterKey): boolean {
@@ -521,6 +715,7 @@ export default {
             }
             this.loading = true;
             this.valgteStatusFilter = [];
+            this.valgteSvarFilter = [];
             this.filterKunNominasjon = false;
             try {
                 const hentet = await hentAlleRespondenter(this.oppgaveId);
@@ -635,6 +830,7 @@ export default {
             for (const respondent of this.respondenter) {
                 respondent.sporsmal_svar = undefined;
             }
+            this.valgteSvarFilter = [];
             this.nullstillIntoleranseImport();
         },
 
@@ -843,7 +1039,6 @@ export default {
     padding: 0.75rem 0 1rem;
     margin-bottom: 0.75rem;
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-    box-shadow: 0 4px 12px -8px rgba(0, 0, 0, 0.2);
 }
 .deltakere-sticky-verktoy .sporsmal-velger,
 .deltakere-sticky-verktoy .sporsmal-henting-status,
@@ -851,7 +1046,8 @@ export default {
     max-width: 36rem;
 }
 .deltakere-sticky-verktoy .sporsmal-henting-status,
-.deltakere-sticky-verktoy .sporsmal-import {
+.deltakere-sticky-verktoy .sporsmal-import,
+.deltakere-sticky-verktoy .status-oppsummering--under-sporsmal {
     margin-top: 0.75rem;
 }
 .status-oppsummering {
@@ -873,6 +1069,10 @@ export default {
 }
 .status-oppsummering__chip.v-chip--variant-outlined {
     background: transparent;
+}
+.svar-filter {
+    padding-top: 8px;
+    border-top: 1px dashed rgba(0, 0, 0, 0.08);
 }
 .sporsmal-henting-status {
     font-size: 0.875rem;
