@@ -105,11 +105,14 @@ export interface OppgaveSamtykkeSvar {
 }
 
 export type SamtykkeSkjemaType = 'vanlig' | 'med-kommentar' | 'janei';
+export type SamtykkeSkjemaSubtype = 'standard' | 'bilde_film';
 
 export interface OppgaveSkjemaDetalj {
     type: 'samtykkeskjema' | 'sporreskjema' | 'ukjent';
     /** Samtykkeskjema: vanlig | med-kommentar | janei (kun type med-kommentar har kommentarfelt) */
     samtykke_type?: SamtykkeSkjemaType;
+    /** Samtykkeskjema: standard | bilde_film */
+    samtykke_subtype?: SamtykkeSkjemaSubtype | null;
     versjoner?: { beskrivelse: string; body_text: string }[];
     svar?: OppgaveSamtykkeSvar | null;
     sporsmal?: {

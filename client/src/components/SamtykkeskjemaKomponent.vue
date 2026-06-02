@@ -42,13 +42,25 @@
                                 @keyup.enter="skjema.navn.trim() && $emit('opprett', skjema)"
                             />
                         </div>
-                        <div class="col-xs-6 nop-impt as-margin-top-space-2">
+                        <div class="col-xs-3 nop-impt as-margin-top-space-2 as-margin-right-space-2">
                             <v-select
                                 v-model="skjema.type"
                                 :items="typeOptions"
                                 item-title="title"
                                 item-value="value"
                                 label="Type"
+                                variant="outlined"
+                                class="v-autocomplete-arr-sys"
+                                hide-details="auto"
+                            />
+                        </div>
+                        <div class="col-xs-3 nop-impt as-margin-top-space-2">
+                            <v-select
+                                v-model="skjema.subtype"
+                                :items="subtypeOptions"
+                                item-title="title"
+                                item-value="value"
+                                label="Undertype"
                                 variant="outlined"
                                 class="v-autocomplete-arr-sys"
                                 hide-details="auto"
@@ -116,7 +128,7 @@
                                     <div class="tidspunkt-tittel as-margin-bottom-space-3">
                                         <h5>Grunnleggende informasjon</h5>
                                     </div>
-                                    <div class="col-xs-8 nop-impt">
+                                    <div class="col-xs-6 nop-impt">
                                         <v-text-field
                                             v-model="skjema.navn"
                                             label="Navn på skjema"
@@ -126,13 +138,25 @@
                                             hide-details="auto"
                                         />
                                     </div>
-                                    <div class="col-xs-4 as-padding-left-space-1">
+                                    <div class="col-xs-3 as-padding-left-space-1">
                                         <v-select
                                             v-model="skjema.type"
                                             :items="typeOptions"
                                             item-title="title"
                                             item-value="value"
                                             label="Type"
+                                            variant="outlined"
+                                            class="v-autocomplete-arr-sys"
+                                            hide-details="auto"
+                                        />
+                                    </div>
+                                    <div class="col-xs-3 as-padding-left-space-1">
+                                        <v-select
+                                            v-model="skjema.subtype"
+                                            :items="subtypeOptions"
+                                            item-title="title"
+                                            item-value="value"
+                                            label="Undertype"
                                             variant="outlined"
                                             class="v-autocomplete-arr-sys"
                                             hide-details="auto"
@@ -482,6 +506,10 @@ export default {
                 { title: 'Vanlig samtykke', value: 'vanlig' },
                 { title: 'Samtykke med kommentarfelt', value: 'med-kommentar' },
                 { title: 'Samtykke / Samtykker ikke', value: 'janei' },
+            ],
+            subtypeOptions: [
+                { title: 'Standard', value: 'standard' },
+                { title: 'Bilde og film', value: 'bilde_film' },
             ],
         };
     },

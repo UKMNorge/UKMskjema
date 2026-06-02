@@ -15,10 +15,13 @@ export interface SamtykkeVersjonData {
     file_path?: string | null;
 }
 
+export type SamtykkeSkjemaSubtype = 'standard' | 'bilde_film';
+
 export interface SamtykkeSkjemaData {
     id: number;
     navn: string;
     type?: 'vanlig' | 'med-kommentar' | 'janei';
+    subtype?: SamtykkeSkjemaSubtype | null;
     prosjekter?: SamtykkeProsjektData[];
     versjon?: SamtykkeVersjonData | null;
 }
@@ -27,6 +30,7 @@ export class SamtykkeSkjema {
     id: number;
     navn: string;
     type: 'vanlig' | 'med-kommentar' | 'janei';
+    subtype: SamtykkeSkjemaSubtype | null;
     prosjekter: SamtykkeProsjektData[];
     versjon: SamtykkeVersjonData | null;
 
@@ -42,6 +46,7 @@ export class SamtykkeSkjema {
         this.id         = data?.id ?? 0;
         this.navn       = data?.navn ?? '';
         this.type       = data?.type ?? 'vanlig';
+        this.subtype    = data?.subtype ?? 'standard';
         this.prosjekter = data?.prosjekter ?? [];
         this.versjon    = data?.versjon ?? null;
     }
@@ -51,6 +56,7 @@ export class SamtykkeSkjema {
             id:         this.id,
             navn:       this.navn,
             type:       this.type,
+            subtype:    this.subtype,
             prosjekter: this.prosjekter,
             versjon:    this.versjon,
         };

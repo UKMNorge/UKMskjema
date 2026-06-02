@@ -36,8 +36,9 @@ export async function hentAlleSamtykkeskjemaer(): Promise<SamtykkeSkjemaData[]> 
  */
 export async function opprettSamtykkeskjema(
     navn: string,
-    type?: string
-): Promise<{ id: number; navn: string; type?: string }> {
+    type?: string,
+    subtype?: string | null
+): Promise<{ id: number; navn: string; type?: string; subtype?: string | null }> {
     var spaInteraction = (<any>window).spaInteraction;
 
     var data : any = {
@@ -49,6 +50,9 @@ export async function opprettSamtykkeskjema(
     if (type) {
         data.type = type;
     }
+    if (subtype !== undefined && subtype !== null) {
+        data.subtype = subtype;
+    }
 
     var res = await spaInteraction.runAjaxCall('/', 'POST', data);
 
@@ -56,7 +60,7 @@ export async function opprettSamtykkeskjema(
         throw new Error(res.message ?? 'Kunne ikke opprette samtykkeskjema');
     }
 
-    return res as { id: number; navn: string; type?: string };
+    return res as { id: number; navn: string; type?: string; subtype?: string | null };
 }
 
 /**
@@ -69,6 +73,7 @@ export async function lagreAllDataSamtykkeskjema(
     skjemaId: number,
     navn: string,
     type?: string,
+    subtype?: string | null,
     prosjekter?: SamtykkeProsjektData[],
     versjon?: SamtykkeVersjonData | null
 ): Promise<any> {
@@ -83,6 +88,9 @@ export async function lagreAllDataSamtykkeskjema(
     
     if (type) {
         data.type = type;
+    }
+    if (subtype !== undefined) {
+        data.subtype = subtype ?? '';
     }
 
     const res = await spaInteraction.runAjaxCall('/', 'POST', data);
