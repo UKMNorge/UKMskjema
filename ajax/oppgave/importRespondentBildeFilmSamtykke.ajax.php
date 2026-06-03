@@ -69,27 +69,32 @@ try {
         $sporsmalId
     );
 } catch (Exception $e) {
-    $status = 'ikke_godkjent';
     $code = $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 400;
     $handleCall->sendErrorToClient($e->getMessage(), $code);
 }
 
-$ip = isset( $_SERVER['HTTP_CF_CONNECTING_IP'] ) ?
-    $_SERVER['HTTP_CF_CONNECTING_IP'] :
-    $_SERVER['REMOTE_ADDR'];
+$ip = isset($_SERVER['HTTP_CF_CONNECTING_IP'])
+    ? $_SERVER['HTTP_CF_CONNECTING_IP']
+    : $_SERVER['REMOTE_ADDR'];
 
 foreach ($arrangement->getInnslag()->getAll() as $innslag) {
     foreach ($innslag->getPersoner()->getAll() as $person) {
-        if ($person->getMobil() == $respondent->getMobil()) {
-            $samtykke = new PersonSamtykke( $person, $innslag );
-            $samtykke->setStatus( $status, $ip );
-            $samtykke->persist();
+        if ($person->getMobil() != $respondent->getMobil()) {
+            continue;
         }
+        $samtykke = new PersonSamtykke($person, $innslag);
+        $samtykke->setStatus($status['user_status'], $ip);
+        if ($status['foresatt_status'] !== null && $samtykke->harForesatt()) {
+            $samtykke->setForesattStatus($status['foresatt_status'], $ip);
+        }
+        $samtykke->persist();
     }
 }
 
 $handleCall->sendToClient([
-    'success' => true,
-    'status'  => $status,
-    'message' => 'Film- og fotosamtykke er importert til brukeren i hele systemet',
+    'success'           => true,
+    'user_status'       => $status['user_status'],
+    'foresatt_status'   => $status['foresatt_status'],
+    'foresatt_godkjent' => $status['foresatt_godkjent'],
+    'message'           => 'Film- og fotosamtykke er importert til brukeren i hele systemet',
 ]);
