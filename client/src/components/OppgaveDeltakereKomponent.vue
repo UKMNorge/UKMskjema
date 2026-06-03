@@ -19,7 +19,7 @@
                     Klikk en respondent for å åpne alle svarene i et nytt vindu.
                 </p>
 
-                <div class="deltakere-sticky-verktoy as-margin-bottom-space-2">
+                <div class="deltakere-sticky-verktoy">
                     <v-select
                         v-model="valgtSporsmal"
                         :items="sporsmalValg"
@@ -31,7 +31,7 @@
                         :clearable="!sporsmalSvarLaster && !intoleranseImportLaster && !bildeFilmImportLaster"
                         :disabled="sporsmalSvarLaster || antallLaster > 0 || intoleranseImportLaster || bildeFilmImportLaster"
                         :loading="sporsmalListeLaster || sporsmalSvarLaster || antallLaster > 0 || intoleranseImportLaster || bildeFilmImportLaster"
-                        class="sporsmal-velger"
+                        class="sporsmal-velger as-margin-bottom-space-2"
                         @update:model-value="paSporsmalValgt"
                     />
 
