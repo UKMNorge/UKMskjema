@@ -169,6 +169,8 @@ export interface OppgaveSporsmalValg {
     skjema_type: string;
     skjema_id: number;
     skjema_navn: string;
+    /** Samtykkeskjema: standard | bilde_film */
+    skjema_subtype?: SamtykkeSkjemaSubtype | null;
     sporsmal_id: number;
     tittel: string;
     type: string;
@@ -237,6 +239,28 @@ export async function importRespondentIntoleranser(
 
     if (!res.success) {
         throw new Error(res.message ?? res.result ?? 'Kunne ikke importere intoleranser');
+    }
+}
+
+export async function importRespondentBildeFilmSamtykke(
+    oppgaveId: number,
+    phone: string,
+    skjemaType: string,
+    skjemaId: number,
+    sporsmalId: number
+): Promise<void> {
+    const res = await getSpaInteraction().runAjaxCall('/', 'POST', {
+        action: 'UKMskjema_ajax',
+        controller: 'oppgave/importRespondentBildeFilmSamtykke',
+        oppgave_id: oppgaveId,
+        phone: phone.trim(),
+        skjema_type: skjemaType,
+        skjema_id: skjemaId,
+        sporsmal_id: sporsmalId,
+    });
+
+    if (!res.success) {
+        throw new Error(res.message ?? res.result ?? 'Kunne ikke importere film- og fotosamtykke');
     }
 }
 

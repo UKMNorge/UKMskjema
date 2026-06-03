@@ -28,9 +28,9 @@
                         label="Vis svar på spørsmål"
                         variant="outlined"
                         hide-details="auto"
-                        :clearable="!sporsmalSvarLaster && !intoleranseImportLaster"
-                        :disabled="sporsmalSvarLaster || antallLaster > 0 || intoleranseImportLaster"
-                        :loading="sporsmalListeLaster || sporsmalSvarLaster || antallLaster > 0 || intoleranseImportLaster"
+                        :clearable="!sporsmalSvarLaster && !intoleranseImportLaster && !bildeFilmImportLaster"
+                        :disabled="sporsmalSvarLaster || antallLaster > 0 || intoleranseImportLaster || bildeFilmImportLaster"
+                        :loading="sporsmalListeLaster || sporsmalSvarLaster || antallLaster > 0 || intoleranseImportLaster || bildeFilmImportLaster"
                         class="sporsmal-velger"
                         @update:model-value="paSporsmalValgt"
                     />
@@ -177,6 +177,47 @@
                             </div>
                             <v-progress-linear
                                 :model-value="intoleranseImportFremdriftProsent"
+                                color="primary"
+                                height="6"
+                                rounded
+                                class="sporsmal-henting-status__bar"
+                            />
+                        </div>
+                    </div>
+
+                    <div
+                        v-if="erValgtBildeFilmSamtykkeSporsmal && valgtSporsmal && !sporsmalSvarLaster"
+                        class="sporsmal-import"
+                    >
+                        <v-btn
+                            v-if="!bildeFilmImportFerdig"
+                            variant="outlined"
+                            color="primary"
+                            class="sporsmal-import__knapp"
+                            :loading="bildeFilmImportLaster"
+                            :disabled="bildeFilmImportLaster || !respondenter.length"
+                            @click="bildeFilmImportBekreftDialog = true"
+                        >
+                            Importer film- og fotosamtykke til hele systemet
+                        </v-btn>
+                        <v-chip
+                            v-else
+                            size="small"
+                            variant="tonal"
+                            color="success"
+                        >
+                            Importert til hele systemet
+                        </v-chip>
+                        <div
+                            v-if="bildeFilmImportLaster"
+                            class="sporsmal-import__fremdrift"
+                        >
+                            <div class="sporsmal-henting-status__rad">
+                                <span>Importerer for alle respondenter…</span>
+                                <strong class="sporsmal-henting-status__prosent">{{ bildeFilmImportFremdriftProsent }}%</strong>
+                            </div>
+                            <v-progress-linear
+                                :model-value="bildeFilmImportFremdriftProsent"
                                 color="primary"
                                 height="6"
                                 rounded
@@ -353,6 +394,42 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+
+        <v-dialog v-model="bildeFilmImportBekreftDialog" max-width="480" persistent>
+            <v-card rounded="lg">
+                <v-card-title class="text-h6 pt-5 px-5">
+                    <v-icon color="warning" class="mr-2">mdi-alert-outline</v-icon>
+                    Importer film- og fotosamtykke
+                </v-card-title>
+                <v-card-text class="px-5">
+                    Dette vil importere samtykke fra oppgaven til hver respondents
+                    film- og fotostatus i hele systemet (personvern).
+                    <strong>Eksisterende lagrede verdier kan bli erstattet.</strong>
+                </v-card-text>
+                <v-card-actions class="px-5 pb-5">
+                    <v-spacer />
+                    <v-btn
+                        class="v-btn-as v-btn-grey"
+                        rounded="large"
+                        variant="outlined"
+                        :disabled="bildeFilmImportLaster"
+                        @click="bildeFilmImportBekreftDialog = false"
+                    >
+                        Avbryt
+                    </v-btn>
+                    <v-btn
+                        class="v-btn-as v-btn-hvit"
+                        rounded="large"
+                        variant="outlined"
+                        color="primary"
+                        :loading="bildeFilmImportLaster"
+                        @click="bekreftBildeFilmImport"
+                    >
+                        Fortsett import
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </div>
 </template>
 
@@ -362,6 +439,7 @@ import {
     hentOppgaveSporsmalListe,
     hentRespondentSporsmalSvar,
     hentRespondentSvarStatus,
+    importRespondentBildeFilmSamtykke,
     importRespondentIntoleranser,
     type OppgaveSporsmalValg,
 } from '../services/oppgaveService';
@@ -504,6 +582,11 @@ export default {
             intoleranseImportTotalt: 0,
             intoleranseImportFerdig: false,
             intoleranseImportBekreftDialog: false,
+            bildeFilmImportLaster: false,
+            bildeFilmImportHentet: 0,
+            bildeFilmImportTotalt: 0,
+            bildeFilmImportFerdig: false,
+            bildeFilmImportBekreftDialog: false,
         };
     },
 
@@ -523,6 +606,7 @@ export default {
             this.sporsmalSvarTotalt = 0;
             this.sporsmalHentingId += 1;
             this.nullstillIntoleranseImport();
+            this.nullstillBildeFilmImport();
         },
     },
 
@@ -538,12 +622,27 @@ export default {
             return this.valgtSporsmal?.type === 'intoleranser';
         },
 
+        erValgtBildeFilmSamtykkeSporsmal(): boolean {
+            return (
+                this.valgtSporsmal?.type === 'samtykkeskjema'
+                && this.valgtSporsmal?.skjema_subtype === 'bilde_film'
+            );
+        },
+
         intoleranseImportFremdriftProsent(): number {
             if (this.intoleranseImportTotalt <= 0) {
                 return 0;
             }
             return Math.min(100, Math.round((this.intoleranseImportHentet / this.intoleranseImportTotalt) * 100));
         },
+
+        bildeFilmImportFremdriftProsent(): number {
+            if (this.bildeFilmImportTotalt <= 0) {
+                return 0;
+            }
+            return Math.min(100, Math.round((this.bildeFilmImportHentet / this.bildeFilmImportTotalt) * 100));
+        },
+
         statusOppsummeringTyper(): typeof STATUS_OPPSUMMERING_TYPER {
             return STATUS_OPPSUMMERING_TYPER;
         },
@@ -832,6 +931,7 @@ export default {
             }
             this.valgteSvarFilter = [];
             this.nullstillIntoleranseImport();
+            this.nullstillBildeFilmImport();
         },
 
         nullstillIntoleranseImport(): void {
@@ -840,6 +940,14 @@ export default {
             this.intoleranseImportTotalt = 0;
             this.intoleranseImportFerdig = false;
             this.intoleranseImportBekreftDialog = false;
+        },
+
+        nullstillBildeFilmImport(): void {
+            this.bildeFilmImportLaster = false;
+            this.bildeFilmImportHentet = 0;
+            this.bildeFilmImportTotalt = 0;
+            this.bildeFilmImportFerdig = false;
+            this.bildeFilmImportBekreftDialog = false;
         },
 
         async bekreftIntoleranseImport(): Promise<void> {
@@ -898,6 +1006,65 @@ export default {
                 }
             } finally {
                 this.intoleranseImportLaster = false;
+            }
+        },
+
+        async bekreftBildeFilmImport(): Promise<void> {
+            await this.importerAlleBildeFilmSamtykke();
+            if (!this.bildeFilmImportLaster) {
+                this.bildeFilmImportBekreftDialog = false;
+            }
+        },
+
+        async importerAlleBildeFilmSamtykke(): Promise<void> {
+            const sporsmal = this.valgtSporsmal;
+            if (!sporsmal || !this.oppgaveId || this.bildeFilmImportLaster) {
+                return;
+            }
+
+            const oppgaveId = this.oppgaveId;
+            const { skjema_type: skjemaType, skjema_id: skjemaId, sporsmal_id: sporsmalId } = sporsmal;
+            const respondenter = this.respondenter.filter((r) => r.mobil?.trim());
+
+            if (respondenter.length === 0) {
+                return;
+            }
+
+            this.bildeFilmImportLaster = true;
+            this.bildeFilmImportHentet = 0;
+            this.bildeFilmImportTotalt = respondenter.length;
+            this.bildeFilmImportFerdig = false;
+
+            let feilet = 0;
+
+            try {
+                for (let i = 0; i < respondenter.length; i += RESPONDENT_HENTING_BATCH_STORRELSE) {
+                    const batch = respondenter.slice(i, i + RESPONDENT_HENTING_BATCH_STORRELSE);
+                    await Promise.all(
+                        batch.map(async (respondent) => {
+                            const phone = respondent.mobil.trim();
+                            try {
+                                await importRespondentBildeFilmSamtykke(oppgaveId, phone, skjemaType, skjemaId, sporsmalId);
+                            } catch {
+                                feilet += 1;
+                            } finally {
+                                this.bildeFilmImportHentet += 1;
+                            }
+                        })
+                    );
+                }
+
+                this.bildeFilmImportFerdig = true;
+
+                if (feilet > 0) {
+                    const ok = respondenter.length - feilet;
+                    this.$emit(
+                        'feil',
+                        `Importert ${ok} av ${respondenter.length} respondenter. ${feilet} feilet.`
+                    );
+                }
+            } finally {
+                this.bildeFilmImportLaster = false;
             }
         },
 
