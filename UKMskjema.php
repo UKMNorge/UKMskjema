@@ -133,8 +133,8 @@ class UKMskjema extends Modul
             'admin_print_styles-' .
                 add_menu_page(
 
-                    'UKM Skjemaer 2026',
-                    'UKM Skjemaer 2026',
+                    'Skjemaer',
+                    'Skjemaer',
                     'editor',
                     'UKMskjema',
                     ['UKMskjema', 'renderAdmin'],

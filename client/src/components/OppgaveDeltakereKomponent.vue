@@ -31,7 +31,7 @@
                         :clearable="!sporsmalSvarLaster && !intoleranseImportLaster && !bildeFilmImportLaster"
                         :disabled="sporsmalSvarLaster || antallLaster > 0 || intoleranseImportLaster || bildeFilmImportLaster"
                         :loading="sporsmalListeLaster || sporsmalSvarLaster || antallLaster > 0 || intoleranseImportLaster || bildeFilmImportLaster"
-                        class="sporsmal-velger as-margin-bottom-space-2"
+                        class="sporsmal-velger as-margin-bottom-space-4"
                         @update:model-value="paSporsmalValgt"
                     />
 
