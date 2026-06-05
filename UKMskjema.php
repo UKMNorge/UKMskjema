@@ -138,7 +138,7 @@ class UKMskjema extends Modul
                     'editor',
                     'UKMskjema',
                     ['UKMskjema', 'renderAdmin'],
-                    'dashicons-editor-removeformatting', #'//ico.ukm.no/paper-airplane-20.png',
+                    'dashicons-list-view', #'//ico.ukm.no/paper-airplane-20.png',
                     90
                 ),
             ['UKMskjema', 'script']
