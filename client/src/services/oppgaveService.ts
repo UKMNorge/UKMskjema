@@ -269,18 +269,18 @@ export async function hentRespondentSvarStatus(
     oppgaveId: number,
     phone: string
 ): Promise<OppgaveSvarStatus> {
-    const res = await getSpaInteraction().runAjaxCall('/', 'POST', {
-        action: 'UKMskjema_ajax',
-        controller: 'oppgave/getRespondentSvarStatus',
-        oppgave_id: oppgaveId,
-        phone: phone.trim(),
-    });
+    try {
+        const res = await getSpaInteraction().runAjaxCall('/', 'POST', {
+            action: 'UKMskjema_ajax',
+            controller: 'oppgave/getRespondentSvarStatus',
+            oppgave_id: oppgaveId,
+            phone: phone.trim(),
+        });
 
-    if (!res.success) {
-        // throw new Error(res.message ?? res.result ?? 'Kunne ikke hente svarstatus');
+        return Number(res.svar_status) as OppgaveSvarStatus;
+    } catch (e: any) {
+        throw new Error('Kunne ikke hente svarstatus');
     }
-
-    return Number(res.svar_status) as OppgaveSvarStatus;
 }
 
 export async function opprettOppgave(
