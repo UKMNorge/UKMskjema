@@ -93,7 +93,7 @@
         >
             <div class="d-flex flex-wrap align-center justify-space-between gap-2">
                 <h4>{{ o.name }}</h4>
-                <div class="oppgave-actions">
+                <div v-if="erLandArrangement" class="oppgave-actions">
                     <v-btn
                         class="v-btn-as v-btn-hvit"
                         variant="outlined"
@@ -125,7 +125,7 @@
                 <span v-if="o.type && o.description"> · </span>
                 <span v-if="o.description">{{ o.description }}</span>
             </div>
-            <div class="as-margin-top-space-4">
+            <div v-if="erLandArrangement" class="as-margin-top-space-4">
                 <p class="kjede-tittel">Skjemarekkefølge</p>
                 <p v-if="o.skjema_kjede.length > 0" class="kjede-hjelp">
                     Dra et skjema for å flytte det. Slipp på et annet for å bytte plass.
