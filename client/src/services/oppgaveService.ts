@@ -276,7 +276,7 @@ export async function hentRespondentSvarStatus(
         phone: phone.trim(),
     }, {
         onError: (error : any) => {
-            getSpaInteraction().showErrorMessage(error.message ?? 'Kunne ikke hente svarstatus');
+            getSpaInteraction().showMessage(error.message ?? 'Kunne ikke hente svarstatus');
         },
     });
 
