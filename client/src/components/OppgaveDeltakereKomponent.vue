@@ -20,20 +20,33 @@
                 </p>
 
                 <div class="deltakere-sticky-verktoy">
-                    <v-select
-                        v-model="valgtSporsmal"
-                        :items="sporsmalValg"
-                        item-title="label"
-                        return-object
-                        label="Vis svar på spørsmål"
-                        variant="outlined"
-                        hide-details="auto"
-                        :clearable="!sporsmalSvarLaster && !intoleranseImportLaster && !bildeFilmImportLaster"
-                        :disabled="sporsmalSvarLaster || antallLaster > 0 || intoleranseImportLaster || bildeFilmImportLaster"
-                        :loading="sporsmalListeLaster || sporsmalSvarLaster || antallLaster > 0 || intoleranseImportLaster || bildeFilmImportLaster"
-                        class="sporsmal-velger as-margin-bottom-space-4"
-                        @update:model-value="paSporsmalValgt"
-                    />
+                    <div class="sporsmal-verktoy-rad">
+                        <v-select
+                            v-model="valgtSporsmal"
+                            :items="sporsmalValg"
+                            item-title="label"
+                            return-object
+                            label="Vis svar på spørsmål"
+                            variant="outlined"
+                            hide-details="auto"
+                            :clearable="!sporsmalSvarLaster && !intoleranseImportLaster && !bildeFilmImportLaster"
+                            :disabled="sporsmalSvarLaster || antallLaster > 0 || intoleranseImportLaster || bildeFilmImportLaster"
+                            :loading="sporsmalListeLaster || sporsmalSvarLaster || antallLaster > 0 || intoleranseImportLaster || bildeFilmImportLaster"
+                            class="sporsmal-velger"
+                            @update:model-value="paSporsmalValgt"
+                        />
+                        <v-btn
+                            v-if="valgtSporsmal && !sporsmalSvarLaster"
+                            variant="outlined"
+                            color="primary"
+                            class="sporsmal-excel-knapp"
+                            prepend-icon="mdi-download"
+                            :disabled="!kanLasteNedSporsmalExcel"
+                            @click="lastNedSporsmalExcel"
+                        >
+                            Last ned Excel
+                        </v-btn>
+                    </div>
 
                     <div
                         v-if="valgtSporsmal && !sporsmalSvarLaster && svarFilterAlternativer.length"
@@ -455,6 +468,7 @@ import OppgaveRespondent, {
     oppgaveSvarStatusLabel,
 } from '../objects/OppgaveRespondent';
 import { openRespondentSvarWindow } from '../utils/oppgaveUrl';
+import { lastNedSporsmalSvarExcel } from '../utils/oppgaveSporsmalExcel';
 
 type StatusFilterKey = OppgaveSvarStatus | 'laster';
 
@@ -716,6 +730,15 @@ export default {
                 liste = liste.filter((r) => this.respondentMatcherSvarFilter(r));
             }
             return liste;
+        },
+
+        kanLasteNedSporsmalExcel(): boolean {
+            if (!this.valgtSporsmal || this.sporsmalSvarLaster) {
+                return false;
+            }
+            return this.filtrerteRespondenter.some(
+                (r) => r.sporsmal_svar !== null && r.sporsmal_svar !== undefined
+            );
         },
     },
 
@@ -1154,6 +1177,19 @@ export default {
         erJaNei(value: string): boolean {
             return value === 'Ja' || value === 'Nei';
         },
+
+        lastNedSporsmalExcel(): void {
+            const sporsmal = this.valgtSporsmal;
+            if (!sporsmal || !this.kanLasteNedSporsmalExcel) {
+                return;
+            }
+
+            try {
+                lastNedSporsmalSvarExcel(this.filtrerteRespondenter, sporsmal);
+            } catch (e: any) {
+                this.$emit('feil', e.message ?? 'Kunne ikke laste ned Excel-fil');
+            }
+        },
     },
 };
 </script>
@@ -1207,7 +1243,22 @@ export default {
     margin-bottom: 0.75rem;
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
-.deltakere-sticky-verktoy .sporsmal-velger,
+.sporsmal-verktoy-rad {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+.sporsmal-verktoy-rad .sporsmal-velger {
+    flex: 1 1 18rem;
+    min-width: 0;
+    max-width: 36rem;
+}
+.sporsmal-excel-knapp {
+    flex: 0 0 auto;
+    margin-top: 0.15rem;
+}
 .deltakere-sticky-verktoy .sporsmal-henting-status,
 .deltakere-sticky-verktoy .sporsmal-import {
     max-width: 36rem;
