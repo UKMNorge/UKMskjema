@@ -3,6 +3,8 @@ import type { OppgaveRespondentData } from '@/objects/OppgaveRespondent';
 import { oppgaveSvarStatusLabel } from '@/objects/OppgaveRespondent';
 import type { OppgaveSporsmalValg } from '@/services/oppgaveService';
 
+type SvarLinje = { label: string; value: string };
+
 function sanitizeSheetName(name: string): string {
     return name.replace(/[:\\/?*[\]]/g, '').substring(0, 31);
 }
@@ -30,13 +32,6 @@ function respondentNavn(respondent: OppgaveRespondentData): string {
     return `${respondent.navn} ${respondent.etternavn}`.trim();
 }
 
-function svarVerdiForExcel(value: string): string {
-    if (value.startsWith('/')) {
-        return 'Fil (se systemet for nedlasting)';
-    }
-    return value;
-}
-
 function statusTekst(respondent: OppgaveRespondentData): string {
     if (respondent.svar_status === null || respondent.svar_status === undefined) {
         return '';
@@ -44,14 +39,55 @@ function statusTekst(respondent: OppgaveRespondentData): string {
     return oppgaveSvarStatusLabel(respondent.svar_status);
 }
 
-function hentSvarLinjer(respondent: OppgaveRespondentData): { label: string; value: string }[] {
+/** Samme linjer som vises i deltaker-rad__svar-linjer i UI. */
+function hentSvarLinjer(respondent: OppgaveRespondentData): SvarLinje[] {
     if (!respondent.sporsmal_svar) {
-        return [{ label: 'Svar', value: '—' }];
+        return [{ label: '', value: '—' }];
     }
     return respondent.sporsmal_svar.linjer.map((linje) => ({
-        label: linje.label || 'Svar',
-        value: svarVerdiForExcel(linje.value ?? ''),
+        label: linje.label ?? '',
+        value: linje.value ?? '',
     }));
+}
+
+function svarLinjeFeltNavn(linje: SvarLinje): string {
+    return linje.label.trim() || 'Svar';
+}
+
+/** Verdi slik den vises i deltaker-rad__svar-linjer (Lenke → filsti). */
+function svarLinjeVerdiForExcel(linje: SvarLinje): string {
+    const value = (linje.value ?? '').trim();
+    if (linje.label === 'Lenke' && value.startsWith('/')) {
+        return value;
+    }
+    return value;
+}
+
+function samleSvarKolonner(respondenter: OppgaveRespondentData[]): string[] {
+    const kolonner: string[] = [];
+    const sett = new Set<string>();
+
+    for (const respondent of respondenter) {
+        for (const linje of hentSvarLinjer(respondent)) {
+            const navn = svarLinjeFeltNavn(linje);
+            if (!sett.has(navn)) {
+                sett.add(navn);
+                kolonner.push(navn);
+            }
+        }
+    }
+
+    return kolonner;
+}
+
+function svarLinjerSomKolonner(respondent: OppgaveRespondentData): Record<string, string> {
+    const result: Record<string, string> = {};
+
+    for (const linje of hentSvarLinjer(respondent)) {
+        result[svarLinjeFeltNavn(linje)] = svarLinjeVerdiForExcel(linje);
+    }
+
+    return result;
 }
 
 function lagRespondentTabell(
@@ -74,7 +110,7 @@ function lagRespondentTabell(
     rader.push(['Spørsmål', sporsmal.tittel]);
 
     for (const linje of hentSvarLinjer(respondent)) {
-        rader.push([linje.label, linje.value]);
+        rader.push([svarLinjeFeltNavn(linje), svarLinjeVerdiForExcel(linje)]);
     }
 
     if (respondent.sporsmal_svar?.foresatt_godkjent === true) {
@@ -124,26 +160,29 @@ export function lastNedSporsmalSvarExcel(
 
     const wb = utils.book_new();
     const brukteNavn = new Set<string>();
+    const svarKolonner = samleSvarKolonner(klare);
+    const grunnKolonner = ['Navn', 'Mobil', 'Fylke', 'Arrangement', 'Status', 'Spørsmål'];
 
-    const oversikt = klare.map((respondent) => {
-        const linjer = hentSvarLinjer(respondent);
-        const hovedsvar = linjer.find((l) => l.label === 'Svar')?.value ?? linjer[0]?.value ?? '—';
-
-        return {
-            Navn: respondentNavn(respondent),
-            Mobil: respondent.mobil ?? '',
-            Fylke: respondent.fylke ?? '',
-            Arrangement: respondent.arrangement ?? '',
-            Status: statusTekst(respondent),
-            Spørsmål: sporsmal.tittel,
-            Svar: hovedsvar,
-        };
-    });
+    const oversikt = klare.map((respondent) => ({
+        Navn: respondentNavn(respondent),
+        Mobil: respondent.mobil ?? '',
+        Fylke: respondent.fylke ?? '',
+        Arrangement: respondent.arrangement ?? '',
+        Status: statusTekst(respondent),
+        Spørsmål: sporsmal.tittel,
+        ...svarLinjerSomKolonner(respondent),
+    }));
 
     const oversiktWs = utils.json_to_sheet(oversikt);
+    const oversiktHeader = [...grunnKolonner, ...svarKolonner];
     settKolonnebredder(
         oversiktWs,
-        [['Navn', 'Mobil', 'Fylke', 'Arrangement', 'Status', 'Spørsmål', 'Svar'], ...oversikt.map((r) => Object.values(r))]
+        [
+            oversiktHeader,
+            ...oversikt.map((rad) =>
+                oversiktHeader.map((kolonne) => String((rad as Record<string, string>)[kolonne] ?? ''))
+            ),
+        ]
     );
     utils.book_append_sheet(wb, oversiktWs, 'Oversikt');
 
