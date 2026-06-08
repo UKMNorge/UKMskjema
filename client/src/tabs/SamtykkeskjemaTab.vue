@@ -9,6 +9,7 @@
                 rounded="large"
                 variant="outlined"
                 size="x-large"
+                :disabled="!erLandArrangement"
                 @click="leggTilSamtykkeskjema"
             >
                 Legg til samtykkeskjema
@@ -20,8 +21,10 @@
             <div class="as-margin-top-space-2" v-if="hentet && alleSamtykkeskjemaer.length < 1">
                 <PermanentNotification 
                     typeNotification="info" 
-                    :tittel="`Ingen samtykkeskjemaer ennå`" 
-                    :description="`Ingen samtykkeskjemaer ennå. Klikk «Legg til samtykkeskjema» for å opprette det første.`" 
+                    :tittel="erLandArrangement ? 'Ingen samtykkeskjemaer ennå' : 'Samtykkeskjemaer er kun tilgjengelig for landarrangement'" 
+                    :description="erLandArrangement
+                        ? 'Ingen samtykkeskjemaer ennå. Klikk «Legg til samtykkeskjema» for å opprette det første.'
+                        : 'Samtykkeskjemaer kan bare opprettes og redigeres på landarrangement.'"
                 />
             </div>
         </div>
@@ -76,10 +79,17 @@ export default {
     data() {
         return {
             alleSamtykkeskjemaer: [] as SamtykkeSkjema[],
+            arrangementType:      '' as string,
             hentet:               false as boolean,
             listeLoading:         false as boolean,
             skjemaLoading:        false as boolean,
         };
+    },
+
+    computed: {
+        erLandArrangement(): boolean {
+            return this.arrangementType === 'land';
+        },
     },
 
     mounted() {
@@ -91,7 +101,8 @@ export default {
             this.listeLoading = true;
             try {
                 const data = await apiHentAlle();
-                this.alleSamtykkeskjemaer = data.map((d: any) => new SamtykkeSkjema(d));
+                this.alleSamtykkeskjemaer = data.skjemaer.map((d: any) => new SamtykkeSkjema(d));
+                this.arrangementType = data.arrangement_type;
                 this.hentet = true;
             } catch (e: any) {
                 this.$emit('feil', e.message ?? 'Feil ved henting av samtykkeskjemaer');
@@ -101,6 +112,7 @@ export default {
         },
 
         leggTilSamtykkeskjema(): void {
+            if (!this.erLandArrangement) return;
             for (const s of this.alleSamtykkeskjemaer) {
                 if (s.id === -1) { s.expanded = true; return; }
             }

@@ -1,15 +1,23 @@
 <?php
 
 use UKMNorge\Arrangement\Skjema\Skjema;
+use UKMNorge\Arrangement\Arrangement;
 use UKMNorge\OAuth2\HandleAPICall;
 
 require_once('UKM/Autoloader.php');
 
 $handleCall = new HandleAPICall([], [], ['GET', 'POST'], false);
 
+$arrangement = null;
 $arrangementId = get_option('pl_id');
 if (!$arrangementId) {
     $handleCall->sendErrorToClient('pl_id er ikke satt for dette arrangementet.', 400);
+}
+
+try {
+    $arrangement = new Arrangement($arrangementId);
+} catch (Exception $e) {
+    $handleCall->sendErrorToClient('Kunne ikke hente arrangementet', 401);
 }
 
 $result = [];
@@ -45,4 +53,5 @@ try {
 $handleCall->sendToClient([
     'success'    => true,
     'skjemaer'   => $result,
+    'arrangement_type' => $arrangement->getType(),
 ]);

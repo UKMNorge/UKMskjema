@@ -24,8 +24,14 @@ try {
     $handleCall->sendErrorToClient('Fant ikke oppgaven', 404);
 }
 
+$oppgaveFromAnotherArrangement = null;
 if ($oppgave->getPlId() !== $plId) {
-    $handleCall->sendErrorToClient('Oppgaven tilhører ikke dette arrangementet', 403);
+    foreach(Oppgave::getAlleByRespondentArrangement($plId) as $oppgave) {
+        if ($oppgave->getId() === $oppgaveId) {
+            $oppgaveFromAnotherArrangement = $oppgave;
+            break;
+        }
+    }
 }
 
 $respondenterUt = [];

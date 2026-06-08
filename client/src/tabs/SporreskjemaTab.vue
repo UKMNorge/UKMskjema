@@ -9,6 +9,7 @@
                 rounded="large"
                 variant="outlined"
                 size="x-large"
+                :disabled="!erLandArrangement"
                 @click="leggTilSporreskjema"
             >
                 Legg til spørreskjema
@@ -20,8 +21,10 @@
             <div class="as-margin-top-space-2" v-if="hentet && alleSporreskjemaer.length < 1">
                 <PermanentNotification 
                     typeNotification="info" 
-                    :tittel="`Ingen spørreskjemaer ennå`" 
-                    :description="`Ingen spørreskjemaer ennå. Klikk «Legg til spørreskjema» for å opprette det første.`" 
+                    :tittel="erLandArrangement ? 'Ingen spørreskjemaer ennå' : 'Spørreskjemaer er kun tilgjengelig for landarrangement'" 
+                    :description="erLandArrangement
+                        ? 'Ingen spørreskjemaer ennå. Klikk «Legg til spørreskjema» for å opprette det første.'
+                        : 'Spørreskjemaer kan bare opprettes og redigeres på landarrangement.'"
                 />
             </div>
         </div>
@@ -77,10 +80,17 @@ export default {
     data() {
         return {
             alleSporreskjemaer: [] as SporreSkjema[],
+            arrangementType:    '' as string,
             hentet:             false as boolean,
             listeLoading:       false as boolean,
             skjemaLoading:      false as boolean,
         };
+    },
+
+    computed: {
+        erLandArrangement(): boolean {
+            return this.arrangementType === 'land';
+        },
     },
 
     mounted() {
@@ -92,7 +102,8 @@ export default {
             this.listeLoading = true;
             try {
                 const data = await apiHentAlle();
-                this.alleSporreskjemaer = data.map((d: any) => new SporreSkjema(d));
+                this.alleSporreskjemaer = data.skjemaer.map((d: any) => new SporreSkjema(d));
+                this.arrangementType = data.arrangement_type;
                 this.hentet = true;
             } catch (e: any) {
                 this.$emit('feil', e.message ?? 'Feil ved henting av spørreskjemaer');
@@ -102,6 +113,7 @@ export default {
         },
 
         leggTilSporreskjema(): void {
+            if (!this.erLandArrangement) return;
             for (const s of this.alleSporreskjemaer) {
                 if (s.id === -1) { s.expanded = true; return; }
             }

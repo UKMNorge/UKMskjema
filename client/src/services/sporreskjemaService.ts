@@ -4,10 +4,15 @@ function getSpaInteraction(): any {
     return (window as any).spaInteraction;
 }
 
+export interface SporreskjemaListeResponse {
+    skjemaer: SporreSkjemaData[];
+    arrangement_type: string;
+}
+
 /**
  * Henter alle oppgave-spørreskjemaer for dette arrangementet.
  */
-export async function hentAlleSporreskjemaer(): Promise<SporreSkjemaData[]> {
+export async function hentAlleSporreskjemaer(): Promise<SporreskjemaListeResponse> {
     const res = await getSpaInteraction().runAjaxCall('/', 'POST', {
         action:     'UKMskjema_ajax',
         controller: 'sporreskjema/getAlleSporreskjemaer',
@@ -17,7 +22,10 @@ export async function hentAlleSporreskjemaer(): Promise<SporreSkjemaData[]> {
         throw new Error(res.message ?? 'Kunne ikke hente spørreskjemaer');
     }
 
-    return res.skjemaer as SporreSkjemaData[];
+    return {
+        skjemaer: res.skjemaer as SporreSkjemaData[],
+        arrangement_type: res.arrangement_type as string,
+    };
 }
 
 /**

@@ -1,6 +1,7 @@
 <?php
 
 use UKMNorge\Samtykkeskjema\SamtykkeSkjema;
+use UKMNorge\Arrangement\Arrangement;
 use UKMNorge\OAuth2\HandleAPICall;
 
 
@@ -10,6 +11,12 @@ $arrangementId = get_option('pl_id');
 if (!$arrangementId) {
     $handleCall->sendErrorToClient('arrangementId er påkrevd.', 400);
 }
+try {
+    $arrangement = new Arrangement($arrangementId);
+} catch (Exception $e) {
+    $handleCall->sendErrorToClient('Kunne ikke hente arrangementet', 401);
+}
+
 
 $skjemaer = SamtykkeSkjema::getAllByArrangementId($arrangementId);
 
@@ -20,5 +27,6 @@ foreach ($skjemaer as $skjema) {
 
 $handleCall->sendToClient([
     'success'  => true,
-    'skjemaer' => $result,
+    'skjemaer' => $arrangement->getType() == 'land' ? $result : [],
+    'arrangement_type' => $arrangement->getType(),
 ]);

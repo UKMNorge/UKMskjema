@@ -24,6 +24,7 @@
                     variant="outlined"
                     density="comfortable"
                     hide-details="auto"
+                    :disabled="!erLandArrangement"
                     class="as-margin-bottom-space-2 v-text-field-arr-sys"
                 />
                 <v-textarea
@@ -33,6 +34,7 @@
                     density="comfortable"
                     rows="2"
                     hide-details="auto"
+                    :disabled="!erLandArrangement"
                     class="as-margin-bottom-space-2 v-text-field-arr-sys"
                 />
                 <v-select
@@ -45,6 +47,7 @@
                     density="comfortable"
                     clearable
                     hide-details="auto"
+                    :disabled="!erLandArrangement"
                     class="v-autocomplete-arr-sys"
                 />
             </div>
@@ -55,6 +58,7 @@
                 rounded="large"
                 variant="outlined"
                 :loading="opprettLoading"
+                :disabled="!erLandArrangement"
                 @click="opprettOppgave"
             >
                 Opprett oppgave
@@ -65,8 +69,10 @@
             <div v-if="hentet && oppgaver.length < 1 && !listeLoading">
                 <PermanentNotification
                     typeNotification="info"
-                    tittel="Ingen oppgaver ennå"
-                    description="Opprett en oppgave over, og legg til skjemaer i rekkefølgen brukeren skal gjennom."
+                    :tittel="erLandArrangement ? 'Ingen oppgaver ennå' : 'Opprettelse av oppgaver er kun tilgjengelig for landsarrangement'"
+                    :description="erLandArrangement
+                        ? 'Opprett en oppgave over, og legg til skjemaer i rekkefølgen brukeren skal gjennom.'
+                        : 'Opprettelse av oppgaver kan bare utføres på landarrangement.'"
                 />
             </div>
         </div>
@@ -260,6 +266,7 @@ export default {
     data() {
         return {
             oppgaver: [] as OppgaveData[],
+            arrangementType: '' as string,
             skjemaValg: {} as Record<string, { id: number; navn: string }[]>,
             hentet: false,
             listeLoading: false,
@@ -288,6 +295,12 @@ export default {
             ],
             respondentFraUrl: null as RespondentSvarUrlParams | null,
         };
+    },
+
+    computed: {
+        erLandArrangement(): boolean {
+            return this.arrangementType === 'land';
+        },
     },
 
     mounted() {
@@ -447,6 +460,7 @@ export default {
             try {
                 const data = await hentOppgaveOversikt();
                 this.oppgaver = data.oppgaver;
+                this.arrangementType = data.arrangement_type;
                 this.skjemaValg = data.skjema_valg || {};
                 this.oppgaver.forEach((o) => this.sikreAppendModel(o.id));
                 this.hentet = true;
@@ -473,6 +487,7 @@ export default {
         },
 
         async opprettOppgave(): Promise<void> {
+            if (!this.erLandArrangement) return;
             const navn = this.nyOppgave.navn.trim();
             if (!navn) {
                 this.$emit('feil', 'Navn er påkrevd.');

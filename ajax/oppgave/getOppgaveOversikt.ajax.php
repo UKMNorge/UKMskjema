@@ -1,5 +1,6 @@
 <?php
 
+use UKMNorge\Arrangement\Arrangement;
 use UKMNorge\Arrangement\Oppgave\Oppgave;
 use UKMNorge\Arrangement\Oppgave\OppgaveSkjema;
 use UKMNorge\Arrangement\Skjema\Skjema;
@@ -15,9 +16,22 @@ if (!$plId) {
     $handleCall->sendErrorToClient('pl_id er ikke satt for dette arrangementet.', 400);
 }
 
+try {
+    $arrangement = new Arrangement($plId);
+} catch (Exception $e) {
+    $handleCall->sendErrorToClient('Kunne ikke hente arrangementet', 401);
+}
+
+$erLandArrangement = $arrangement->getType() == 'land';
+
+$alleOppgaver = array_merge(
+    Oppgave::getAllByArrangement($plId),
+    Oppgave::getAlleByRespondentArrangement($plId)
+);
+
 $oppgaverUt = [];
 try {
-    foreach (Oppgave::getAllByArrangement($plId) as $oppgave) {
+    foreach ($alleOppgaver as $oppgave) {
         $kjede = [];
         foreach ($oppgave->getSkjemaKjede() as $ledd) {
             $kjede[] = [
@@ -68,10 +82,11 @@ try {
 }
 
 $handleCall->sendToClient([
-    'success' => true,
-    'oppgaver' => $oppgaverUt,
-    'skjema_valg' => [
-        OppgaveSkjema::SKJEMA_SAMTYKKE        => $samtykkeValg,
+    'success'          => true,
+    'oppgaver'         => $oppgaverUt,
+    'skjema_valg'      => [
+        OppgaveSkjema::SKJEMA_SAMTYKKE      => $samtykkeValg,
         OppgaveSkjema::SKJEMA_VIDERESENDING => $videresendingValg,
     ],
+    'arrangement_type' => $arrangement->getType(),
 ]);

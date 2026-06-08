@@ -9,10 +9,15 @@ function getAjaxUrl(): string {
     return url;
 }
 
+export interface SamtykkeskjemaListeResponse {
+    skjemaer: SamtykkeSkjemaData[];
+    arrangement_type: string;
+}
+
 /**
  * Henter alle samtykkeskjemaer med prosjekter og siste versjon.
  */
-export async function hentAlleSamtykkeskjemaer(): Promise<SamtykkeSkjemaData[]> {
+export async function hentAlleSamtykkeskjemaer(): Promise<SamtykkeskjemaListeResponse> {
     var spaInteraction = (<any>window).spaInteraction;
 
     var data : any = {
@@ -27,7 +32,10 @@ export async function hentAlleSamtykkeskjemaer(): Promise<SamtykkeSkjemaData[]> 
         throw new Error(res.message ?? 'Kunne ikke hente samtykkeskjemaer');
     }
 
-    return res.skjemaer as SamtykkeSkjemaData[];
+    return {
+        skjemaer: res.skjemaer as SamtykkeSkjemaData[],
+        arrangement_type: res.arrangement_type as string,
+    };
 }
 
 /**
@@ -154,7 +162,7 @@ async function lagreVersjonSamtykkeskjema(
 }
 
 async function hentSamtykkeskjemaById(skjemaId: number): Promise<SamtykkeSkjemaData> {
-    const skjemaer = await hentAlleSamtykkeskjemaer();
+    const { skjemaer } = await hentAlleSamtykkeskjemaer();
     const funnet = skjemaer.find(s => (s as any).id === skjemaId);
     if (!funnet) {
         throw new Error('Kunne ikke finne oppdatert samtykkeskjema etter lagring');

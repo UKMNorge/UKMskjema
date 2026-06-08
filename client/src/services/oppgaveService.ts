@@ -31,6 +31,7 @@ export interface OppgaveOversiktResponse {
     success: boolean;
     oppgaver: OppgaveData[];
     skjema_valg: Record<string, SkjemaValgItem[]>;
+    arrangement_type: string;
 }
 
 function getSpaInteraction(): any {
