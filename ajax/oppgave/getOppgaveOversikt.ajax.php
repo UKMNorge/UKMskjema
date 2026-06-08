@@ -24,10 +24,20 @@ try {
 
 $erLandArrangement = $arrangement->getType() == 'land';
 
-$alleOppgaver = array_merge(
+$oppgaveArr = array_merge(
     Oppgave::getAllByArrangement($plId),
     Oppgave::getAlleByRespondentArrangement($plId)
 );
+// Fjern duplikater basert på oppgave-ID
+$alleOppgaver = [];
+$unikeOppgaveId = [];
+foreach($oppgaveArr as $oppgave) {
+    $id = $oppgave->getId();
+    if (!isset($unikeOppgaveId[$id])) {
+        $alleOppgaver[] = $oppgave;
+        $unikeOppgaveId[$id] = true;
+    }
+}
 
 $oppgaverUt = [];
 try {
