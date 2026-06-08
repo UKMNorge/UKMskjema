@@ -217,7 +217,7 @@ export async function hentRespondentSporsmalSvar(
     });
 
     if (!res.success) {
-        throw new Error(res.message ?? res.result ?? 'Kunne ikke hente svar');
+        // throw new Error(res.message ?? res.result ?? 'Kunne ikke hente svar');
     }
 
     return res as RespondentSporsmalSvar;
