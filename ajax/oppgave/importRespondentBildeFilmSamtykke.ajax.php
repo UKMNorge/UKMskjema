@@ -57,7 +57,7 @@ if ($oppgave->getPlId() !== $plId) {
 
 $respondent = DeltaRespondent::loadByMobil($phone);
 if ($respondent === null) {
-    $handleCall->sendErrorToClient('Fant ikke respondent med dette mobilnummeret', 404);
+    $handleCall->sendErrorToClient('Fant ikke respondent med dette mobilnummeret', 403);
 }
 
 try {
