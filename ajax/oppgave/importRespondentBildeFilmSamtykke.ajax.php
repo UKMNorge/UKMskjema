@@ -26,6 +26,10 @@ if ($arrangement === null) {
     $handleCall->sendErrorToClient('Fant ikke arrangementet', 404);
 }
 
+if ($arrangement->getType() !== 'land') {
+    $handleCall->sendErrorToClient('Import er kun tilgjengelig for landsfestivalen.', 403);
+}
+
 $oppgaveId = (int) $handleCall->getArgument('oppgave_id');
 $phone = trim((string) $handleCall->getArgument('phone'));
 $skjemaType = trim((string) $handleCall->getArgument('skjema_type'));

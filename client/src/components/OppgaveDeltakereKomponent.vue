@@ -158,7 +158,7 @@
                     </div>
 
                     <div
-                        v-if="erValgtIntoleranserSporsmal && valgtSporsmal && !sporsmalSvarLaster"
+                        v-if="kanImportere && erValgtIntoleranserSporsmal && valgtSporsmal && !sporsmalSvarLaster"
                         class="sporsmal-import"
                     >
                         <v-btn
@@ -199,7 +199,7 @@
                     </div>
 
                     <div
-                        v-if="erValgtBildeFilmSamtykkeSporsmal && valgtSporsmal && !sporsmalSvarLaster"
+                        v-if="kanImportere && erValgtBildeFilmSamtykkeSporsmal && valgtSporsmal && !sporsmalSvarLaster"
                         class="sporsmal-import"
                     >
                         <v-btn
@@ -569,6 +569,10 @@ export default {
         oppgaveId: {
             type: Number,
             required: true,
+        },
+        kanImportere: {
+            type: Boolean,
+            default: false,
         },
     },
 

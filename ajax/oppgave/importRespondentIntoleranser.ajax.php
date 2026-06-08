@@ -1,5 +1,6 @@
 <?php
 
+use UKMNorge\Arrangement\Arrangement;
 use UKMNorge\Arrangement\Oppgave\Oppgave;
 use UKMNorge\Arrangement\Oppgave\OppgaveRespondentVisning;
 use UKMNorge\Arrangement\Skjema\DeltaRespondent;
@@ -12,6 +13,16 @@ $handleCall = new HandleAPICall(['oppgave_id', 'phone', 'skjema_id', 'sporsmal_i
 $plId = (int) get_option('pl_id');
 if (!$plId) {
     $handleCall->sendErrorToClient('pl_id er ikke satt for dette arrangementet.', 400);
+}
+
+try {
+    $arrangement = new Arrangement($plId);
+} catch (Exception $e) {
+    $handleCall->sendErrorToClient('Fant ikke arrangementet', 404);
+}
+
+if ($arrangement->getType() !== 'land') {
+    $handleCall->sendErrorToClient('Import er kun tilgjengelig for landsfestivalen.', 403);
 }
 
 $oppgaveId = (int) $handleCall->getArgument('oppgave_id');
