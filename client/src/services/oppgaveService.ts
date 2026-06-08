@@ -277,7 +277,7 @@ export async function hentRespondentSvarStatus(
     });
 
     if (!res.success) {
-        throw new Error(res.message ?? res.result ?? 'Kunne ikke hente svarstatus');
+        // throw new Error(res.message ?? res.result ?? 'Kunne ikke hente svarstatus');
     }
 
     return Number(res.svar_status) as OppgaveSvarStatus;
