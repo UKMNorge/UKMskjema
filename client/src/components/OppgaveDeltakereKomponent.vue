@@ -39,6 +39,7 @@
                             v-if="valgtSporsmal && !sporsmalSvarLaster"
                             variant="outlined"
                             color="primary"
+                            size="x-large"
                             class="sporsmal-excel-knapp"
                             prepend-icon="mdi-download"
                             :disabled="!kanLasteNedSporsmalExcel"
@@ -83,7 +84,7 @@
 
                     <div
                         v-if="!loading && respondenter.length"
-                        class="status-oppsummering status-oppsummering--under-sporsmal"
+                        class="status-oppsummering status-oppsummering--under-sporsmal as-margin-bottom-space-2"
                     >
                         <v-chip
                             class="status-oppsummering__chip status-oppsummering__chip--klikkbar"
@@ -1293,8 +1294,8 @@ export default {
     background: transparent;
 }
 .svar-filter {
-    padding-top: 8px;
-    border-top: 1px dashed rgba(0, 0, 0, 0.08);
+    padding-bottom: 16px;
+    border-bottom: 1px dashed rgba(0, 0, 0, 0.08);
 }
 .sporsmal-henting-status {
     font-size: 0.875rem;
