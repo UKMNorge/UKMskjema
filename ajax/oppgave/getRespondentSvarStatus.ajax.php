@@ -30,12 +30,26 @@ try {
 }
 
 if ($oppgave->getPlId() !== $plId) {
-    $handleCall->sendErrorToClient('Oppgaven tilhører ikke dette arrangementet', 403);
+    $found = false;
+    $isVideresending = $oppgave->getType() === Oppgave::TYPE_VIDERESENDING;
+    // Trying to get the oppgave from another arrangement
+    foreach ($oppgave->getAlleRespondenter($isVideresending ? true : false, $plId) as $respondent) {
+        if (!($respondent instanceof DeltaRespondent)) {
+            continue;
+        }
+        if ($respondent->getMobil() == $phone) {
+            $found = true;
+            break;
+        }
+    }
+    if (!$found) {
+        $handleCall->sendErrorToClient('Fant ikke respondent med dette mobilnummeret du har tilgang til', 403);
+    }
 }
 
 $respondent = DeltaRespondent::loadByMobil($phone);
 if ($respondent === null) {
-    $handleCall->sendErrorToClient('Fant ikke respondent med dette mobilnummeret', 404);
+    $handleCall->sendErrorToClient('Fant ikke respondent med dette mobilnummeret', 403);
 }
 
 $svarStatus = $oppgave->getOppgaveBesvartStatusByMobil($phone);

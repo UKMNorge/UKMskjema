@@ -24,9 +24,10 @@ try {
     $handleCall->sendErrorToClient('Fant ikke oppgaven', 404);
 }
 
-if ($oppgave->getPlId() !== $plId) {
-    $handleCall->sendErrorToClient('Oppgaven tilhører ikke dette arrangementet', 403);
-}
+// Spørsmål til oppgaven sees ikke som sensitiv informasjon, så vi lar det gå siden det er internt i systemet
+// if ($oppgave->getPlId() !== $plId) {
+//     $handleCall->sendErrorToClient('Oppgaven tilhører ikke dette arrangementet', 403);
+// }
 
 $sporsmal = OppgaveRespondentVisning::sporsmalListeForOppgave($oppgave);
 
