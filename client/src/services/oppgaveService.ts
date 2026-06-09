@@ -214,6 +214,10 @@ export async function hentRespondentSporsmalSvar(
         skjema_type: skjemaType,
         skjema_id: skjemaId,
         sporsmal_id: sporsmalId,
+    }, {
+        onError: (error : any) => {
+            getSpaInteraction().showMessage(error.message ?? 'Kunne ikke hente svar');
+        },
     });
 
     if (!res.success) {
