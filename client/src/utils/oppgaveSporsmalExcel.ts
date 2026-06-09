@@ -98,6 +98,8 @@ function lagRespondentTabell(
 
     rader.push(['Navn', respondentNavn(respondent)]);
     rader.push(['Mobil', respondent.mobil ?? '']);
+    rader.push(['Foresatt navn', respondent.foresatt_navn ?? '']);
+    rader.push(['Foresatt tlf', respondent.foresatt_mobil ?? '']);
 
     if (respondent.fylke) {
         rader.push(['Fylke', respondent.fylke]);
@@ -161,11 +163,13 @@ export function lastNedSporsmalSvarExcel(
     const wb = utils.book_new();
     const brukteNavn = new Set<string>();
     const svarKolonner = samleSvarKolonner(klare);
-    const grunnKolonner = ['Navn', 'Mobil', 'Fylke', 'Arrangement', 'Status', 'Spørsmål'];
+    const grunnKolonner = ['Navn', 'Mobil', 'Foresatt navn', 'Foresatt tlf', 'Fylke', 'Arrangement', 'Status', 'Spørsmål'];
 
     const oversikt = klare.map((respondent) => ({
         Navn: respondentNavn(respondent),
         Mobil: respondent.mobil ?? '',
+        'Foresatt navn': respondent.foresatt_navn ?? '',
+        'Foresatt tlf': respondent.foresatt_mobil ?? '',
         Fylke: respondent.fylke ?? '',
         Arrangement: respondent.arrangement ?? '',
         Status: statusTekst(respondent),

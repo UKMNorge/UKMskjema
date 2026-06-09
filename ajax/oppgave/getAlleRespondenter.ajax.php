@@ -48,6 +48,7 @@ foreach ($oppgave->getAlleRespondenter($isVideresending ? true : false, $oppgave
         'videresending_nominasjon' => (bool) ($respondent->videresending_nominasjon ?? false),
         'fylke'                    => $respondent->fylke ?? null,
         'arrangement'              => $respondent->arrangement ?? null,
+        'foresatt_navn'            => $respondent->getForesattNavn(),
         'foresatt_mobil'           => $respondent->getForesattMobil(),
     ];
 }

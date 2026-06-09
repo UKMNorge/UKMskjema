@@ -275,15 +275,21 @@
                         <div class="deltaker-rad__info">
                             <span class="deltaker-rad__navn">{{ r.navn }} {{ r.etternavn }} ({{ r.mobil }})</span>
                             <span
-                                v-if="r.fylke || r.arrangement || r.foresatt_mobil"
+                                v-if="r.foresatt_navn || r.foresatt_mobil"
+                                class="deltaker-rad__meta"
+                            >
+                                Foresatt:
+                                <template v-if="r.foresatt_navn">{{ r.foresatt_navn }}</template>
+                                <template v-if="r.foresatt_navn && r.foresatt_mobil"> ({{ r.foresatt_mobil }})</template>
+                                <template v-else-if="r.foresatt_mobil">{{ r.foresatt_mobil }}</template>
+                            </span>
+                            <span
+                                v-if="r.fylke || r.arrangement"
                                 class="deltaker-rad__meta"
                             >
                                 <template v-if="r.fylke">{{ r.fylke }}</template>
                                 <template v-if="r.fylke && r.arrangement"> · </template>
                                 <template v-if="r.arrangement">{{ r.arrangement }}</template>
-                                <template v-if="r.foresatt_mobil">
-                                    <template v-if="r.fylke || r.arrangement"> · </template>
-                                </template>
                             </span>
                         </div>
                         <v-chip
@@ -560,6 +566,7 @@ function tilRespondentData(r: OppgaveRespondent, svarStatus: OppgaveSvarStatus |
         videresending_nominasjon: r.videresending_nominasjon,
         fylke: r.fylke,
         arrangement: r.arrangement,
+        foresatt_navn: r.foresatt_navn,
         foresatt_mobil: r.foresatt_mobil,
         svar_status: svarStatus,
     };
