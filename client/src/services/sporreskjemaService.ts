@@ -31,10 +31,11 @@ export async function hentAlleSporreskjemaer(): Promise<SporreskjemaListeRespons
 /**
  * Oppretter et nytt oppgave-spørreskjema.
  */
-export async function opprettSporreskjema(): Promise<SporreSkjemaData> {
+export async function opprettSporreskjema(navn: string): Promise<SporreSkjemaData> {
     const res = await getSpaInteraction().runAjaxCall('/', 'POST', {
         action:     'UKMskjema_ajax',
         controller: 'sporreskjema/createSporreskjema',
+        navn:       navn,
     });
 
     if (!res.success) {

@@ -130,7 +130,7 @@ export default {
         async opprettSporreskjema(skjema: SporreSkjema): Promise<void> {
             this.skjemaLoading = true;
             try {
-                const data = await apiOpprett();
+                const data = await apiOpprett(skjema.navn);
                 this.fjernNyttSporreskjema();
                 await this.hentAlle();
                 const opprettet = this.alleSporreskjemaer.find(s => s.id === data.id);

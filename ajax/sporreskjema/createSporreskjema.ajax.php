@@ -6,7 +6,9 @@ use UKMNorge\OAuth2\HandleAPICall;
 
 require_once('UKM/Autoloader.php');
 
-$handleCall = new HandleAPICall([], [], ['POST'], false);
+$handleCall = new HandleAPICall(['navn'], [], ['POST'], false);
+
+$navn = trim((string) $handleCall->getArgument('navn'));
 
 $arrangementId = get_option('pl_id');
 if (!$arrangementId) {
@@ -16,6 +18,8 @@ if (!$arrangementId) {
 try {
     $arrangement = new Arrangement((int) $arrangementId);
     $skjema = Write::createForOppgave($arrangement);
+    Write::saveSkjemaNavn($skjema, $navn);
+    $skjema->setNavn($navn);
 } catch (Exception $e) {
     $handleCall->sendErrorToClient($e->getMessage(), $e->getCode() ?: 500);
 }
