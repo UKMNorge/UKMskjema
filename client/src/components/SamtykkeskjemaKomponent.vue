@@ -33,7 +33,7 @@
                             <v-text-field
                                 v-model="skjema.navn"
                                 label="Navn på skjema"
-                                placeholder="F.eks. Samtykkeskjema 2026"
+                                placeholder="F.eks. Samtykkeskjema"
                                 variant="outlined"
                                 class="v-text-field-arr-sys"
                                 density="comfortable"
@@ -42,7 +42,7 @@
                                 @keyup.enter="skjema.navn.trim() && $emit('opprett', skjema)"
                             />
                         </div>
-                        <div class="col-xs-3 nop-impt as-margin-top-space-2 as-margin-right-space-2">
+                        <div class="col-xs-3 nop-impt as-margin-right-space-2">
                             <v-select
                                 v-model="skjema.type"
                                 :items="typeOptions"

@@ -225,6 +225,7 @@
 
             <OppgaveDeltakereKomponent
                 :oppgave-id="o.id"
+                :oppgave-type="o.type"
                 :kan-importere="erLandArrangement"
                 @feil="$emit('feil', $event)"
             />

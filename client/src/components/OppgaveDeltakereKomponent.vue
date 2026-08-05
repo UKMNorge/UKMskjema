@@ -255,10 +255,40 @@
                 Ingen respondenter med valgt filter.
             </p>
 
+            
             <div
                 v-else
                 class="deltaker-liste"
             >
+            <form
+                v-if="erDeltakereOppgave"
+                action="?page=UKMSMS_gui"
+                method="POST"
+                class="as-margin-bottom-space-2"
+            >
+                <input
+                    type="hidden"
+                    name="UKMSMS_message"
+                    value="Hei! Du har en oppgave som du må besvare. Klikk på lenken for å besvare oppgaven: https://delta.ukm.no/ukmid/oppgaveliste/"
+                />
+                <input
+                    type="hidden"
+                    name="UKMSMS_recipients"
+                    :value="getAlleMobilnummer()"
+                    id="nominasjon-reminder-recipient"
+                />
+                <v-btn
+                    class="v-btn-as v-btn-bla as-margin-top-space-1"
+                    prepend-icon="mdi-message-processing"
+                    type="submit"
+                    color="#000"
+                    rounded="large"
+                    variant="outlined"
+                    :disabled="getAlleMobilnummer() === ''"
+                >
+                    Send SMS-påminnelse
+                </v-btn>
+            </form>
             <div
                 v-for="r in filtrerteRespondenter"
                 :key="r.id"
@@ -549,6 +579,8 @@ function sorterSvarFilterVerdier(a: string, b: string): number {
 
 const RESPONDENT_HENTING_BATCH_STORRELSE = 50;
 
+const OPP_TYPE_DELTAKERE = 'deltakere';
+
 const STATUS_OPPSUMMERING_TYPER: { status: OppgaveSvarStatus; label: string; color: string }[] = [
     { status: OPPGAVE_SVAR_STATUS_IKKE_PABEGYNT, label: oppgaveSvarStatusLabel(OPPGAVE_SVAR_STATUS_IKKE_PABEGYNT), color: oppgaveSvarStatusColor(OPPGAVE_SVAR_STATUS_IKKE_PABEGYNT) },
     { status: OPPGAVE_SVAR_STATUS_PABEGYNT, label: oppgaveSvarStatusLabel(OPPGAVE_SVAR_STATUS_PABEGYNT), color: oppgaveSvarStatusColor(OPPGAVE_SVAR_STATUS_PABEGYNT) },
@@ -581,6 +613,10 @@ export default {
         kanImportere: {
             type: Boolean,
             default: false,
+        },
+        oppgaveType: {
+            type: String as () => string | null,
+            default: null,
         },
     },
 
@@ -637,6 +673,10 @@ export default {
     },
 
     computed: {
+        erDeltakereOppgave(): boolean {
+            return this.oppgaveType === OPP_TYPE_DELTAKERE;
+        },
+
         sporsmalSvarFremdriftProsent(): number {
             if (this.sporsmalSvarTotalt <= 0) {
                 return 0;
@@ -1201,6 +1241,23 @@ export default {
             } catch (e: any) {
                 this.$emit('feil', e.message ?? 'Kunne ikke laste ned Excel-fil');
             }
+        },
+
+        getAlleMobilnummer(): string {
+            const entries: string[] = [];
+            const settMobil = new Set<string>();
+
+            for (const r of this.filtrerteRespondenter) {
+                const mobil = (r.mobil ?? '').trim();
+                if (!mobil || settMobil.has(mobil)) {
+                    continue;
+                }
+                settMobil.add(mobil);
+                const navn = `${r.navn ?? ''} ${r.etternavn ?? ''}`.trim() || mobil;
+                entries.push(`[${mobil}, ${navn}]`);
+            }
+
+            return entries.join(',');
         },
     },
 };

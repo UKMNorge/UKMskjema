@@ -33,7 +33,7 @@
                             <v-text-field
                                 v-model="skjema.navn"
                                 label="Navn på skjema"
-                                placeholder="F.eks. Spørreskjema for deltakere 2026"
+                                placeholder="F.eks. Spørreskjema for deltakere"
                                 variant="outlined"
                                 class="v-text-field-arr-sys"
                                 density="comfortable"

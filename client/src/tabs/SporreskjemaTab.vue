@@ -9,7 +9,6 @@
                 rounded="large"
                 variant="outlined"
                 size="x-large"
-                :disabled="!erLandArrangement"
                 @click="leggTilSporreskjema"
             >
                 Legg til spørreskjema
@@ -18,15 +17,6 @@
 
         <div class="as-padding-left-space-1 as-padding-right-space-1 as-margin-top-space-2 as-margin-bottom-space-2">
             <h4>Spørreskjemaer</h4>
-            <div class="as-margin-top-space-2" v-if="hentet && alleSporreskjemaer.length < 1">
-                <PermanentNotification 
-                    typeNotification="info" 
-                    :tittel="erLandArrangement ? 'Ingen spørreskjemaer ennå' : 'Spørreskjemaer er kun tilgjengelig for landarrangement'" 
-                    :description="erLandArrangement
-                        ? 'Ingen spørreskjemaer ennå. Klikk «Legg til spørreskjema» for å opprette det første.'
-                        : 'Spørreskjemaer kan bare opprettes og redigeres på landarrangement.'"
-                />
-            </div>
         </div>
 
         <!-- Loading skeleton -->
@@ -88,9 +78,7 @@ export default {
     },
 
     computed: {
-        erLandArrangement(): boolean {
-            return this.arrangementType === 'land';
-        },
+
     },
 
     mounted() {
@@ -113,7 +101,6 @@ export default {
         },
 
         leggTilSporreskjema(): void {
-            if (!this.erLandArrangement) return;
             for (const s of this.alleSporreskjemaer) {
                 if (s.id === -1) { s.expanded = true; return; }
             }
