@@ -258,6 +258,7 @@ const SK_VIDERESENDING = 'ukm_videresending_skjema';
 const OPP_TYPE_VIDERESENDING = 'videresending';
 const OPP_TYPE_REISELEDERE = 'reiseledere';
 const OPP_TYPE_FYLKESKONTAKTER = 'fylkeskontakter';
+const OPP_TYPE_DELTAKERE = 'deltakere';
 
 export default {
     components: { PermanentNotification, OppgaveDeltakereKomponent, OppgaveSvar },
@@ -286,6 +287,7 @@ export default {
             },
             appendModel: {} as Record<number, { skjemaType: string | null; skjemaId: number | null }>,
             oppgaveTypeValg: [
+                { label: 'Deltakere', value: OPP_TYPE_DELTAKERE },
                 { label: 'Videresending', value: OPP_TYPE_VIDERESENDING },
                 { label: 'Reiseledere', value: OPP_TYPE_REISELEDERE },
                 { label: 'Fylkeskontakter', value: OPP_TYPE_FYLKESKONTAKTER },
@@ -328,6 +330,9 @@ export default {
             }
             if (type === OPP_TYPE_FYLKESKONTAKTER) {
                 return 'Fylkeskontakter';
+            }
+            if (type === OPP_TYPE_DELTAKERE) {
+                return 'Deltakere';
             }
             return type;
         },
