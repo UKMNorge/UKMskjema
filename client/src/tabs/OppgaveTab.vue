@@ -24,7 +24,6 @@
                     variant="outlined"
                     density="comfortable"
                     hide-details="auto"
-                    :disabled="!erLandArrangement"
                     class="as-margin-bottom-space-2 v-text-field-arr-sys"
                 />
                 <v-textarea
@@ -34,7 +33,6 @@
                     density="comfortable"
                     rows="2"
                     hide-details="auto"
-                    :disabled="!erLandArrangement"
                     class="as-margin-bottom-space-2 v-text-field-arr-sys"
                 />
                 <v-select
@@ -47,7 +45,6 @@
                     density="comfortable"
                     clearable
                     hide-details="auto"
-                    :disabled="!erLandArrangement"
                     class="v-autocomplete-arr-sys"
                 />
             </div>
@@ -58,7 +55,6 @@
                 rounded="large"
                 variant="outlined"
                 :loading="opprettLoading"
-                :disabled="!erLandArrangement"
                 @click="opprettOppgave"
             >
                 Opprett oppgave
@@ -69,10 +65,9 @@
             <div v-if="hentet && oppgaver.length < 1 && !listeLoading">
                 <PermanentNotification
                     typeNotification="info"
-                    :tittel="erLandArrangement ? 'Ingen oppgaver ennå' : 'Opprettelse av oppgaver er kun tilgjengelig for landsarrangement'"
-                    :description="erLandArrangement
-                        ? 'Opprett en oppgave over, og legg til skjemaer i rekkefølgen brukeren skal gjennom.'
-                        : 'Opprettelse av oppgaver kan bare utføres på landarrangement.'"
+                    :tittel="'Hva er en oppgave?'"
+                    :isHTML="true"
+                    :description="'<p>En oppgave brukes til å hente inn informasjon fra deltakere gjennom samtykkeskjemaer og spørreskjemaer.</p> </p>Oppgaven kan bestå av ett eller flere skjemaer som deltakeren må fullføre i rekkefølge</p></br><p><b>For eksempel:</p></b><ul><li>1. Samtykke festivalregler</li><li>2. Spørsmål om mat allergier og spesielle behov.</li></ul><p>'"
                 />
             </div>
         </div>
@@ -93,7 +88,7 @@
         >
             <div class="d-flex flex-wrap align-center justify-space-between gap-2">
                 <h4>{{ o.name }}</h4>
-                <div v-if="erLandArrangement" class="oppgave-actions">
+                <div class="oppgave-actions">
                     <v-btn
                         class="v-btn-as v-btn-hvit"
                         variant="outlined"
@@ -125,7 +120,7 @@
                 <span v-if="o.type && o.description"> · </span>
                 <span v-if="o.description">{{ o.description }}</span>
             </div>
-            <div v-if="erLandArrangement" class="as-margin-top-space-4">
+            <div class="as-margin-top-space-4">
                 <p class="kjede-tittel">Skjemarekkefølge</p>
                 <p v-if="o.skjema_kjede.length > 0" class="kjede-hjelp">
                     Dra et skjema for å flytte det. Slipp på et annet for å bytte plass.
@@ -226,6 +221,7 @@
             <OppgaveDeltakereKomponent
                 :oppgave-id="o.id"
                 :oppgave-type="o.type"
+                :arrangement-id="o.pl_id"
                 :kan-importere="erLandArrangement"
                 @feil="$emit('feil', $event)"
             />
@@ -494,7 +490,6 @@ export default {
         },
 
         async opprettOppgave(): Promise<void> {
-            if (!this.erLandArrangement) return;
             const navn = this.nyOppgave.navn.trim();
             if (!navn) {
                 this.$emit('feil', 'Navn er påkrevd.');

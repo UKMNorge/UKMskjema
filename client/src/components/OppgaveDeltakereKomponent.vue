@@ -269,7 +269,9 @@
                 <input
                     type="hidden"
                     name="UKMSMS_message"
-                    value="Hei! Du har en oppgave som du må besvare. Klikk på lenken for å besvare oppgaven: https://delta.ukm.no/ukmid/oppgaveliste/"
+                    :value="`Hei! Du har en oppgave som du må besvare. Klikk på lenken for å besvare oppgaven: https://delta.ukm.no/ukmid/oppgaveliste/${getArrangementId()}/`"
+               
+               
                 />
                 <input
                     type="hidden"
@@ -289,6 +291,7 @@
                     Send SMS-påminnelse
                 </v-btn>
             </form>
+
             <div
                 v-for="r in filtrerteRespondenter"
                 :key="r.id"
@@ -617,6 +620,10 @@ export default {
         oppgaveType: {
             type: String as () => string | null,
             default: null,
+        },
+        arrangementId: {
+            type: Number,
+            required: true,
         },
     },
 
@@ -1241,6 +1248,10 @@ export default {
             } catch (e: any) {
                 this.$emit('feil', e.message ?? 'Kunne ikke laste ned Excel-fil');
             }
+        },
+
+        getArrangementId(): number {
+            return this.arrangementId;
         },
 
         getAlleMobilnummer(): string {
