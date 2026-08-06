@@ -27,6 +27,6 @@ foreach ($skjemaer as $skjema) {
 
 $handleCall->sendToClient([
     'success'  => true,
-    'skjemaer' => $arrangement->getType() == 'land' ? $result : [],
+    'skjemaer' => $result,
     'arrangement_type' => $arrangement->getType(),
 ]);
