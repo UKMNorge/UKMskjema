@@ -88,19 +88,33 @@
         >
             <div class="d-flex flex-wrap align-center justify-space-between gap-2">
                 <div>
-                    <h4>{{ o.name }}</h4>
+                    <div class="d-flex align-center gap-1">
+                        <h4>{{ o.name }}</h4>
+                    </div>
                     <v-chip
                         v-if="o.arrangement_navn"
                         size="small"
                         variant="tonal"
                         color="primary"
-                        class="oppgave-arrangement-navn"
+                        class="oppgave-arrangement-navn as-margin-top-space-1 as-margin-bottom-space-1"
                         prepend-icon="mdi-calendar-outline"
                     >
                         {{ o.arrangement_navn }}
                     </v-chip>
+                    <v-btn
+                        v-if="!isAtLocalArrangement(o)"
+                        icon
+                        variant="text"
+                        size="x-small"
+                        class="as-margin-left-space-1"
+                        :aria-expanded="isInfoUtvidet(o.id)"
+                        aria-label="Hvorfor ser du denne oppgaven?"
+                        @click="toggleInfoUtvidet(o.id)"
+                    >
+                        <v-icon size="medium">mdi-help-circle-outline</v-icon>
+                    </v-btn>
                 </div>
-                <div class="oppgave-actions">
+                <div v-if="isAtLocalArrangement(o)" class="oppgave-actions">
                     <v-btn
                         class="v-btn-as v-btn-hvit"
                         variant="outlined"
@@ -132,7 +146,17 @@
                 <span v-if="o.type && o.description"> · </span>
                 <span v-if="o.description">{{ o.description }}</span>
             </div>
-            <div class="as-margin-top-space-4">
+            <v-expand-transition>
+                <div v-if="!isAtLocalArrangement(o) && isInfoUtvidet(o.id)" class="as-margin-top-space-2">
+                    <PermanentNotification
+                        typeNotification="info"
+                        :tittel="'Hvorfor ser du denne oppgaven?'"
+                        :isHTML="true"
+                        :description="'<p>Du ser denne oppgaven fordi du har videresendt deltakere som skal svare på den. Du kan se svarene fra dine deltakere eller personer du har nominert eller sendt videre.</p>'"
+                    />
+                </div>
+            </v-expand-transition>
+            <div v-if="isAtLocalArrangement(o)" class="as-margin-top-space-4">
                 <p class="kjede-tittel">Skjemarekkefølge</p>
                 <p v-if="o.skjema_kjede.length > 0" class="kjede-hjelp">
                     Dra et skjema for å flytte det. Slipp på et annet for å bytte plass.
@@ -233,7 +257,7 @@
             <OppgaveDeltakereKomponent
                 :oppgave-id="o.id"
                 :oppgave-type="o.type"
-                :arrangement-id="o.pl_id"
+                :arrangement-id="plId"
                 :kan-importere="erLandArrangement"
                 @feil="$emit('feil', $event)"
             />
@@ -277,6 +301,7 @@ export default {
     data() {
         return {
             oppgaver: [] as OppgaveData[],
+            plId: 0,
             arrangementType: '' as string,
             skjemaValg: {} as Record<string, { id: number; navn: string }[]>,
             hentet: false,
@@ -295,6 +320,7 @@ export default {
                 type: null as string | null,
             },
             appendModel: {} as Record<number, { skjemaType: string | null; skjemaId: number | null }>,
+            infoUtvidetIds: {} as Record<number, boolean>,
             oppgaveTypeValg: [
                 { label: 'Deltakere', value: OPP_TYPE_DELTAKERE },
             ],
@@ -329,6 +355,17 @@ export default {
     },
 
     methods: {
+        isAtLocalArrangement(o: OppgaveData): boolean {
+            return o.pl_id === this.plId;
+        },
+
+        isInfoUtvidet(oppgaveId: number): boolean {
+            return !!this.infoUtvidetIds[oppgaveId];
+        },
+
+        toggleInfoUtvidet(oppgaveId: number): void {
+            this.infoUtvidetIds[oppgaveId] = !this.infoUtvidetIds[oppgaveId];
+        },
         synkRespondentFraUrl(): void {
             this.respondentFraUrl = readRespondentSvarFromUrl();
         },
@@ -478,6 +515,7 @@ export default {
             try {
                 const data = await hentOppgaveOversikt();
                 this.oppgaver = data.oppgaver;
+                this.plId = data.pl_id;
                 this.arrangementType = data.arrangement_type;
                 this.skjemaValg = data.skjema_valg || {};
                 this.oppgaver.forEach((o) => this.sikreAppendModel(o.id));
@@ -652,13 +690,17 @@ export default {
     opacity: 0.65;
     pointer-events: none;
 }
-.oppgave-arrangement-navn {
-    margin-top: 0.25rem;
-}
 .oppgave-actions {
     display: flex;
     align-items: center;
     gap: calc(1 * var(--initial-space-box));
+}
+.oppgave-info-knapp {
+    opacity: 0.65;
+}
+.oppgave-info-knapp:hover,
+.oppgave-info-knapp[aria-expanded="true"] {
+    opacity: 1;
 }
 .kjede-separator {
     color: rgba(0, 0, 0, 0.4);

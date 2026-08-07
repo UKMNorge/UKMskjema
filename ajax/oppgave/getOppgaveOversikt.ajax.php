@@ -102,6 +102,7 @@ try {
 
 $handleCall->sendToClient([
     'success'          => true,
+    'pl_id'            => $plId,
     'oppgaver'         => $oppgaverUt,
     'skjema_valg'      => [
         OppgaveSkjema::SKJEMA_SAMTYKKE      => $samtykkeValg,

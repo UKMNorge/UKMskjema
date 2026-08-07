@@ -33,6 +33,7 @@ export interface OppgaveOversiktResponse {
     oppgaver: OppgaveData[];
     skjema_valg: Record<string, SkjemaValgItem[]>;
     arrangement_type: string;
+    pl_id: number;
 }
 
 function getSpaInteraction(): any {
