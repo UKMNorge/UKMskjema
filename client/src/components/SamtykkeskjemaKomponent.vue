@@ -102,13 +102,13 @@
                                 <v-icon start>mdi-information-outline</v-icon>
                                 Generelt
                             </v-tab>
-                            <v-tab value="prosjekter">
+                            <!-- <v-tab value="prosjekter">
                                 <v-icon start>mdi-folder-outline</v-icon>
                                 Prosjekter
                                 <v-chip v-if="skjema.prosjekter.length" size="x-small" class="ml-2" color="primary">
                                     {{ skjema.prosjekter.length }}
                                 </v-chip>
-                            </v-tab>
+                            </v-tab> -->
                             <v-tab value="versjon">
                                 <v-icon start>mdi-tag-outline</v-icon>
                                 Versjon
@@ -169,7 +169,7 @@
                             </v-tabs-window-item>
 
                             <!-- ── TAB: Prosjekter ────────────── -->
-                            <v-tabs-window-item value="prosjekter">
+                            <!-- <v-tabs-window-item value="prosjekter">
                                 <div class="col-xs-12 nop-impt">
 
                                     <div class="col-xs-12 nop-impt as-margin-bottom-space-3 tab-section-header">
@@ -188,7 +188,6 @@
                                         </v-btn>
                                     </div>
 
-                                    <!-- Add-prosjekt form -->
                                     <v-expand-transition>
                                         <div v-if="skjema.visNyProsjektForm" class="col-xs-12 col-xs-inner-box as-margin-bottom-space-3 nop-impt-fix">
                                             <div class="tidspunkt-tittel as-margin-bottom-space-3">
@@ -252,7 +251,6 @@
                                         </div>
                                     </v-expand-transition>
 
-                                    <!-- Prosjekt list -->
                                     <div v-if="skjema.prosjekter.length" class="col-xs-12 nop-impt">
                                         <div
                                             v-for="(p, i) in skjema.prosjekter"
@@ -318,7 +316,7 @@
                                     </div>
 
                                 </div>
-                            </v-tabs-window-item>
+                            </v-tabs-window-item> -->
 
                             <!-- ── TAB: Versjon ───────────────── -->
                             <v-tabs-window-item value="versjon">
