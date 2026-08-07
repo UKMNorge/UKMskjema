@@ -89,9 +89,16 @@
             <div class="d-flex flex-wrap align-center justify-space-between gap-2">
                 <div>
                     <h4>{{ o.name }}</h4>
-                    <p v-if="o.arrangement_navn" class="oppgave-arrangement-navn">
+                    <v-chip
+                        v-if="o.arrangement_navn"
+                        size="small"
+                        variant="tonal"
+                        color="primary"
+                        class="oppgave-arrangement-navn"
+                        prepend-icon="mdi-calendar-outline"
+                    >
                         {{ o.arrangement_navn }}
-                    </p>
+                    </v-chip>
                 </div>
                 <div class="oppgave-actions">
                     <v-btn
@@ -646,9 +653,7 @@ export default {
     pointer-events: none;
 }
 .oppgave-arrangement-navn {
-    font-size: 0.875rem;
-    color: var(--color-primary-grey-dark, #666);
-    margin: 0.15rem 0 0;
+    margin-top: 0.25rem;
 }
 .oppgave-actions {
     display: flex;
