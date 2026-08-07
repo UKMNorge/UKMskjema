@@ -21,7 +21,7 @@
         </div>
 
         <form action="?page=UKMSMS_gui" method="POST" id="nominasjon-reminder">
-            <input type="hidden" name="UKMSMS_message" :value="'Hei, ' + visningsNavn + '! Du har en oppgave som du må besvare. Klikk på lenken for å besvare oppgaven: https://delta.ukm.no/ukmid/oppgaveliste/'" />
+            <input type="hidden" name="UKMSMS_message" :value="'Hei, ' + visningsNavn + '! Du har en oppgave som du må besvare. Klikk på lenken for å besvare oppgaven: https://delta.ukm.no/ukmid/oppgaveliste/' + (data && data.oppgave ? data.oppgave.id : '') + '/' " />
             <input type="hidden" name="UKMSMS_recipients" :value="`${ visningsMobil }`" id="nominasjon-reminder-recipient" />
             <v-btn
                 class="v-btn-as v-btn-hvit as-margin-right-space-2"
@@ -36,7 +36,7 @@
         </form>
 
         <form action="?page=UKMSMS_gui" method="POST" id="foresatt-reminder" class="as-margin-top-space-1 as-margin-bottom-space-2">
-            <input type="hidden" name="UKMSMS_message" :value="'Hei! Du er oppgit som foresatt for ' + visningsNavn + '. Du må derfor godkjenne noen samtykker og opplysninger. Klikk på lenken for å godkjenne: https://delta.ukm.no/ukmid/oppgaveliste/'" />
+            <input type="hidden" name="UKMSMS_message" :value="'Hei! Du er oppgit som foresatt for ' + visningsNavn + '. Du må derfor godkjenne noen samtykker og opplysninger. Klikk på lenken for å godkjenne: https://delta.ukm.no/ukmid/oppgaveliste/' + (data && data.oppgave ? data.oppgave.id : '') + '/'" />
             <input type="hidden" name="UKMSMS_recipients" :value="`${ visningsForesattMobil }`" id="foresatt-reminder-recipient" />
             <v-btn
                 class="v-btn-as v-btn-hvit as-margin-right-space-2"
