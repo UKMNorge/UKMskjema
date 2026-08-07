@@ -87,7 +87,12 @@
             class="as-margin-bottom-space-4 as-card-1 as-padding-space-3"
         >
             <div class="d-flex flex-wrap align-center justify-space-between gap-2">
-                <h4>{{ o.name }}</h4>
+                <div>
+                    <h4>{{ o.name }}</h4>
+                    <p v-if="o.arrangement_navn" class="oppgave-arrangement-navn">
+                        {{ o.arrangement_navn }}
+                    </p>
+                </div>
                 <div class="oppgave-actions">
                     <v-btn
                         class="v-btn-as v-btn-hvit"
@@ -639,6 +644,11 @@ export default {
 .kjede-baand--busy {
     opacity: 0.65;
     pointer-events: none;
+}
+.oppgave-arrangement-navn {
+    font-size: 0.875rem;
+    color: var(--color-primary-grey-dark, #666);
+    margin: 0.15rem 0 0;
 }
 .oppgave-actions {
     display: flex;

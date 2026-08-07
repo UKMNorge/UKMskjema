@@ -40,6 +40,7 @@ foreach($oppgaveArr as $oppgave) {
 }
 
 $oppgaverUt = [];
+$arrangementNavnCache = [];
 try {
     foreach ($alleOppgaver as $oppgave) {
         $kjede = [];
@@ -53,15 +54,23 @@ try {
                 'neste_id'    => $ledd->getNesteId(),
             ];
         }
-        $oppgaverUt[] = [
+        $oppgavePlId = $oppgave->getPlId();
+        $rad = [
             'id'          => $oppgave->getId(),
             'name'        => $oppgave->getName(),
             'type'        => $oppgave->getType(),
-            'pl_id'       => $oppgave->getPlId(),
+            'pl_id'       => $oppgavePlId,
             'description' => $oppgave->getDescription(),
             'locked'      => $oppgave->isLocked(),
             'skjema_kjede'=> $kjede,
         ];
+        if ($oppgavePlId !== $plId) {
+            if (!isset($arrangementNavnCache[$oppgavePlId])) {
+                $arrangementNavnCache[$oppgavePlId] = $oppgave->getArrangement()->getNavn();
+            }
+            $rad['arrangement_navn'] = $arrangementNavnCache[$oppgavePlId];
+        }
+        $oppgaverUt[] = $rad;
     }
 } catch (Exception $e) {
     $handleCall->sendErrorToClient($e->getMessage(), $e->getCode() ?: 500);

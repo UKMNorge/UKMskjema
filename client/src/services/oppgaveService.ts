@@ -17,6 +17,7 @@ export interface OppgaveData {
     name: string;
     type: string | null;
     pl_id: number;
+    arrangement_navn?: string;
     description: string | null;
     locked: boolean;
     skjema_kjede: OppgaveSkjemaKjedeItem[];
