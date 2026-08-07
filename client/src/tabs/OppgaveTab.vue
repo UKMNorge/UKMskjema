@@ -285,13 +285,10 @@ export default {
             appendModel: {} as Record<number, { skjemaType: string | null; skjemaId: number | null }>,
             oppgaveTypeValg: [
                 { label: 'Deltakere', value: OPP_TYPE_DELTAKERE },
-                { label: 'Videresending', value: OPP_TYPE_VIDERESENDING },
-                { label: 'Reiseledere', value: OPP_TYPE_REISELEDERE },
-                { label: 'Fylkeskontakter', value: OPP_TYPE_FYLKESKONTAKTER },
             ],
             skjemaTypeValg: [
                 { label: 'Samtykkeskjema', value: SK_SAMTYKKE },
-                { label: 'Spørreskjema (oppgave)', value: SK_VIDERESENDING },
+                { label: 'Spørreskjema', value: SK_VIDERESENDING },
             ],
             respondentFraUrl: null as RespondentSvarUrlParams | null,
         };
@@ -307,6 +304,12 @@ export default {
         this.synkRespondentFraUrl();
         window.addEventListener('popstate', this.synkRespondentFraUrl);
         this.hentAlt();
+
+        if(this.arrangementType === 'land') {
+            this.oppgaveTypeValg.push({ label: 'Videresending', value: OPP_TYPE_VIDERESENDING });
+            this.oppgaveTypeValg.push({ label: 'Reiseledere', value: OPP_TYPE_REISELEDERE });
+            this.oppgaveTypeValg.push({ label: 'Fylkeskontakter', value: OPP_TYPE_FYLKESKONTAKTER });
+        }
     },
 
     unmounted() {
