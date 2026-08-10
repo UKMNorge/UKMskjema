@@ -5,6 +5,7 @@
             :oppgave-id="respondentFraUrl.oppgaveId"
             :phone="respondentFraUrl.phone"
             @feil="$emit('feil', $event)"
+            @tilbake="synkRespondentFraUrl"
         />
 
         <template v-else>

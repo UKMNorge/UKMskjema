@@ -1,5 +1,14 @@
 <template>
     <div class="oppgave-svar">
+        <v-btn 
+            class="v-btn-as v-btn-hvit as-margin-bottom-space-4" 
+            color="#000" 
+            rounded="large" 
+            variant="outlined"
+            @click="tilbakeTilOppgaveliste">
+            <v-icon>mdi-arrow-left</v-icon>
+            Tilbake til oppgaveliste
+        </v-btn>
         <div class="oppgave-svar__header">
             <h4 class="oppgave-svar__tittel">{{ visningsNavn }}</h4>
             <div v-if="visningsMobil || visningsForesattNavn || visningsForesattMobil" class="oppgave-svar__kontakt">
@@ -226,6 +235,8 @@ import {
     type OppgaveSkjemaKjedeVisning,
     type OppgaveSkjemaDetalj,
 } from '@/services/oppgaveService';
+import { clearRespondentSvarUrl } from '../utils/oppgaveUrl';
+
 export default {
     props: {
         oppgaveId: {
@@ -238,7 +249,7 @@ export default {
         },
     },
 
-    emits: ['feil'],
+    emits: ['feil', 'tilbake'],
 
     data() {
         return {
@@ -296,6 +307,10 @@ export default {
     },
 
     methods: {
+        tilbakeTilOppgaveliste() {
+            clearRespondentSvarUrl();
+            this.$emit('tilbake');
+        },
         async lastInn() {
             this.laster = true;
             try {
