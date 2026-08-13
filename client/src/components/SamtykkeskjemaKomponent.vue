@@ -349,6 +349,7 @@
                                                     variant="outlined"
                                                     class="v-text-field-arr-sys"
                                                     density="comfortable"
+                                                    :disabled="true"
                                                     hide-details="auto"
                                                 />
                                             </div>

@@ -148,7 +148,7 @@
                 <span v-if="o.description">{{ o.description }}</span>
             </div>
             <v-expand-transition>
-                <div v-if="!isAtLocalArrangement(o) && isInfoUtvidet(o.id)" class="as-margin-top-space-2">
+                <div v-if="!isAtLocalArrangement(o) && isInfoUtvidet(o.id)" class="">
                     <PermanentNotification
                         typeNotification="info"
                         :tittel="'Hvorfor ser du denne oppgaven?'"

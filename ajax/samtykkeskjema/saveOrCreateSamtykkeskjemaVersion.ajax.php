@@ -38,7 +38,9 @@ if($versjonId == -1) {
 }
 
 // Versjon
-$versjon = $skjema->getVersjon($versjonId);
+if(!$versjon) {
+    $versjon = $skjema->getVersjon($versjonId);
+}
 
 if(!$versjon) {
     $handleCall->sendErrorToClient('Fant ikke versjon med ID i dette samtykkeskjemaet ' . $versjonId, 404);
