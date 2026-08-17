@@ -38,6 +38,10 @@ if (!$skjema) {
     $handleCall->sendErrorToClient('Du har ikke tilgang til dette spørreskjemaet', 403);
 }
 
+if ($skjema->erDelAvOppgave()) {
+    $handleCall->sendErrorToClient('Sporreskjemaet er knyttet til en oppgave og kan ikke slettes. Fjern spørreskjemaet fra oppgaven før du kan slette det.', 500);
+}
+
 // Slett alle spørsmål som ikke har svar, og fjern skjemaet
 try {
     foreach ($skjema->getSporsmal()->getAll() as $sporsmal) {

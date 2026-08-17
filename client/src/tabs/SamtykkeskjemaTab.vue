@@ -162,7 +162,7 @@ export default {
                 const idx = this.alleSamtykkeskjemaer.findIndex(s => s.id === skjema.id);
                 if (idx !== -1) this.alleSamtykkeskjemaer.splice(idx, 1);
             } catch (e: any) {
-                this.$emit('feil', e.message ?? 'Feil ved sletting av samtykkeskjema');
+                this.$emit('feil', e.responseText ? JSON.parse(e.responseText).result : 'Feil ved sletting av samtykkeskjema');
             } finally {
                 this.skjemaLoading = false;
             }

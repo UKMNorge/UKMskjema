@@ -14,6 +14,10 @@ try {
     $handleCall->sendErrorToClient('Samtykkeskjema med ID ' . $skjemaId . ' finnes ikke', 404);
 }
 
+if ($skjema->erDelAvOppgave()) {
+    $handleCall->sendErrorToClient('Samtykkeskjemaet er knyttet til en oppgave og kan ikke slettes. Fjern samtykkeskjemaet fra oppgaven før du kan slette det.', 500);
+}
+
 try {
     Write::delete($skjema);
 } catch (Exception $e) {

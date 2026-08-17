@@ -156,7 +156,7 @@ export default {
                 const idx = this.alleSporreskjemaer.findIndex(s => s.id === skjema.id);
                 if (idx !== -1) this.alleSporreskjemaer.splice(idx, 1);
             } catch (e: any) {
-                this.$emit('feil', e.message ?? 'Feil ved sletting av spørreskjema');
+                this.$emit('feil', e.responseText ? JSON.parse(e.responseText).result : 'Feil ved sletting av spørreskjema');
             } finally {
                 this.skjemaLoading = false;
             }
