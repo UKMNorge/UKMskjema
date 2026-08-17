@@ -3,6 +3,7 @@
         <OppgaveSvar
             v-if="respondentFraUrl"
             :oppgave-id="respondentFraUrl.oppgaveId"
+            :arrangementId="plId"
             :phone="respondentFraUrl.phone"
             @feil="$emit('feil', $event)"
             @tilbake="synkRespondentFraUrl"
@@ -128,6 +129,19 @@
                             {{ o.locked ? 'mdi-lock-open-variant-outline' : 'mdi-lock-outline' }}
                         </v-icon>
                         {{ o.locked ? 'Låst' : 'Lås' }}
+                    </v-btn>
+
+                    <v-btn
+                        class="v-btn-as v-btn-hvit"
+                        variant="outlined"
+                        size="small"
+                        rounded="large"
+                        @click="forhaandsvisOppgave(o)"
+                    >
+                        <v-icon class="as-margin-right-space-1" size="small">
+                            mdi-eye-outline
+                        </v-icon>
+                        Forhåndsvis
                     </v-btn>
 
                     <v-btn
@@ -356,6 +370,10 @@ export default {
     },
 
     methods: {
+        forhaandsvisOppgave(o: OppgaveData): void {
+            window.open(`https://delta.ukm.no/ukmid/oppgaveliste/${this.plId}/${o.id}/preview/`, '_blank');       
+        },
+
         isAtLocalArrangement(o: OppgaveData): boolean {
             return o.pl_id === this.plId;
         },
