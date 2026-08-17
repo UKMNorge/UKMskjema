@@ -371,7 +371,7 @@ export default {
 
     methods: {
         forhaandsvisOppgave(o: OppgaveData): void {
-
+            console.log(`https://delta.ukm.no/ukmid/oppgaveliste/${this.plId}/preview`);
             window.open(`https://delta.ukm.no/ukmid/oppgaveliste/${this.plId}/preview`, '_blank');       
         },
 
