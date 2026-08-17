@@ -371,7 +371,8 @@ export default {
 
     methods: {
         forhaandsvisOppgave(o: OppgaveData): void {
-            window.open(`https://delta.ukm.no/ukmid/oppgaveliste/${this.plId}/${o.id}/preview/`, '_blank');       
+
+            window.open(`https://delta.ukm.no/ukmid/oppgaveliste/${this.plId}/preview`, '_blank');       
         },
 
         isAtLocalArrangement(o: OppgaveData): boolean {
