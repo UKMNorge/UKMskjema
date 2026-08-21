@@ -127,7 +127,10 @@
                                 class="mb-4"
                             >
                                 <h4>{{ versjon.beskrivelse }}</h4>
-                                <div class="samtykke-body" v-html="nl2br(versjon.body_text)"></div>
+                                <div
+                                    class="samtykke-body"
+                                    v-html="versjon.body_html || nl2br(versjon.body_text)"
+                                ></div>
                             </div>
                         </div>
 
