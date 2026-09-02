@@ -111,7 +111,7 @@
                             </v-tab> -->
                             <v-tab value="versjon">
                                 <v-icon start>mdi-tag-outline</v-icon>
-                                Versjon
+                                Innhold
                                 <v-chip v-if="skjema.versjon" size="x-small" class="ml-2" color="success">
                                     {{ skjema.versjon.versjon_nr }}
                                 </v-chip>
@@ -162,9 +162,9 @@
                                             hide-details="auto"
                                         />
                                     </div>
-                                    <div class="col-xs-12 nop-impt as-margin-top-space-2 item-id-label">
+                                    <!-- <div class="col-xs-12 nop-impt as-margin-top-space-2 item-id-label">
                                         ID #{{ skjema.id }}
-                                    </div>
+                                    </div> -->
                                 </div>
                             </v-tabs-window-item>
 
@@ -508,7 +508,7 @@ export default {
             ],
             subtypeOptions: [
                 { title: 'Standard', value: 'standard' },
-                { title: 'Bilde og film', value: 'bilde_film' },
+                // { title: 'Bilde og film', value: 'bilde_film' },
             ],
         };
     },

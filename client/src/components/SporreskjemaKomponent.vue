@@ -107,9 +107,9 @@
                                             hide-details="auto"
                                         />
                                     </div>
-                                    <div class="col-xs-12 nop-impt as-margin-top-space-2 item-id-label">
+                                    <!-- <div class="col-xs-12 nop-impt as-margin-top-space-2 item-id-label">
                                         ID #{{ skjema.id }} · Arrangement ID #{{ skjema.arrangementId }}
-                                    </div>
+                                    </div> -->
                                 </div>
                             </v-tabs-window-item>
 
@@ -286,9 +286,9 @@
                                                             hide-details
                                                         />
                                                     </div>
-                                                    <div v-if="s.id" class="col-xs-12 nop-impt as-margin-top-space-1 item-id-label">
+                                                    <!-- <div v-if="s.id" class="col-xs-12 nop-impt as-margin-top-space-1 item-id-label">
                                                         ID #{{ s.id }} · Rekkefølge {{ s.rekkefolge }}
-                                                    </div>
+                                                    </div> -->
                                                 </div>
                                             </div>
                                         </div>
