@@ -29,7 +29,7 @@
                         <div class="tidspunkt-tittel as-margin-bottom-space-3">
                             <h5>Nytt samtykkeskjema</h5>
                         </div>
-                        <div class="col-xs-6 nop-impt as-margin-right-space-2">
+                        <div class="col-xs-6 nop-impt navn-div-select">
                             <v-text-field
                                 v-model="skjema.navn"
                                 label="Navn på skjema"
@@ -42,29 +42,31 @@
                                 @keyup.enter="skjema.navn.trim() && $emit('opprett', skjema)"
                             />
                         </div>
-                        <div class="col-xs-3 nop-impt as-margin-right-space-2">
-                            <v-select
-                                v-model="skjema.type"
-                                :items="typeOptions"
-                                item-title="title"
-                                item-value="value"
-                                label="Type"
-                                variant="outlined"
-                                class="v-autocomplete-arr-sys"
-                                hide-details="auto"
-                            />
-                        </div>
-                        <div class="col-xs-3 nop-impt as-margin-top-space-2">
-                            <v-select
-                                v-model="skjema.subtype"
-                                :items="subtypeOptions"
-                                item-title="title"
-                                item-value="value"
-                                label="Undertype"
-                                variant="outlined"
-                                class="v-autocomplete-arr-sys"
-                                hide-details="auto"
-                            />
+                        <div class="col-xs-12 nop-impt as-margin-top-space-3">
+                            <div class="col-xs-4 nop-impt">
+                                <v-select
+                                    v-model="skjema.type"
+                                    :items="typeOptions"
+                                    item-title="title"
+                                    item-value="value"
+                                    label="Type"
+                                    variant="outlined"
+                                    class="v-autocomplete-arr-sys"
+                                    hide-details="auto"
+                                />
+                            </div>
+                            <div class="col-xs-4 as-padding-left-space-2">
+                                <v-select
+                                    v-model="skjema.subtype"
+                                    :items="subtypeOptions"
+                                    item-title="title"
+                                    item-value="value"
+                                    label="Undertype"
+                                    variant="outlined"
+                                    class="v-autocomplete-arr-sys"
+                                    hide-details="auto"
+                                />
+                            </div>
                         </div>
                         <div class="col-xs-12 nop-impt as-margin-top-space-3">
                             <v-btn
@@ -128,7 +130,7 @@
                                     <div class="tidspunkt-tittel as-margin-bottom-space-3">
                                         <h5>Grunnleggende informasjon</h5>
                                     </div>
-                                    <div class="col-xs-6 nop-impt">
+                                    <div class="col-xs-6 nop-impt navn-div-select">
                                         <v-text-field
                                             v-model="skjema.navn"
                                             label="Navn på skjema"
@@ -138,29 +140,31 @@
                                             hide-details="auto"
                                         />
                                     </div>
-                                    <div class="col-xs-3 as-padding-left-space-1">
-                                        <v-select
-                                            v-model="skjema.type"
-                                            :items="typeOptions"
-                                            item-title="title"
-                                            item-value="value"
-                                            label="Type"
-                                            variant="outlined"
-                                            class="v-autocomplete-arr-sys"
-                                            hide-details="auto"
-                                        />
-                                    </div>
-                                    <div class="col-xs-3 as-padding-left-space-1">
-                                        <v-select
-                                            v-model="skjema.subtype"
-                                            :items="subtypeOptions"
-                                            item-title="title"
-                                            item-value="value"
-                                            label="Undertype"
-                                            variant="outlined"
-                                            class="v-autocomplete-arr-sys"
-                                            hide-details="auto"
-                                        />
+                                    <div class="col-xs-12 nop-impt as-margin-top-space-3">
+                                        <div class="col-xs-4 nop-impt">
+                                            <v-select
+                                                v-model="skjema.type"
+                                                :items="typeOptions"
+                                                item-title="title"
+                                                item-value="value"
+                                                label="Type"
+                                                variant="outlined"
+                                                class="v-autocomplete-arr-sys"
+                                                hide-details="auto"
+                                            />
+                                        </div>
+                                        <div class="col-xs-4 as-padding-left-space-2">
+                                            <v-select
+                                                v-model="skjema.subtype"
+                                                :items="subtypeOptions"
+                                                item-title="title"
+                                                item-value="value"
+                                                label="Undertype"
+                                                variant="outlined"
+                                                class="v-autocomplete-arr-sys"
+                                                hide-details="auto"
+                                            />
+                                        </div>
                                     </div>
                                     <!-- <div class="col-xs-12 nop-impt as-margin-top-space-2 item-id-label">
                                         ID #{{ skjema.id }}
@@ -570,5 +574,13 @@ export default {
 }
 .extended-skjema-content {
     overflow: hidden;
+}
+@media (max-width: 767px) {
+    .navn-div-select {
+        width: 100% !important;
+    }
+    .subtype-div-select {
+        margin-top: calc(3 * var(--initial-space-box)) !important;
+    }
 }
 </style>
