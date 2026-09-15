@@ -113,6 +113,14 @@ foreach ($valgte as $respondent) {
         continue;
     }
 
+    if ($oppgave->erOppgaveFulfort($respondent->getMobil())) {
+        continue;
+    }
+
+    if ($rolle === BeskjedSuper::ROLLE_FORESATT && !$oppgave->erVenterForesatt($respondent->getMobil())) {
+        continue;
+    }
+
     $sisteBeskjed = $sistePerTelefon[$phone] ?? null;
     if (isset($nyligSendt[$phone]) || ($sisteBeskjed !== null && $sisteBeskjed->erSendtSisteDogn())) {
         $hoppetOver[] = [

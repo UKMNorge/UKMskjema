@@ -147,6 +147,8 @@ export interface RespondentOppgavelisteResponse {
         navn_fullt: string;
         is_18: boolean;
         siste_beskjed: OppgaveSisteBeskjed | null;
+        siste_beskjed_deltaker: OppgaveSisteBeskjed | null;
+        siste_beskjed_foresatt: OppgaveSisteBeskjed | null;
     };
     person_id: number;
     kjede: OppgaveSkjemaKjedeVisning[];

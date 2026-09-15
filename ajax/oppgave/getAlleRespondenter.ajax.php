@@ -3,6 +3,7 @@
 use UKMNorge\Arrangement\Oppgave\Oppgave;
 use UKMNorge\Arrangement\Skjema\DeltaRespondent;
 use UKMNorge\OAuth2\HandleAPICall;
+use UKMNorge\Samtykkeskjema\BeskjedSuper;
 use UKMNorge\Samtykkeskjema\OppgaveBeskjed;
 
 require_once 'UKM/Autoloader.php';
@@ -35,7 +36,9 @@ if ($oppgave->getPlId() !== $plId) {
     }
 }
 
-$sistePerTelefon = OppgaveBeskjed::getSistePerTelefonForOppgave($oppgave);
+$sisteEtterRolle = OppgaveBeskjed::getSistePerTelefonEtterRolleForOppgave($oppgave);
+$sisteDeltaker = $sisteEtterRolle[BeskjedSuper::ROLLE_DELTAKER] ?? [];
+$sisteForesatt = $sisteEtterRolle[BeskjedSuper::ROLLE_FORESATT] ?? [];
 
 $respondenterUt = [];
 $isVideresending = $oppgave->getType() === Oppgave::TYPE_VIDERESENDING;
@@ -43,6 +46,14 @@ foreach ($oppgave->getAlleRespondenter($isVideresending ? true : false, $oppgave
     if (!($respondent instanceof DeltaRespondent)) {
         continue;
     }
+    $beskjedDeltaker = OppgaveBeskjed::velgSisteForTelefoner(
+        $sisteDeltaker,
+        [(string) $respondent->getMobil()]
+    );
+    $beskjedForesatt = OppgaveBeskjed::velgSisteForTelefoner(
+        $sisteForesatt,
+        [(string) $respondent->getForesattMobil()]
+    );
     $respondenterUt[] = [
         'id'                       => (int) $respondent->getId(),
         'navn'                     => $respondent->getNavn(),
@@ -53,10 +64,9 @@ foreach ($oppgave->getAlleRespondenter($isVideresending ? true : false, $oppgave
         'arrangement'              => $respondent->arrangement ?? null,
         'foresatt_navn'            => $respondent->getForesattNavn(),
         'foresatt_mobil'           => $respondent->getForesattMobil(),
-        'siste_beskjed'            => OppgaveBeskjed::velgSisteForTelefoner(
-            $sistePerTelefon,
-            [(string) $respondent->getMobil(), (string) $respondent->getForesattMobil()]
-        )?->toArray(),
+        'siste_beskjed'            => OppgaveBeskjed::velgNyeste($beskjedDeltaker, $beskjedForesatt)?->toArray(),
+        'siste_beskjed_deltaker'   => $beskjedDeltaker?->toArray(),
+        'siste_beskjed_foresatt'   => $beskjedForesatt?->toArray(),
     ];
 }
 

@@ -43,7 +43,7 @@
                 Send SMS til deltaker
             </v-btn>
             <v-btn
-                v-if="visningsForesattMobil"
+                v-if="visningsForesattMobil && erVenterForesatt"
                 class="v-btn-as v-btn-hvit as-margin-top-space-1"
                 prepend-icon="mdi-message-processing"
                 color="#000"
@@ -67,12 +67,22 @@
                 {{ smsResultat }}
             </v-alert>
             <p
-                v-if="sisteBeskjed"
+                v-if="sisteBeskjedDeltaker"
                 class="oppgave-svar__siste-beskjed"
-                :title="sisteBeskjed.melding"
+                :title="sisteBeskjedDeltaker.melding"
             >
                 <v-icon size="small">mdi-message-processing</v-icon>
-                <span>{{ sisteBeskjedTekst(sisteBeskjed) }}</span>
+                <span><b>{{ sisteBeskjedTekst(sisteBeskjedDeltaker) }}: </b></span>
+                <span>{{ sisteBeskjedDeltaker.melding }}</span>
+            </p>
+            <p
+                v-if="sisteBeskjedForesatt"
+                class="oppgave-svar__siste-beskjed"
+                :title="sisteBeskjedForesatt.melding"
+            >
+                <v-icon size="small">mdi-message-processing</v-icon>
+                <span><b>{{ sisteBeskjedTekst(sisteBeskjedForesatt) }}: </b></span>
+                <span>{{ sisteBeskjedForesatt.melding }}</span>
             </p>
         </div>
 
@@ -260,6 +270,7 @@ import {
 import {
     parseSisteBeskjed,
     kanSendeSms,
+    velgNyesteBeskjed,
     sisteBeskjedTekst as formatSisteBeskjedTekst,
     type OppgaveSisteBeskjed,
 } from '../objects/OppgaveRespondent';
@@ -341,15 +352,44 @@ export default {
         },
 
         kanSendeDeltaker(): boolean {
-            return this.respondentId > 0 && this.visningsMobil !== '' && kanSendeSms(this.sisteBeskjed, 'deltaker');
+            return this.respondentId > 0 && this.visningsMobil !== '' && !this.erOppgaveFulfort && kanSendeSms(this.sisteBeskjedDeltaker, 'deltaker');
         },
 
         kanSendeForesatt(): boolean {
-            return this.respondentId > 0 && this.visningsForesattMobil !== '' && kanSendeSms(this.sisteBeskjed, 'foresatt');
+            return this.respondentId > 0
+                && this.visningsForesattMobil !== ''
+                && this.erVenterForesatt
+                && kanSendeSms(this.sisteBeskjedForesatt, 'foresatt');
         },
 
-        sisteBeskjed(): OppgaveSisteBeskjed | null {
-            return parseSisteBeskjed(this.data?.respondent?.siste_beskjed);
+        erOppgaveFulfort(): boolean {
+            const kjede = this.data?.kjede;
+            if (!kjede || kjede.length === 0) {
+                return false;
+            }
+            return kjede.every((ledd) => ledd.indicator === 'success');
+        },
+
+        erVenterForesatt(): boolean {
+            const kjede = this.data?.kjede;
+            if (!kjede || kjede.length === 0) {
+                return false;
+            }
+            return kjede.some((ledd) => ledd.venter_foresatt);
+        },
+
+        sisteBeskjedDeltaker(): OppgaveSisteBeskjed | null {
+            return parseSisteBeskjed(this.data?.respondent?.siste_beskjed_deltaker)
+                ?? (this.data?.respondent?.siste_beskjed?.rolle === 'deltaker'
+                    ? parseSisteBeskjed(this.data.respondent.siste_beskjed)
+                    : null);
+        },
+
+        sisteBeskjedForesatt(): OppgaveSisteBeskjed | null {
+            return parseSisteBeskjed(this.data?.respondent?.siste_beskjed_foresatt)
+                ?? (this.data?.respondent?.siste_beskjed?.rolle === 'foresatt'
+                    ? parseSisteBeskjed(this.data.respondent.siste_beskjed)
+                    : null);
         },
     },
 
@@ -411,7 +451,7 @@ export default {
                 } else if (this.data?.respondent) {
                     const sendtPhone = resultat.sendt_til[0]?.phone
                         ?? (rolle === 'foresatt' ? this.visningsForesattMobil : this.visningsMobil);
-                    this.data.respondent.siste_beskjed = {
+                    const beskjed: OppgaveSisteBeskjed = {
                         id: 0,
                         melding: '',
                         rolle,
@@ -420,6 +460,15 @@ export default {
                         created_at_ts: Math.floor(Date.now() / 1000),
                         sendt_siste_dogn: true,
                     };
+                    if (rolle === 'foresatt') {
+                        this.data.respondent.siste_beskjed_foresatt = beskjed;
+                    } else {
+                        this.data.respondent.siste_beskjed_deltaker = beskjed;
+                    }
+                    this.data.respondent.siste_beskjed = velgNyesteBeskjed(
+                        this.data.respondent.siste_beskjed_deltaker,
+                        this.data.respondent.siste_beskjed_foresatt
+                    );
                 }
             } catch (e) {
                 this.smsResultatType = 'error';

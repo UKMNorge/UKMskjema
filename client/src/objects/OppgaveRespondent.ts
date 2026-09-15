@@ -38,8 +38,10 @@ export interface OppgaveRespondentData {
     foresatt_navn?: string | null;
     /** Foresatts mobilnummer (Delta). */
     foresatt_mobil?: string | null;
-    /** Siste SMS/beskjed sendt til deltaker eller foresatt for denne oppgaven. */
+    /** Siste SMS sendt til deltaker eller foresatt for denne oppgaven. */
     siste_beskjed?: OppgaveSisteBeskjed | null;
+    siste_beskjed_deltaker?: OppgaveSisteBeskjed | null;
+    siste_beskjed_foresatt?: OppgaveSisteBeskjed | null;
     /** null mens status hentes per respondent (getRespondentSvarStatus). */
     svar_status?: OppgaveSvarStatus | null;
     /** undefined = ikke hentet, null = laster, objekt = hentet svar for valgt spørsmål. */
@@ -57,6 +59,8 @@ export default class OppgaveRespondent {
     foresatt_navn: string | null;
     foresatt_mobil: string | null;
     siste_beskjed: OppgaveSisteBeskjed | null;
+    siste_beskjed_deltaker: OppgaveSisteBeskjed | null;
+    siste_beskjed_foresatt: OppgaveSisteBeskjed | null;
     svar_status: OppgaveSvarStatus | null;
 
     constructor(data?: Partial<OppgaveRespondentData>) {
@@ -69,7 +73,10 @@ export default class OppgaveRespondent {
         this.arrangement = data?.arrangement ?? null;
         this.foresatt_navn = data?.foresatt_navn ?? null;
         this.foresatt_mobil = data?.foresatt_mobil ?? null;
-        this.siste_beskjed = parseSisteBeskjed(data?.siste_beskjed);
+        this.siste_beskjed_deltaker = parseSisteBeskjed(data?.siste_beskjed_deltaker);
+        this.siste_beskjed_foresatt = parseSisteBeskjed(data?.siste_beskjed_foresatt);
+        this.siste_beskjed = parseSisteBeskjed(data?.siste_beskjed)
+            ?? velgNyesteBeskjed(this.siste_beskjed_deltaker, this.siste_beskjed_foresatt);
         this.svar_status =
             data?.svar_status !== undefined && data?.svar_status !== null
                 ? (data.svar_status as OppgaveSvarStatus)
@@ -92,6 +99,8 @@ export default class OppgaveRespondent {
             foresatt_mobil:
                 data.foresatt_mobil != null && data.foresatt_mobil !== '' ? String(data.foresatt_mobil) : null,
             siste_beskjed: parseSisteBeskjed(data.siste_beskjed),
+            siste_beskjed_deltaker: parseSisteBeskjed(data.siste_beskjed_deltaker),
+            siste_beskjed_foresatt: parseSisteBeskjed(data.siste_beskjed_foresatt),
             svar_status: harStatus ? (Number(data.svar_status) as OppgaveSvarStatus) : null,
         });
     }
@@ -113,6 +122,22 @@ export default class OppgaveRespondent {
         }
         return oppgaveSvarStatusColor(this.svar_status);
     }
+}
+
+export function velgNyesteBeskjed(
+    a: OppgaveSisteBeskjed | null,
+    b: OppgaveSisteBeskjed | null
+): OppgaveSisteBeskjed | null {
+    if (!a) {
+        return b;
+    }
+    if (!b) {
+        return a;
+    }
+    if (b.created_at_ts > a.created_at_ts || (b.created_at_ts === a.created_at_ts && b.id > a.id)) {
+        return b;
+    }
+    return a;
 }
 
 export function parseSisteBeskjed(raw: unknown): OppgaveSisteBeskjed | null {
@@ -150,7 +175,7 @@ export function formatSisteBeskjedTid(beskjed: OppgaveSisteBeskjed): string {
 
 export function sisteBeskjedTekst(beskjed: OppgaveSisteBeskjed): string {
     const tid = formatSisteBeskjedTid(beskjed);
-    const mottaker = beskjed.rolle === 'foresatt' ? ' til foresatt' : '';
+    const mottaker = beskjed.rolle === 'foresatt' ? ' til foresatt' : ' til respondent';
     return tid ? `Sist sendt${mottaker} ${tid}` : `Sist sendt${mottaker}`.trim();
 }
 
@@ -190,6 +215,14 @@ export function oppgaveSvarStatusLabel(status: OppgaveSvarStatus): string {
         default:
             return 'Ukjent';
     }
+}
+
+export function erOppgaveFulfort(status: OppgaveSvarStatus): boolean {
+    return status === OPPGAVE_SVAR_STATUS_FULLFORT;
+}
+
+export function erVenterForesatt(status: OppgaveSvarStatus): boolean {
+    return status === OPPGAVE_SVAR_STATUS_VENTER_FORESATT;
 }
 
 export function oppgaveSvarStatusColor(status: OppgaveSvarStatus): string {
