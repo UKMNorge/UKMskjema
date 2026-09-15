@@ -1,5 +1,6 @@
 import OppgaveRespondent, {
     type OppgaveRespondentData,
+    type OppgaveSisteBeskjed,
     type OppgaveSvarStatus,
 } from '@/objects/OppgaveRespondent';
 
@@ -145,6 +146,7 @@ export interface RespondentOppgavelisteResponse {
         foresatt_mobil: string | null;
         navn_fullt: string;
         is_18: boolean;
+        siste_beskjed: OppgaveSisteBeskjed | null;
     };
     person_id: number;
     kjede: OppgaveSkjemaKjedeVisning[];
@@ -378,6 +380,44 @@ export async function reorderOppgaveKjede(
     }
 
     return res.skjema_kjede as OppgaveSkjemaKjedeItem[];
+}
+
+export type BeskjedRolle = 'deltaker' | 'foresatt';
+
+export interface SendBeskjedResultat {
+    success: boolean;
+    sendt: number;
+    feilet: number;
+    hoppet_over: number;
+    sendt_til: { id: number; phone: string }[];
+    feil: { id: number; navn: string; error: string }[];
+}
+
+export async function sendBeskjed(
+    oppgaveId: number,
+    respondentIds: number[],
+    rolle: BeskjedRolle = 'deltaker'
+): Promise<SendBeskjedResultat> {
+    const res = await getSpaInteraction().runAjaxCall('/', 'POST', {
+        action: 'UKMskjema_ajax',
+        controller: 'oppgave/sendBeskjed',
+        oppgave_id: oppgaveId,
+        respondenter_ids: JSON.stringify(respondentIds),
+        rolle,
+    });
+
+    if (!res || (res.success !== true && !(Number(res.sendt) > 0) && !(Number(res.hoppet_over) > 0))) {
+        throw new Error(res?.message ?? res?.result ?? 'Kunne ikke sende SMS');
+    }
+
+    return {
+        success: !!res.success,
+        sendt: Number(res.sendt) || 0,
+        feilet: Number(res.feilet) || 0,
+        hoppet_over: Number(res.hoppet_over) || 0,
+        sendt_til: Array.isArray(res.sendt_til) ? res.sendt_til : [],
+        feil: Array.isArray(res.feil) ? res.feil : [],
+    };
 }
 
 export async function toggleOppgaveLock(oppgaveId: number, locked: boolean): Promise<boolean> {

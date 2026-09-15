@@ -12,6 +12,16 @@ export interface OppgaveRespondentSporsmalSvar {
     foresatt_godkjent: boolean | null;
 }
 
+export interface OppgaveSisteBeskjed {
+    id: number;
+    melding: string;
+    rolle: 'deltaker' | 'foresatt' | string;
+    phone: string;
+    created_at: string | null;
+    created_at_ts: number;
+    sendt_siste_dogn?: boolean;
+}
+
 /** Delta-bruker som respondent på en oppgave (fra getAlleRespondenter). */
 export interface OppgaveRespondentData {
     id: number;
@@ -28,6 +38,8 @@ export interface OppgaveRespondentData {
     foresatt_navn?: string | null;
     /** Foresatts mobilnummer (Delta). */
     foresatt_mobil?: string | null;
+    /** Siste SMS/beskjed sendt til deltaker eller foresatt for denne oppgaven. */
+    siste_beskjed?: OppgaveSisteBeskjed | null;
     /** null mens status hentes per respondent (getRespondentSvarStatus). */
     svar_status?: OppgaveSvarStatus | null;
     /** undefined = ikke hentet, null = laster, objekt = hentet svar for valgt spørsmål. */
@@ -44,6 +56,7 @@ export default class OppgaveRespondent {
     arrangement: string | null;
     foresatt_navn: string | null;
     foresatt_mobil: string | null;
+    siste_beskjed: OppgaveSisteBeskjed | null;
     svar_status: OppgaveSvarStatus | null;
 
     constructor(data?: Partial<OppgaveRespondentData>) {
@@ -56,6 +69,7 @@ export default class OppgaveRespondent {
         this.arrangement = data?.arrangement ?? null;
         this.foresatt_navn = data?.foresatt_navn ?? null;
         this.foresatt_mobil = data?.foresatt_mobil ?? null;
+        this.siste_beskjed = parseSisteBeskjed(data?.siste_beskjed);
         this.svar_status =
             data?.svar_status !== undefined && data?.svar_status !== null
                 ? (data.svar_status as OppgaveSvarStatus)
@@ -77,6 +91,7 @@ export default class OppgaveRespondent {
                 data.foresatt_navn != null && data.foresatt_navn !== '' ? String(data.foresatt_navn) : null,
             foresatt_mobil:
                 data.foresatt_mobil != null && data.foresatt_mobil !== '' ? String(data.foresatt_mobil) : null,
+            siste_beskjed: parseSisteBeskjed(data.siste_beskjed),
             svar_status: harStatus ? (Number(data.svar_status) as OppgaveSvarStatus) : null,
         });
     }
@@ -98,6 +113,68 @@ export default class OppgaveRespondent {
         }
         return oppgaveSvarStatusColor(this.svar_status);
     }
+}
+
+export function parseSisteBeskjed(raw: unknown): OppgaveSisteBeskjed | null {
+    if (!raw || typeof raw !== 'object') {
+        return null;
+    }
+    const data = raw as Record<string, unknown>;
+    const melding = String(data.melding ?? data.message ?? '').trim();
+    const createdAtTs = Number(data.created_at_ts);
+    const createdAt = data.created_at != null && data.created_at !== '' ? String(data.created_at) : null;
+    if (!melding && !createdAt && !(createdAtTs > 0)) {
+        return null;
+    }
+    return {
+        id: Number(data.id) || 0,
+        melding,
+        rolle: String(data.rolle ?? ''),
+        phone: String(data.phone ?? ''),
+        created_at: createdAt,
+        created_at_ts: createdAtTs > 0 ? createdAtTs : 0,
+        sendt_siste_dogn: data.sendt_siste_dogn === true || data.sendt_siste_dogn === 1 || data.sendt_siste_dogn === '1',
+    };
+}
+
+export function formatSisteBeskjedTid(beskjed: OppgaveSisteBeskjed): string {
+    const d = beskjed.created_at_ts > 0
+        ? new Date(beskjed.created_at_ts * 1000)
+        : (beskjed.created_at ? new Date(beskjed.created_at.replace(' ', 'T')) : null);
+    if (!d || Number.isNaN(d.getTime())) {
+        return '';
+    }
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+export function sisteBeskjedTekst(beskjed: OppgaveSisteBeskjed): string {
+    const tid = formatSisteBeskjedTid(beskjed);
+    const mottaker = beskjed.rolle === 'foresatt' ? ' til foresatt' : '';
+    return tid ? `Sist sendt${mottaker} ${tid}` : `Sist sendt${mottaker}`.trim();
+}
+
+export const SMS_VENTETID_SEKUNDER = 24 * 60 * 60;
+
+export function erSendtSisteDogn(beskjed: OppgaveSisteBeskjed | null | undefined): boolean {
+    if (!beskjed) {
+        return false;
+    }
+    if (beskjed.created_at_ts > 0) {
+        return beskjed.created_at_ts > Date.now() / 1000 - SMS_VENTETID_SEKUNDER;
+    }
+    return !!beskjed.sendt_siste_dogn;
+}
+
+/** True hvis det ikke er sendt SMS til denne rollen siste 24 timer. */
+export function kanSendeSms(beskjed: OppgaveSisteBeskjed | null | undefined, rolle: string = 'deltaker'): boolean {
+    if (!beskjed) {
+        return true;
+    }
+    if (beskjed.rolle && beskjed.rolle !== rolle) {
+        return true;
+    }
+    return !erSendtSisteDogn(beskjed);
 }
 
 export function oppgaveSvarStatusLabel(status: OppgaveSvarStatus): string {

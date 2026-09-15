@@ -260,37 +260,40 @@
                 v-else
                 class="deltaker-liste"
             >
-            <form
+            <div
                 v-if="erDeltakereOppgave"
-                action="?page=UKMSMS_gui"
-                method="POST"
                 class="as-margin-bottom-space-2"
             >
-                <input
-                    type="hidden"
-                    name="UKMSMS_message"
-                    :value="`Hei! Du har en oppgave som du må besvare. Klikk på lenken for å besvare oppgaven: https://delta.ukm.no/ukmid/oppgaveliste/${getArrangementId()}/`"
-               
-               
-                />
-                <input
-                    type="hidden"
-                    name="UKMSMS_recipients"
-                    :value="getAlleMobilnummer()"
-                    id="nominasjon-reminder-recipient"
-                />
                 <v-btn
                     class="v-btn-as v-btn-bla as-margin-top-space-1"
                     prepend-icon="mdi-message-processing"
-                    type="submit"
                     color="#000"
                     rounded="large"
                     variant="outlined"
-                    :disabled="getAlleMobilnummer() === ''"
+                    :loading="smsLaster"
+                    :disabled="smsLaster || smsMottakerIds.length === 0"
+                    @click="smsBekreftDialog = true"
                 >
                     Send SMS-påminnelse
                 </v-btn>
-            </form>
+                <div
+                    v-if="smsMottakerIds.length === 0 && smsHoppetOverAntall > 0"
+                    class="as-margin-top-space-2 deltaker-rad__meta"
+                >
+                    Alle i den filtrerte listen har fått SMS siste 24 timer.
+                </div>
+                <v-alert
+                    v-if="smsResultat"
+                    class="mt-3"
+                    :type="smsResultatType"
+                    variant="tonal"
+                    closable
+                    density="compact"
+                    @click:close="smsResultat = ''"
+                >
+                    {{ smsResultat }}
+                </v-alert>
+            </div>
 
             <div
                 v-for="r in filtrerteRespondenter"
@@ -307,6 +310,16 @@
                     <div class="deltaker-rad__hoved">
                         <div class="deltaker-rad__info">
                             <span class="deltaker-rad__navn">{{ r.navn }} {{ r.etternavn }} ({{ r.mobil }})</span>
+                            <span class="deltaker-rad__siste-beskjed">
+                                <span
+                                    v-if="r.siste_beskjed"
+                                    class="deltaker-rad__siste-beskjed-innhold"
+                                    :title="r.siste_beskjed.melding"
+                                >
+                                    <v-icon size="small">mdi-message-processing</v-icon>
+                                    <span>{{ sisteBeskjedTekst(r.siste_beskjed) }}</span>
+                                </span>
+                            </span>
                             <span
                                 v-if="r.foresatt_navn || r.foresatt_mobil"
                                 class="deltaker-rad__meta"
@@ -448,6 +461,48 @@
             </v-card>
         </v-dialog>
 
+        <v-dialog v-model="smsBekreftDialog" max-width="480" persistent>
+            <v-card rounded="lg">
+                <v-card-title class="text-h6 pt-5 px-5">
+                    <v-icon color="warning" class="mr-2">mdi-alert-outline</v-icon>
+                    Send SMS-påminnelse
+                </v-card-title>
+                <v-card-text class="px-5">
+                    Dette sender en SMS-påminnelse til
+                    <strong>{{ smsMottakerIds.length }}</strong>
+                    {{ smsMottakerIds.length === 1 ? 'respondent' : 'respondenter' }}
+                    i den filtrerte listen.
+                    <template v-if="smsHoppetOverAntall > 0">
+                        {{ smsHoppetOverAntall }}
+                        {{ smsHoppetOverAntall === 1 ? 'respondent hoppes' : 'respondenter hoppes' }}
+                        over fordi de har fått SMS siste 24 timer.
+                    </template>
+                </v-card-text>
+                <v-card-actions class="px-5 pb-5">
+                    <v-spacer />
+                    <v-btn
+                        class="v-btn-as v-btn-grey"
+                        rounded="large"
+                        variant="outlined"
+                        :disabled="smsLaster"
+                        @click="smsBekreftDialog = false"
+                    >
+                        Avbryt
+                    </v-btn>
+                    <v-btn
+                        class="v-btn-as v-btn-hvit"
+                        rounded="large"
+                        variant="outlined"
+                        color="primary"
+                        :loading="smsLaster"
+                        @click="bekreftSendSmsPaminnelse"
+                    >
+                        Send SMS
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+
         <v-dialog v-model="bildeFilmImportBekreftDialog" max-width="480" persistent>
             <v-card rounded="lg">
                 <v-card-title class="text-h6 pt-5 px-5">
@@ -494,10 +549,12 @@ import {
     hentRespondentSvarStatus,
     importRespondentBildeFilmSamtykke,
     importRespondentIntoleranser,
+    sendBeskjed,
     type OppgaveSporsmalValg,
 } from '../services/oppgaveService';
 import OppgaveRespondent, {
     type OppgaveRespondentData,
+    type OppgaveSisteBeskjed,
     type OppgaveSvarStatus,
     OPPGAVE_SVAR_STATUS_FULLFORT,
     OPPGAVE_SVAR_STATUS_IKKE_PABEGYNT,
@@ -506,6 +563,8 @@ import OppgaveRespondent, {
     OPPGAVE_SVAR_STATUS_VENTER_FORESATT,
     oppgaveSvarStatusColor,
     oppgaveSvarStatusLabel,
+    kanSendeSms,
+    sisteBeskjedTekst as formatSisteBeskjedTekst,
 } from '../objects/OppgaveRespondent';
 import { openRespondentSvarWindow } from '../utils/oppgaveUrl';
 import { lastNedSporsmalSvarExcel } from '../utils/oppgaveSporsmalExcel';
@@ -603,6 +662,7 @@ function tilRespondentData(r: OppgaveRespondent, svarStatus: OppgaveSvarStatus |
         arrangement: r.arrangement,
         foresatt_navn: r.foresatt_navn,
         foresatt_mobil: r.foresatt_mobil,
+        siste_beskjed: r.siste_beskjed ?? null,
         svar_status: svarStatus,
     };
 }
@@ -656,6 +716,10 @@ export default {
             bildeFilmImportTotalt: 0,
             bildeFilmImportFerdig: false,
             bildeFilmImportBekreftDialog: false,
+            smsLaster: false,
+            smsBekreftDialog: false,
+            smsResultat: '',
+            smsResultatType: 'success' as 'success' | 'error' | 'warning',
         };
     },
 
@@ -676,6 +740,9 @@ export default {
             this.sporsmalHentingId += 1;
             this.nullstillIntoleranseImport();
             this.nullstillBildeFilmImport();
+            this.smsLaster = false;
+            this.smsBekreftDialog = false;
+            this.smsResultat = '';
         },
     },
 
@@ -798,6 +865,26 @@ export default {
             return this.filtrerteRespondenter.some(
                 (r) => r.sporsmal_svar !== null && r.sporsmal_svar !== undefined
             );
+        },
+
+        smsMottakerIds(): number[] {
+            const sett = new Set<number>();
+            for (const r of this.filtrerteRespondenter) {
+                if (r.id > 0 && (r.mobil ?? '').trim() && kanSendeSms(r.siste_beskjed, 'deltaker')) {
+                    sett.add(r.id);
+                }
+            }
+            return Array.from(sett);
+        },
+
+        smsHoppetOverAntall(): number {
+            let antall = 0;
+            for (const r of this.filtrerteRespondenter) {
+                if (r.id > 0 && (r.mobil ?? '').trim() && !kanSendeSms(r.siste_beskjed, 'deltaker')) {
+                    antall += 1;
+                }
+            }
+            return antall;
         },
     },
 
@@ -1237,6 +1324,10 @@ export default {
             return value === 'Ja' || value === 'Nei';
         },
 
+        sisteBeskjedTekst(beskjed: OppgaveSisteBeskjed): string {
+            return formatSisteBeskjedTekst(beskjed);
+        },
+
         lastNedSporsmalExcel(): void {
             const sporsmal = this.valgtSporsmal;
             if (!sporsmal || !this.kanLasteNedSporsmalExcel) {
@@ -1250,25 +1341,71 @@ export default {
             }
         },
 
-        getArrangementId(): number {
-            return this.arrangementId;
+        async bekreftSendSmsPaminnelse(): Promise<void> {
+            await this.sendSmsPaminnelse();
         },
 
-        getAlleMobilnummer(): string {
-            const entries: string[] = [];
-            const settMobil = new Set<string>();
-
-            for (const r of this.filtrerteRespondenter) {
-                const mobil = (r.mobil ?? '').trim();
-                if (!mobil || settMobil.has(mobil)) {
-                    continue;
-                }
-                settMobil.add(mobil);
-                const navn = `${r.navn ?? ''} ${r.etternavn ?? ''}`.trim() || mobil;
-                entries.push(`[${mobil}, ${navn}]`);
+        async sendSmsPaminnelse(): Promise<void> {
+            if (this.smsLaster || this.smsMottakerIds.length === 0) {
+                return;
             }
 
-            return entries.join(',');
+            this.smsLaster = true;
+            this.smsResultat = '';
+
+            try {
+                const resultat = await sendBeskjed(this.oppgaveId, this.smsMottakerIds, 'deltaker');
+                const hoppet = resultat.hoppet_over;
+                this.smsResultatType = resultat.feilet > 0 || hoppet > 0 ? 'warning' : 'success';
+                if (resultat.feilet > 0) {
+                    this.smsResultat = `SMS sendt til ${resultat.sendt} av ${resultat.sendt + resultat.feilet} respondenter. ${resultat.feilet} feilet.`;
+                } else if (resultat.sendt === 0 && hoppet > 0) {
+                    this.smsResultat = hoppet === 1
+                        ? 'SMS er allerede sendt til denne respondenten siste 24 timer.'
+                        : `SMS er allerede sendt til ${hoppet} respondenter siste 24 timer.`;
+                } else {
+                    this.smsResultat = resultat.sendt === 1
+                        ? 'SMS-påminnelse er sendt til 1 respondent.'
+                        : `SMS-påminnelse er sendt til ${resultat.sendt} respondenter.`;
+                    if (hoppet > 0) {
+                        this.smsResultat += ` ${hoppet} hoppet over (SMS siste 24 timer).`;
+                    }
+                }
+                this.oppdaterSisteBeskjedEtterSending(resultat.sendt_til, 'deltaker');
+            } catch (e: any) {
+                this.smsResultatType = 'error';
+                this.smsResultat = e.message ?? 'Kunne ikke sende SMS';
+                this.$emit('feil', this.smsResultat);
+            } finally {
+                this.smsLaster = false;
+                this.smsBekreftDialog = false;
+            }
+        },
+
+        oppdaterSisteBeskjedEtterSending(
+            sendtTil: { id: number; phone: string }[],
+            rolle: 'deltaker' | 'foresatt'
+        ): void {
+            if (!sendtTil.length) {
+                return;
+            }
+            const nowTs = Math.floor(Date.now() / 1000);
+            const sendtMap = new Map(sendtTil.map((s) => [s.id, s.phone]));
+            this.respondenter.forEach((r) => {
+                const phone = sendtMap.get(r.id);
+                if (phone === undefined) {
+                    return;
+                }
+                r.siste_beskjed = {
+                    id: 0,
+                    melding: '',
+                    rolle,
+                    phone,
+                    created_at: new Date().toISOString(),
+                    created_at_ts: nowTs,
+                    sendt_siste_dogn: true,
+                };
+            });
         },
     },
 };
@@ -1456,6 +1593,17 @@ export default {
 .deltaker-rad__meta {
     font-size: 0.8rem;
     color: var(--color-primary-grey-dark, #666);
+    min-width: 0;
+}
+.deltaker-rad__siste-beskjed {
+    font-size: 0.8rem;
+    color: var(--color-primary-grey-dark, #666);
+    min-width: 0;
+}
+.deltaker-rad__siste-beskjed-innhold {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
     min-width: 0;
 }
 .deltaker-rad__nominasjon-chip {

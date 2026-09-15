@@ -29,35 +29,52 @@
             </div>
         </div>
 
-        <form action="?page=UKMSMS_gui" method="POST" id="nominasjon-reminder">
-            <input type="hidden" name="UKMSMS_message" :value="'Hei, ' + visningsNavn + '! Du har en oppgave som du må besvare. Klikk på lenken for å besvare oppgaven: https://delta.ukm.no/ukmid/oppgaveliste/' + (arrangementId ? arrangementId : '') + '/' " />
-            <input type="hidden" name="UKMSMS_recipients" :value="`${ visningsMobil }`" id="nominasjon-reminder-recipient" />
+        <div class="oppgave-svar__sms as-margin-bottom-space-2">
             <v-btn
                 class="v-btn-as v-btn-hvit as-margin-right-space-2"
                 prepend-icon="mdi-message-processing"
-                type="submit" 
                 color="#000"
                 rounded="large"
                 variant="outlined"
+                :loading="senderRolle === 'deltaker'"
+                :disabled="!kanSendeDeltaker || senderRolle !== null"
+                @click="sendSms('deltaker')"
             >
-            Send SMS til deltaker
+                Send SMS til deltaker
             </v-btn>
-        </form>
-
-        <form action="?page=UKMSMS_gui" method="POST" id="foresatt-reminder" class="as-margin-top-space-1 as-margin-bottom-space-2">
-            <input type="hidden" name="UKMSMS_message" :value="'Hei! Du er oppgit som foresatt for ' + visningsNavn + '. Du må derfor godkjenne noen samtykker og opplysninger. Klikk på lenken for å godkjenne: https://delta.ukm.no/ukmid/oppgaveliste/' + (arrangementId && arrangementId ? arrangementId : '') + '/'" />
-            <input type="hidden" name="UKMSMS_recipients" :value="`${ visningsForesattMobil }`" id="foresatt-reminder-recipient" />
             <v-btn
-                class="v-btn-as v-btn-hvit as-margin-right-space-2"
+                v-if="visningsForesattMobil"
+                class="v-btn-as v-btn-hvit as-margin-top-space-1"
                 prepend-icon="mdi-message-processing"
-                type="submit" 
                 color="#000"
                 rounded="large"
                 variant="outlined"
+                :loading="senderRolle === 'foresatt'"
+                :disabled="!kanSendeForesatt || senderRolle !== null"
+                @click="sendSms('foresatt')"
             >
-            Send SMS til foresatt
+                Send SMS til foresatt
             </v-btn>
-        </form>
+            <v-alert
+                v-if="smsResultat"
+                class="mt-3"
+                :type="smsResultatType"
+                variant="tonal"
+                closable
+                density="compact"
+                @click:close="smsResultat = ''"
+            >
+                {{ smsResultat }}
+            </v-alert>
+            <p
+                v-if="sisteBeskjed"
+                class="oppgave-svar__siste-beskjed"
+                :title="sisteBeskjed.melding"
+            >
+                <v-icon size="small">mdi-message-processing</v-icon>
+                <span>{{ sisteBeskjedTekst(sisteBeskjed) }}</span>
+            </p>
+        </div>
 
         <div v-if="laster" class="oppgave-svar__laster">
             <v-progress-circular indeterminate color="primary" size="32" />
@@ -234,10 +251,18 @@
 <script lang="ts">
 import {
     hentRespondentOppgaveliste,
+    sendBeskjed,
+    type BeskjedRolle,
     type RespondentOppgavelisteResponse,
     type OppgaveSkjemaKjedeVisning,
     type OppgaveSkjemaDetalj,
 } from '@/services/oppgaveService';
+import {
+    parseSisteBeskjed,
+    kanSendeSms,
+    sisteBeskjedTekst as formatSisteBeskjedTekst,
+    type OppgaveSisteBeskjed,
+} from '../objects/OppgaveRespondent';
 import { clearRespondentSvarUrl } from '../utils/oppgaveUrl';
 
 export default {
@@ -263,6 +288,9 @@ export default {
             laster: true,
             data: null as RespondentOppgavelisteResponse | null,
             valgtIndex: null as number | null,
+            senderRolle: null as BeskjedRolle | null,
+            smsResultat: '',
+            smsResultatType: 'success' as 'success' | 'error' | 'warning',
         };
     },
 
@@ -307,6 +335,22 @@ export default {
             const digits = this.visningsForesattMobil.replace(/\s+/g, '');
             return digits ? `tel:${digits}` : '';
         },
+
+        respondentId(): number {
+            return Number(this.data?.respondent?.id) || 0;
+        },
+
+        kanSendeDeltaker(): boolean {
+            return this.respondentId > 0 && this.visningsMobil !== '' && kanSendeSms(this.sisteBeskjed, 'deltaker');
+        },
+
+        kanSendeForesatt(): boolean {
+            return this.respondentId > 0 && this.visningsForesattMobil !== '' && kanSendeSms(this.sisteBeskjed, 'foresatt');
+        },
+
+        sisteBeskjed(): OppgaveSisteBeskjed | null {
+            return parseSisteBeskjed(this.data?.respondent?.siste_beskjed);
+        },
     },
 
     mounted() {
@@ -334,6 +378,56 @@ export default {
 
         velgSkjema(index: number) {
             this.valgtIndex = this.valgtIndex === index ? null : index;
+        },
+
+        async sendSms(rolle: BeskjedRolle): Promise<void> {
+            if (this.senderRolle !== null || this.respondentId < 1) {
+                return;
+            }
+            if (rolle === 'deltaker' && !this.kanSendeDeltaker) {
+                return;
+            }
+            if (rolle === 'foresatt' && !this.kanSendeForesatt) {
+                return;
+            }
+
+            this.senderRolle = rolle;
+            this.smsResultat = '';
+
+            try {
+                const resultat = await sendBeskjed(this.oppgaveId, [this.respondentId], rolle);
+                this.smsResultatType = resultat.feilet > 0 ? 'warning' : 'success';
+                this.smsResultat = rolle === 'foresatt'
+                    ? 'SMS er sendt til foresatt.'
+                    : 'SMS er sendt til deltaker.';
+                if (resultat.feilet > 0) {
+                    const feil = resultat.feil[0]?.error;
+                    this.smsResultatType = 'error';
+                    this.smsResultat = feil ?? 'SMS kunne ikke sendes.';
+                    this.$emit('feil', this.smsResultat);
+                } else if (resultat.hoppet_over > 0 && resultat.sendt === 0) {
+                    this.smsResultatType = 'warning';
+                    this.smsResultat = 'SMS er allerede sendt siste 24 timer.';
+                } else if (this.data?.respondent) {
+                    const sendtPhone = resultat.sendt_til[0]?.phone
+                        ?? (rolle === 'foresatt' ? this.visningsForesattMobil : this.visningsMobil);
+                    this.data.respondent.siste_beskjed = {
+                        id: 0,
+                        melding: '',
+                        rolle,
+                        phone: sendtPhone,
+                        created_at: new Date().toISOString(),
+                        created_at_ts: Math.floor(Date.now() / 1000),
+                        sendt_siste_dogn: true,
+                    };
+                }
+            } catch (e) {
+                this.smsResultatType = 'error';
+                this.smsResultat = e instanceof Error ? e.message : 'Kunne ikke sende SMS';
+                this.$emit('feil', this.smsResultat);
+            } finally {
+                this.senderRolle = null;
+            }
         },
 
         indicatorColor(indicator: string): string {
@@ -390,11 +484,30 @@ export default {
             const pad = (n: number) => String(n).padStart(2, '0');
             return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
         },
+
+        sisteBeskjedTekst(beskjed: OppgaveSisteBeskjed): string {
+            return formatSisteBeskjedTekst(beskjed);
+        },
     },
 };
 </script>
 
 <style scoped>
+.oppgave-svar__sms {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+.oppgave-svar__siste-beskjed {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin: 0.25rem 0 0;
+    font-size: 0.85rem;
+    color: var(--color-primary-grey-dark, #666);
+}
 .oppgave-svar__header {
     margin-bottom: 1.25rem;
 }

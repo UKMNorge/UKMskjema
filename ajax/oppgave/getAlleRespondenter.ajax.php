@@ -3,6 +3,7 @@
 use UKMNorge\Arrangement\Oppgave\Oppgave;
 use UKMNorge\Arrangement\Skjema\DeltaRespondent;
 use UKMNorge\OAuth2\HandleAPICall;
+use UKMNorge\Samtykkeskjema\OppgaveBeskjed;
 
 require_once 'UKM/Autoloader.php';
 
@@ -34,6 +35,8 @@ if ($oppgave->getPlId() !== $plId) {
     }
 }
 
+$sistePerTelefon = OppgaveBeskjed::getSistePerTelefonForOppgave($oppgave);
+
 $respondenterUt = [];
 $isVideresending = $oppgave->getType() === Oppgave::TYPE_VIDERESENDING;
 foreach ($oppgave->getAlleRespondenter($isVideresending ? true : false, $oppgaveFromAnotherArrangement != null ? $plId : null) as $respondent) {
@@ -50,6 +53,10 @@ foreach ($oppgave->getAlleRespondenter($isVideresending ? true : false, $oppgave
         'arrangement'              => $respondent->arrangement ?? null,
         'foresatt_navn'            => $respondent->getForesattNavn(),
         'foresatt_mobil'           => $respondent->getForesattMobil(),
+        'siste_beskjed'            => OppgaveBeskjed::velgSisteForTelefoner(
+            $sistePerTelefon,
+            [(string) $respondent->getMobil(), (string) $respondent->getForesattMobil()]
+        )?->toArray(),
     ];
 }
 
