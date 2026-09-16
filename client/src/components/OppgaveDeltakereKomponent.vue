@@ -302,7 +302,7 @@
                     class="as-margin-bottom-space-1 as-margin-top-space-2 deltaker-rad__meta"
                 >
                     Alle foresatte i den filtrerte listen har fått påminnelse de siste 24 timene.
-                    <span>Påminnelse sendes kun til svar som venter på samtykke fra foresatt</span>.
+                    <span>Påminnelse til foresatte sendes kun til svar som venter på samtykke fra foresatt</span>.
                 </div>
                 <v-alert
                     v-if="smsResultat"
@@ -503,7 +503,7 @@
                         <strong>{{ smsForesattMottakerIds.length }}</strong>
                         {{ smsForesattMottakerIds.length === 1 ? 'respondent' : 'respondenter' }}
                         i den filtrerte listen;
-                        <span>påminnelse sendes kun til svar som venter på samtykke fra foresatt</span>.
+                        <span>påminnelse til foresatte sendes kun til svar som venter på samtykke fra foresatt</span>.
                         <template v-if="smsForesattHoppetOverAntall > 0">
                             {{ smsForesattHoppetOverAntall }}
                             {{ smsForesattHoppetOverAntall === 1 ? 'foresatt hoppes' : 'foresatte hoppes' }}
