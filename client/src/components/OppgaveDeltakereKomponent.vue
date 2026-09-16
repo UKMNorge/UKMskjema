@@ -264,6 +264,22 @@
                 v-if="erDeltakereOppgave"
                 class="as-margin-bottom-space-2 sms-paminnelse"
             >
+                <div>
+                    <div v-if="!harSisteBeskjed">
+                        <PermanentNotification class="as-margin-bottom-space-2" 
+                            :typeNotification="'danger'" 
+                            :tittel="'For at deltakere skal kunne svare, må du sende SMS-påminnelse'" 
+                            :isHTML="true"
+                            :description="'<br><p>Når du har satt opp skjemaene og oppgaven er klar, må du sende en SMS-påminnelse til deltakere slik at de kan besvare oppgaven.</p><br><p>Husk at du som arrangør er ansvarlig for å sende SMS-påminnelse til deltakere og følge opp at deltakere har besvaret oppgaven.</p>'" />
+                    </div>
+                    <div v-else>
+                        <PermanentNotification class="as-margin-bottom-space-2" 
+                            :typeNotification="'info'" 
+                            :tittel="'Oppfølging av besvarelser'" 
+                            :isHTML="true"
+                            :description="'<br><p>Du som arrangør er ansvarlig for å sende SMS-påminnelse til deltakere/foresatte og følge opp at deltakere/foresatte har besvaret/godkjent oppgaven.</p>'" />
+                    </div>
+                </div>
                 <div class="sms-paminnelse__knapper">
                     <v-btn
                         class="v-btn-as v-btn-bla as-margin-top-space-1"
@@ -618,6 +634,8 @@ import OppgaveRespondent, {
 } from '../objects/OppgaveRespondent';
 import { openRespondentSvarWindow } from '../utils/oppgaveUrl';
 import { lastNedSporsmalSvarExcel } from '../utils/oppgaveSporsmalExcel';
+import { PermanentNotification } from 'ukm-components-vue3';
+
 
 type StatusFilterKey = OppgaveSvarStatus | 'laster';
 
@@ -642,6 +660,10 @@ const SVAR_FILTER_FASTE: { key: 'besvart' | 'ikke_besvart'; label: string; color
 function erSporsmalSvarTomtVerdi(value: string): boolean {
     const val = value.trim();
     return val === '' || val === '—' || val === 'Kunne ikke hente svar';
+}
+
+function harMinstEnSisteBeskjedSendt(respondenter: OppgaveRespondentData[]): boolean {
+    return respondenter.some((r) => r.siste_beskjed != null);
 }
 
 function hentSporsmalSvarVerdi(respondent: OppgaveRespondentData): string | null {
@@ -720,6 +742,10 @@ function tilRespondentData(r: OppgaveRespondent, svarStatus: OppgaveSvarStatus |
 }
 
 export default {
+    components: {
+        PermanentNotification,
+    },
+
     props: {
         oppgaveId: {
             type: Number,
@@ -855,6 +881,10 @@ export default {
 
         harSvarfilter(): boolean {
             return this.valgteSvarFilter.length > 0;
+        },
+
+        harSisteBeskjed(): boolean {
+            return harMinstEnSisteBeskjedSendt(this.respondenter);
         },
 
         svarFilterAlternativer(): SvarFilterAlternativ[] {
