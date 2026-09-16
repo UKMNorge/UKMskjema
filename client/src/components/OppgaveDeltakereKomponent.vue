@@ -295,14 +295,14 @@
                     v-if="smsDeltakerMottakerIds.length === 0 && smsHoppetOverAntall > 0"
                     class="as-margin-bottom-space-1 as-margin-top-space-2 deltaker-rad__meta"
                 >
-                    Alle respondenter i den filtrerte listen har fått påminnelse siste 24 timer.
+                    Alle respondenter i den filtrerte listen har fått påminnelse de siste 24 timene.
                 </div>
                 <div
                     v-if="smsForesattKandidaterAntall > 0 && smsForesattMottakerIds.length === 0 && smsForesattHoppetOverAntall > 0"
                     class="as-margin-bottom-space-1 as-margin-top-space-2 deltaker-rad__meta"
                 >
-                    Alle foresatte i den filtrerte listen har fått påminnelse siste 24 timer.
-                    <span>Påminnelse sendes kun til svar som venter på samtykke fra foresatt.</span>.
+                    Alle foresatte i den filtrerte listen har fått påminnelse de siste 24 timene.
+                    <span>Påminnelse sendes kun til svar som venter på samtykke fra foresatt</span>.
                 </div>
                 <v-alert
                     v-if="smsResultat"
