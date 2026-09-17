@@ -1,8 +1,16 @@
 <template>
     <div class="oppgave-deltakere as-margin-top-space-4">
+    <template v-if="!locked">
+        <PermanentNotification class="as-margin-bottom-space-2" 
+            :typeNotification="'info'" 
+            :tittel="'Oppgaven er ikke tilgjengelig for deltakere/respondenter enda'" 
+            :isHTML="true"
+            :description="'<p>Oppgaven er ikke låst og derfor ikke tilgjengelig for deltakere/respondenter.</p><p>Når du er ferdig med oppsetting av oppgaven, må du låse den og den vil da bli tilgjengelig for deltakere/respondenter.</p><br><p>Bruk <b>LÅS</b> knappen på toppen av høyre side</p>'" />
+    </template>
+    <template v-else>
         <button
             type="button"
-            class="deltakere-header"
+            class="deltakere-header as-margin-top-space-1"
             :aria-expanded="utvidet"
             @click="toggleUtvidet"
         >
@@ -13,7 +21,7 @@
         </button>
 
         <v-expand-transition>
-            <div v-if="utvidet" class="deltakere-innhold">
+            <div v-if="utvidet" class="deltakere-innhold as-card-2 as-padding-space-2 as-margin-top-space-2 nosh-impt">
                 <p class="kjede-hjelp">
                     Klikk status for å filtrere listen. Velg et spørsmål for å vise svaret på hver respondent her.
                     Klikk en respondent for å åpne alle svarene i et nytt vindu.
@@ -600,6 +608,7 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+    </template>
     </div>
 </template>
 
@@ -750,6 +759,10 @@ export default {
         oppgaveId: {
             type: Number,
             required: true,
+        },
+        locked: {
+            type: Boolean,
+            default: false,
         },
         kanImportere: {
             type: Boolean,
@@ -1615,13 +1628,17 @@ export default {
     flex-shrink: 0;
 }
 .deltakere-innhold {
-    padding-top: 0.75rem;
+    padding-top: 1.5rem;
+    background: var(--color-primary-grey-extra-lightes);
+    /* border: solid 1px #bebebe47;
+    padding: 16px;
+    border-radius: 16px;
+    background: #f4f4f4 !important; */
 }
 .deltakere-sticky-verktoy {
     position: sticky;
     top: 0;
     z-index: 4;
-    background: #fff;
     padding: 0.75rem 0 1rem;
     margin-bottom: 0.75rem;
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
@@ -1631,7 +1648,7 @@ export default {
     flex-wrap: wrap;
     align-items: flex-start;
     gap: 0.75rem;
-    margin-bottom: 1rem;
+    margin-bottom: 2rem;
 }
 .sporsmal-verktoy-rad .sporsmal-velger {
     flex: 1 1 18rem;

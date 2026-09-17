@@ -174,7 +174,7 @@
             </div>
             <div
                 v-if="isAtLocalArrangement(o)"
-                class="consent-age-requirement-rad as-margin-top-space-2"
+                class="consent-age-requirement-rad as-margin-top-space-4"
             >
                 <v-select
                     :model-value="consentAgeRequirementSelectValue(o.consent_age_requirement)"
@@ -210,7 +210,7 @@
                     />
                 </div>
             </v-expand-transition>
-            <div v-if="isAtLocalArrangement(o)" class="as-margin-top-space-4">
+            <div v-if="isAtLocalArrangement(o)" class="as-margin-top-space-3">
                 <p class="kjede-tittel">Skjemarekkefølge</p>
                 <p v-if="o.skjema_kjede.length > 0" class="kjede-hjelp">
                     Dra et skjema for å flytte det. Slipp på et annet for å bytte plass.
@@ -333,6 +333,7 @@
                 :oppgave-type="o.type"
                 :arrangement-id="plId"
                 :kan-importere="erLandArrangement"
+                :locked="o.locked"
                 @feil="$emit('feil', $event)"
             />
         </div>
