@@ -56,13 +56,14 @@ try {
         }
         $oppgavePlId = $oppgave->getPlId();
         $rad = [
-            'id'          => $oppgave->getId(),
-            'name'        => $oppgave->getName(),
-            'type'        => $oppgave->getType(),
-            'pl_id'       => $oppgavePlId,
-            'description' => $oppgave->getDescription(),
-            'locked'      => $oppgave->isLocked(),
-            'skjema_kjede'=> $kjede,
+            'id'               => $oppgave->getId(),
+            'name'             => $oppgave->getName(),
+            'type'             => $oppgave->getType(),
+            'pl_id'            => $oppgavePlId,
+            'description'      => $oppgave->getDescription(),
+            'consent_age_requirement' => $oppgave->getConsentAgeRequirement(),
+            'locked'           => $oppgave->isLocked(),
+            'skjema_kjede'     => $kjede,
         ];
         if ($oppgavePlId !== $plId) {
             if (!isset($arrangementNavnCache[$oppgavePlId])) {
