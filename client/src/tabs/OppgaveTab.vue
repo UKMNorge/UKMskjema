@@ -585,8 +585,13 @@ export default {
             this.opprettLoading = true;
             try {
                 const besk = this.nyOppgave.beskrivelse.trim() || null;
-                await apiOpprettOppgave(navn, type, besk);
+                const opprettet = await apiOpprettOppgave(navn, type, besk);
                 this.nyOppgave = { navn: '', beskrivelse: '', type: null };
+                try {
+                    await this.leggTilAlleSkjemaer(opprettet.id);
+                } catch (e: any) {
+                    this.$emit('feil', e.message ?? 'Oppgaven ble opprettet, men kunne ikke legge til alle skjemaer');
+                }
                 await this.hentAlt();
             } catch (e: any) {
                 this.$emit('feil', e.message ?? 'Kunne ikke opprette oppgave');
@@ -616,6 +621,22 @@ export default {
                 this.$emit('feil', e.message ?? 'Kunne ikke slette oppgave');
             } finally {
                 this.slettOppgaveId = null;
+            }
+        },
+
+        async leggTilAlleSkjemaer(oppgaveId: number): Promise<void> {
+            const alleSkjemaer = [
+                ...(this.skjemaValg[SK_SAMTYKKE] ?? []).map((s) => ({
+                    type: SK_SAMTYKKE,
+                    id: s.id,
+                })),
+                ...(this.skjemaValg[SK_VIDERESENDING] ?? []).map((s) => ({
+                    type: SK_VIDERESENDING,
+                    id: s.id,
+                })),
+            ];
+            for (const skjema of alleSkjemaer) {
+                await leggTilSkjemaIKjede(oppgaveId, skjema.type, skjema.id);
             }
         },
 

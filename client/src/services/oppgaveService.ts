@@ -297,7 +297,7 @@ export async function opprettOppgave(
     name: string,
     type: string | null,
     description: string | null
-): Promise<void> {
+): Promise<{ id: number }> {
     const payload: Record<string, unknown> = {
         action: 'UKMskjema_ajax',
         controller: 'oppgave/createOppgave',
@@ -315,6 +315,13 @@ export async function opprettOppgave(
     if (!res.success) {
         throw new Error(res.message ?? res.result ?? 'Kunne ikke opprette oppgave');
     }
+
+    const id = Number(res.id);
+    if (!id) {
+        throw new Error('Oppgaven ble opprettet, men ID mangler');
+    }
+
+    return { id };
 }
 
 export async function slettOppgave(oppgaveId: number): Promise<void> {
