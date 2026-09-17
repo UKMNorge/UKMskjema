@@ -54,7 +54,7 @@
                     :items="consentAgeRequirementValg"
                     item-title="label"
                     item-value="value"
-                    label="Alderskrav for samtykke fra foresatte"
+                    label="Krev samtykke fra foresatte for deltakere under"
                     variant="outlined"
                     density="comfortable"
                     hide-details="auto"
@@ -181,7 +181,7 @@
                     :items="consentAgeRequirementValg"
                     item-title="label"
                     item-value="value"
-                    label="Alderskrav for samtykke fra foresatte"
+                    label="Krev samtykke fra foresatte for deltakere under"
                     variant="outlined"
                     density="comfortable"
                     hide-details="auto"
@@ -216,7 +216,6 @@
                     Dra et skjema for å flytte det. Slipp på et annet for å bytte plass.
                 </p>
                 <div
-                    v-if="o.skjema_kjede.length"
                     class="kjede-baand"
                     :class="{ 'kjede-baand--busy': reorderOppgaveId === o.id }"
                 >
@@ -266,46 +265,67 @@
                             </v-btn>
                         </div>
                     </div>
-                </div>
-                <p v-else class="tom-kjede">Ingen skjema i kjeden ennå.</p>
-
-                <div class="legg-til-rad as-margin-top-space-3">
-                    <v-select
-                        v-model="appendModel[o.id].skjemaType"
-                        :items="skjemaTypeValg"
-                        item-title="label"
-                        item-value="value"
-                        label="Skjematype"
-                        variant="outlined"
-                        hide-details="auto"
-                        class="felt v-autocomplete-arr-sys"
-                        @update:model-value="nullstillSkjemaId(o.id)"
-                    />
-                    <v-select
-                        v-model="appendModel[o.id].skjemaId"
-                        :items="skjemaIdValgFor(o.id)"
-                        item-title="navn"
-                        item-value="id"
-                        label="Skjema"
-                        variant="outlined"
-                        hide-details="auto"
-                        :disabled="!appendModel[o.id].skjemaType"
-                        class="felt v-autocomplete-arr-sys"
-                    />
-                    <div class="as-margin-auto">
-                        <v-btn
-                            class="v-btn-as v-btn-success as-margin-right-space-2"
-                            rounded="large"
-                            size="large"
-                            variant="outlined"
-                            :loading="appendLoadingId === o.id"
-                            :disabled="o.locked || !kanLeggeTil(o.id)"
-                            @click="leggTilLedd(o)"
+                    <div class="kjede-gruppe">
+                        <span
+                            v-if="o.skjema_kjede.length"
+                            class="kjede-separator"
+                            aria-hidden="true"
+                        >→</span>
+                        <button
+                            type="button"
+                            class="kjede-chip kjede-chip--legg-til"
+                            :class="{ 'kjede-chip--legg-til-open': isLeggTilUtvidet(o.id) }"
+                            :disabled="o.locked"
+                            :aria-expanded="isLeggTilUtvidet(o.id)"
+                            aria-label="Legg til skjema"
+                            @click="toggleLeggTilUtvidet(o.id)"
                         >
-                            <v-icon>mdi-plus</v-icon>
-                        </v-btn>
+                            <v-icon>
+                                {{ isLeggTilUtvidet(o.id) ? 'mdi-minus' : 'mdi-plus' }}
+                            </v-icon>
+                        </button>
                     </div>
                 </div>
+
+                <v-expand-transition>
+                    <div v-if="isLeggTilUtvidet(o.id)" class="legg-til-rad as-margin-top-space-3">
+                        <v-select
+                            v-model="appendModel[o.id].skjemaType"
+                            :items="skjemaTypeValg"
+                            item-title="label"
+                            item-value="value"
+                            label="Skjematype"
+                            variant="outlined"
+                            hide-details="auto"
+                            class="felt v-autocomplete-arr-sys"
+                            @update:model-value="nullstillSkjemaId(o.id)"
+                        />
+                        <v-select
+                            v-model="appendModel[o.id].skjemaId"
+                            :items="skjemaIdValgFor(o.id)"
+                            item-title="navn"
+                            item-value="id"
+                            label="Skjema"
+                            variant="outlined"
+                            hide-details="auto"
+                            :disabled="!appendModel[o.id].skjemaType"
+                            class="felt v-autocomplete-arr-sys"
+                        />
+                        <div class="as-margin-auto">
+                            <v-btn
+                                class="v-btn-as v-btn-success as-margin-right-space-2"
+                                rounded="large"
+                                size="large"
+                                variant="outlined"
+                                :loading="appendLoadingId === o.id"
+                                :disabled="o.locked || !kanLeggeTil(o.id)"
+                                @click="leggTilLedd(o)"
+                            >
+                                <v-icon>mdi-plus</v-icon>
+                            </v-btn>
+                        </div>
+                    </div>
+                </v-expand-transition>
             </div>
 
             <OppgaveDeltakereKomponent
@@ -381,6 +401,7 @@ export default {
             },
             appendModel: {} as Record<number, { skjemaType: string | null; skjemaId: number | null }>,
             infoUtvidetIds: {} as Record<number, boolean>,
+            leggTilUtvidetIds: {} as Record<number, boolean>,
             oppgaveTypeValg: [
                 { label: 'Deltakere', value: OPP_TYPE_DELTAKERE },
             ],
@@ -389,7 +410,7 @@ export default {
                 { label: 'Spørreskjema', value: SK_VIDERESENDING },
             ],
             consentAgeRequirementValg: [
-                { label: 'Ingen alderskrav', value: '' },
+                { label: 'Ingen samtykke fra foresatte', value: '' },
                 { label: 'Under 15 år', value: 'u15' },
                 { label: 'Under 18 år', value: 'u18' },
             ],
@@ -438,6 +459,14 @@ export default {
         toggleInfoUtvidet(oppgaveId: number): void {
             this.infoUtvidetIds[oppgaveId] = !this.infoUtvidetIds[oppgaveId];
         },
+
+        isLeggTilUtvidet(oppgaveId: number): boolean {
+            return !!this.leggTilUtvidetIds[oppgaveId];
+        },
+
+        toggleLeggTilUtvidet(oppgaveId: number): void {
+            this.leggTilUtvidetIds[oppgaveId] = !this.leggTilUtvidetIds[oppgaveId];
+        },
         synkRespondentFraUrl(): void {
             this.respondentFraUrl = readRespondentSvarFromUrl();
         },
@@ -465,7 +494,7 @@ export default {
         consentAgeRequirementLabel(value: string | null | undefined): string {
             const key = this.consentAgeRequirementSelectValue(value);
             const funnet = this.consentAgeRequirementValg.find((x) => x.value === key);
-            return funnet ? funnet.label : 'Ingen alderskrav';
+            return funnet ? funnet.label : 'Ingen samtykke fra foresatte';
         },
 
         skjemaTypeLabel(t: string): string {
@@ -709,6 +738,7 @@ export default {
             try {
                 await apiSlettOppgave(o.id);
                 delete this.appendModel[o.id];
+                delete this.leggTilUtvidetIds[o.id];
                 await this.hentAlt();
             } catch (e: any) {
                 this.$emit('feil', e.message ?? 'Kunne ikke slette oppgave');
@@ -751,6 +781,7 @@ export default {
                     this.oppgaver[idx].skjema_kjede = kjede;
                 }
                 m.skjemaId = null;
+                this.leggTilUtvidetIds[o.id] = false;
             } catch (e: any) {
                 this.$emit('feil', e.message ?? 'Kunne ikke legge til skjema');
             } finally {
@@ -813,6 +844,7 @@ export default {
     flex-wrap: wrap;
     align-items: center;
     gap: 0.35rem 0.15rem;
+    margin-top: calc(1 * var(--initial-space-box));
 }
 .kjede-gruppe {
     display: contents;
@@ -902,9 +934,23 @@ export default {
 .kjede-chip__fjern {
     flex-shrink: 0;
 }
-.tom-kjede {
-    color: var(--color-primary-grey-dark, #666);
-    font-style: italic;
+.kjede-chip--legg-til,
+.kjede-chip--legg-til:active {
+    min-height: 42px;
+    min-width: 60px;
+    justify-content: center;
+    padding: 0.3rem;
+    border-style: dashed;
+    cursor: pointer;
+    color: inherit;
+    font: inherit;
+}
+.kjede-chip--legg-til:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+.kjede-chip--legg-til-open {
+    border-style: solid;
 }
 .legg-til-rad {
     display: flex;
@@ -923,7 +969,7 @@ export default {
     gap: 0.75rem;
 }
 .consent-age-requirement-felt {
-    max-width: 16rem;
+    max-width: 27rem;
     flex: 1 1 12rem;
 }
 .consent-age-requirement-lagret {
