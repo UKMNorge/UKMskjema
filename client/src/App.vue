@@ -10,7 +10,7 @@
                 bg-color="#fff"
                 class="as-card-1 nosh-impt"
             >
-                <v-tab text="Samtykkeskjemaer" />
+                <v-tab text="Samtykker" />
                 <v-tab text="Spørreskjemaer" />
                 <v-tab text="Oppgaver" />
             </v-tabs>

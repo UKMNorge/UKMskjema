@@ -27,13 +27,13 @@
                 <template v-if="skjema.id === -1">
                     <div class="col-xs-12 nop-impt">
                         <div class="tidspunkt-tittel as-margin-bottom-space-3">
-                            <h5>Nytt samtykkeskjema</h5>
+                            <h5>Nytt samtykke</h5>
                         </div>
                         <div class="col-xs-6 nop-impt navn-div-select">
                             <v-text-field
                                 v-model="skjema.navn"
                                 label="Navn på skjema"
-                                placeholder="F.eks. Samtykkeskjema"
+                                placeholder="F.eks. Samtykke festivalregler"
                                 variant="outlined"
                                 class="v-text-field-arr-sys"
                                 density="comfortable"

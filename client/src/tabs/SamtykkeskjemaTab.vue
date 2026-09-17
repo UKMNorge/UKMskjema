@@ -11,12 +11,12 @@
                 size="x-large"
                 @click="leggTilSamtykkeskjema"
             >
-                Legg til samtykkeskjema
+                Legg til samtykke
             </v-btn>
         </div>
 
         <div class="as-padding-left-space-1 as-padding-right-space-1 as-margin-top-space-2 as-margin-bottom-space-2">
-            <h4>Samtykkeskjemaer</h4>
+            <h4>Samtykker</h4>
         </div>
 
         <!-- Loading skeleton -->
