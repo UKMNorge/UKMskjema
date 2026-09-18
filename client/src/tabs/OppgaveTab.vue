@@ -129,7 +129,8 @@
                 </div>
                 <div v-if="isAtLocalArrangement(o)" class="oppgave-actions">
                     <v-btn
-                        class="v-btn-as v-btn-hvit"
+                        class="v-btn-as v-btn-bla"
+                        :class="{ 'v-btn-success': o.locked }"
                         variant="outlined"
                         size="small"
                         rounded="large"
@@ -137,7 +138,7 @@
                         @click="toggleLock(o)"
                     >
                         <v-icon class="as-margin-right-space-1" size="small">
-                            {{ o.locked ? 'mdi-lock-open-variant-outline' : 'mdi-lock-outline' }}
+                            {{ !o.locked ? 'mdi-lock-open-variant-outline' : 'mdi-check-circle-outline' }}
                         </v-icon>
                         {{ o.locked ? 'Låst' : 'Lås' }}
                     </v-btn>
