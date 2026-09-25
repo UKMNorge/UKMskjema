@@ -129,20 +129,15 @@ class UKMskjema extends Modul
      **/
     public static function meny()
     {
-        add_action(
-            'admin_print_styles-' .
-                add_menu_page(
-
-                    'Skjemaer',
-                    'Skjemaer',
-                    'editor',
-                    'UKMskjema',
-                    ['UKMskjema', 'renderAdmin'],
-                    'dashicons-list-view', #'//ico.ukm.no/paper-airplane-20.png',
-                    90
-                ),
-            ['UKMskjema', 'script']
+        $page = add_submenu_page(
+            'ukm_kommunikasjon',   // slug of the main item, not its label
+            'Skjemaer',
+            'Skjemaer',
+            'editor',
+            'UKMskjema',
+            ['UKMskjema', 'renderAdmin']
         );
+        add_action('admin_print_styles-' . $page, ['UKMskjema', 'script']);
     }
 }
 

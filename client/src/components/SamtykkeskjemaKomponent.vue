@@ -506,9 +506,9 @@ export default {
         return {
             bekreftSlett: false,
             typeOptions: [
-                { title: 'Vanlig samtykke', value: 'vanlig' },
+                { title: 'Standard samtykke', value: 'vanlig' },
                 { title: 'Samtykke med kommentarfelt', value: 'med-kommentar' },
-                { title: 'Samtykke / Samtykker ikke', value: 'janei' },
+                { title: 'Samtykker / Samtykker ikke', value: 'janei' },
             ],
             subtypeOptions: [
                 { title: 'Standard', value: 'standard' },
