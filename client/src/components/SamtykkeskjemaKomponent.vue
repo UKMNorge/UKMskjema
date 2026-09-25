@@ -57,6 +57,7 @@
                             </div>
                             <div class="col-xs-4 as-padding-left-space-2">
                                 <v-select
+                                    style="visibility: hidden;"
                                     v-model="skjema.subtype"
                                     :items="subtypeOptions"
                                     item-title="title"
@@ -155,6 +156,7 @@
                                         </div>
                                         <div class="col-xs-4 as-padding-left-space-2">
                                             <v-select
+                                                style="visibility: hidden;"
                                                 v-model="skjema.subtype"
                                                 :items="subtypeOptions"
                                                 item-title="title"
