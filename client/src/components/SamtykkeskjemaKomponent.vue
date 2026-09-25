@@ -8,7 +8,7 @@
         >
             <div class="d-flex justify-space-between align-center">
                 <v-list-item-title class="text-h6">
-                    {{ skjema.navn || 'Nytt skjema' }}
+                    {{ skjema.navn }}
                 </v-list-item-title>
             </div>
 
@@ -398,10 +398,6 @@
                                                 density="comfortable"
                                                 hide-details="auto"
                                             />
-                                        </div>
-
-                                        <div v-if="skjema.versjon.id" class="col-xs-12 nop-impt as-margin-top-space-3 item-id-label">
-                                            Versjon ID #{{ skjema.versjon.id }}
                                         </div>
                                     </template>
 

@@ -118,9 +118,21 @@ export default {
             try {
                 const data = await apiOpprett(skjema.navn, skjema.type, skjema.subtype);
                 this.fjernNyttSamtykkeskjema();
-                await this.hentAlle();
-                const opprettet = this.alleSamtykkeskjemaer.find(s => s.id === data.id);
-                if (opprettet) opprettet.expanded = true;
+                
+                const res = await this.hentAlle();
+                if(this.hentet) {
+                    const opprettet = this.alleSamtykkeskjemaer.find(s => s.id == data.id);
+                    if (opprettet) {
+                        opprettet.expanded = true;
+                        opprettet.activeTab = 'versjon';
+                        opprettet.versjon = {
+                            versjon_nr: '1.0',
+                            beskrivelse: null,
+                            body_text: null,
+                            file_path: null,
+                        };
+                    }
+                }
             } catch (e: any) {
                 this.$emit('feil', e.message ?? 'Feil ved oppretting av samtykkeskjema');
             } finally {
