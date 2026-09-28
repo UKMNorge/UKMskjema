@@ -166,6 +166,16 @@
                                                     />
                                                 </div>
                                             </div>
+                                            <template v-if="nyttSporsmal.type == 'kontaktajourfore' || nyttSporsmal.type == 'innslagdatabekreftelse'">
+                                                <div class="col-xs-12 nop-impt">
+                                                    <PermanentNotification 
+                                                        :typeNotification="'info'" 
+                                                        :tittel="nyttSporsmal.type == 'kontaktajourfore' ? 'Bekreft registrerte brukerdata' : 'Bekreft registrerte innslagsdata'" 
+                                                        :isHTML="true"
+                                                        :description="
+                                                            nyttSporsmal.type == 'kontaktajourfore' ? '<p>Brukeren får se sine registrerte personopplysninger og må kontrollere og bekrefte at de er riktige.</p>' : '<p>Brukeren får se sine registrerte innslagsdata og må kontrollere og bekrefte at de er riktige.</p>'" />
+                                                </div>
+                                            </template>
                                             <div class="col-xs-2 nop-impt as-margin-top-space-2">
                                                 <v-checkbox
                                                     v-model="nyttSporsmal.is_required"
@@ -379,8 +389,13 @@
 import type { PropType } from 'vue';
 import type { SporreSkjema, SporsmalData } from '../objects/SporreSkjema';
 import { slettSporsmal as apiSlettSporsmal } from '../services/sporreskjemaService';
+import { PermanentNotification } from 'ukm-components-vue3';
 
 export default {
+    components: {
+        PermanentNotification,
+    },
+    
     props: {
         skjema: {
             type: Object as PropType<SporreSkjema>,
