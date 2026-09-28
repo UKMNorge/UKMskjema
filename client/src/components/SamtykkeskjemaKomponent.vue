@@ -100,7 +100,7 @@
                     <div class="col-xs-12 nop-impt">
 
                         <!-- Tabs -->
-                        <v-tabs v-model="skjema.activeTab" color="primary" align-tabs="start">
+                        <v-tabs style="display: none;" v-model="skjema.activeTab" color="primary" align-tabs="start">
                             <v-tab value="generelt">
                                 <v-icon start>mdi-information-outline</v-icon>
                                 Generelt
@@ -112,16 +112,15 @@
                                     {{ skjema.prosjekter.length }}
                                 </v-chip>
                             </v-tab> -->
-                            <v-tab value="versjon">
+                            <!-- <v-tab value="versjon">
                                 <v-icon start>mdi-tag-outline</v-icon>
                                 Innhold
                                 <v-chip v-if="skjema.versjon" size="x-small" class="ml-2" color="success">
                                     {{ skjema.versjon.versjon_nr }}
                                 </v-chip>
-                            </v-tab>
+                            </v-tab> -->
                         </v-tabs>
 
-                        <v-divider class="as-margin-bottom-space-3" />
 
                         <v-tabs-window v-model="skjema.activeTab">
 
@@ -167,6 +166,88 @@
                                                 hide-details="auto"
                                             />
                                         </div>
+
+                                        <div class="col-xs-12 nop-impt">
+                                            <div class="tidspunkt-tittel as-margin-top-space-4">
+                                                <h5>Innhold</h5>
+                                            </div>
+                                            <div class="col-xs-12 nop-impt as-margin-bottom-space-3 as-margin-top-space-2 tab-section-header">
+                                                <v-btn
+                                                    v-if="!skjema.versjon"
+                                                    class="v-btn-as v-btn-bla"
+                                                    rounded="large"
+                                                    size="large"
+                                                    variant="outlined"
+                                                    @click="skjema.versjon = { versjon_nr: '1.0', beskrivelse: null, body_text: null, file_path: null }"
+                                                >
+                                                    <v-icon start>mdi-plus</v-icon>
+                                                    Opprett versjon
+                                                </v-btn>
+                                            </div>
+
+                                            <template v-if="skjema.versjon">
+                                                <div class="col-xs-12 nop-impt">
+                                                    <!-- <div class="col-xs-4 nop-impt as-margin-right-space-2">
+                                                        <v-text-field
+                                                            v-model="skjema.versjon.versjon_nr"
+                                                            label="Versjonsnummer *"
+                                                            placeholder="F.eks. 1.0"
+                                                            variant="outlined"
+                                                            class="v-text-field-arr-sys"
+                                                            density="comfortable"
+                                                            :disabled="true"
+                                                            hide-details="auto"
+                                                        />
+                                                    </div> -->
+                                                    <div class="col-xs-6 nop-impt">
+                                                        <v-text-field
+                                                            v-model="skjema.versjon.beskrivelse"
+                                                            label="Beskrivelse"
+                                                            variant="outlined"
+                                                            class="v-text-field-arr-sys"
+                                                            density="comfortable"
+                                                            hide-details="auto"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-xs-12 col-xs-inner-box as-margin-top-space-3 nop-impt-fix">
+                                                    <div class="col-xs-12 nop-impt">
+                                                        <div class="tidspunkt-tittel as-margin-bottom-space-3">
+                                                            <h5>Innhold / brødtekst</h5>
+                                                        </div>
+                                                        <v-textarea
+                                                            v-model="skjema.versjon.body_text"
+                                                            label="Innhold / brødtekst"
+                                                            placeholder="Skriv inn teksten brukerne vil se når de skal gi samtykke…"
+                                                            variant="outlined"
+                                                            class="v-text-field-arr-sys"
+                                                            density="comfortable"
+                                                            rows="8"
+                                                            hide-details="auto"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div v-if="skjema.versjon.file_path" class="col-xs-10 nop-impt as-margin-top-space-3">
+                                                    <v-text-field
+                                                        v-model="skjema.versjon.file_path"
+                                                        label="Filsti (valgfritt)"
+                                                        variant="outlined"
+                                                        class="v-text-field-arr-sys"
+                                                        density="comfortable"
+                                                        hide-details="auto"
+                                                    />
+                                                </div>
+                                            </template>
+
+                                            <div v-else class="col-xs-12 nop-impt as-text-center as-padding-space-4">
+                                                <v-icon size="48" color="grey-lighten-1">mdi-tag-off-outline</v-icon>
+                                                <p class="as-margin-top-space-2">Ingen versjon opprettet</p>
+                                                <p style="color: var(--color-primary-grey-dark);">Klikk «Opprett versjon» for å legge til versjonsinformasjon og brødtekst.</p>
+                                            </div>
+
+                                            </div>
                                     </div>
                                     <!-- <div class="col-xs-12 nop-impt as-margin-top-space-2 item-id-label">
                                         ID #{{ skjema.id }}
@@ -325,90 +406,9 @@
                             </v-tabs-window-item> -->
 
                             <!-- ── TAB: Versjon ───────────────── -->
-                            <v-tabs-window-item value="versjon">
-                                <div class="col-xs-12 nop-impt">
-
-                                    <div class="col-xs-12 nop-impt as-margin-bottom-space-3 tab-section-header">
-                                        <div class="tidspunkt-tittel">
-                                            <h5>Versjonsinformasjon</h5>
-                                        </div>
-                                        <v-btn
-                                            v-if="!skjema.versjon"
-                                            class="v-btn-as v-btn-bla"
-                                            rounded="large"
-                                            size="large"
-                                            variant="outlined"
-                                            @click="skjema.versjon = { versjon_nr: '1.0', beskrivelse: null, body_text: null, file_path: null }"
-                                        >
-                                            <v-icon start>mdi-plus</v-icon>
-                                            Opprett versjon
-                                        </v-btn>
-                                    </div>
-
-                                    <template v-if="skjema.versjon">
-                                        <div class="col-xs-12 nop-impt">
-                                            <div class="col-xs-4 nop-impt as-margin-right-space-2">
-                                                <v-text-field
-                                                    v-model="skjema.versjon.versjon_nr"
-                                                    label="Versjonsnummer *"
-                                                    placeholder="F.eks. 1.0"
-                                                    variant="outlined"
-                                                    class="v-text-field-arr-sys"
-                                                    density="comfortable"
-                                                    :disabled="true"
-                                                    hide-details="auto"
-                                                />
-                                            </div>
-                                            <div class="col-xs-7 nop-impt">
-                                                <v-text-field
-                                                    v-model="skjema.versjon.beskrivelse"
-                                                    label="Beskrivelse"
-                                                    variant="outlined"
-                                                    class="v-text-field-arr-sys"
-                                                    density="comfortable"
-                                                    hide-details="auto"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div class="col-xs-12 col-xs-inner-box as-margin-top-space-3 nop-impt-fix">
-                                            <div class="col-xs-12 nop-impt">
-                                                <div class="tidspunkt-tittel as-margin-bottom-space-3">
-                                                    <h5>Innhold / brødtekst</h5>
-                                                </div>
-                                                <v-textarea
-                                                    v-model="skjema.versjon.body_text"
-                                                    label="Innhold / brødtekst"
-                                                    placeholder="Skriv inn teksten brukerne vil se når de skal gi samtykke…"
-                                                    variant="outlined"
-                                                    class="v-text-field-arr-sys"
-                                                    density="comfortable"
-                                                    rows="8"
-                                                    hide-details="auto"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div v-if="skjema.versjon.file_path" class="col-xs-10 nop-impt as-margin-top-space-3">
-                                            <v-text-field
-                                                v-model="skjema.versjon.file_path"
-                                                label="Filsti (valgfritt)"
-                                                variant="outlined"
-                                                class="v-text-field-arr-sys"
-                                                density="comfortable"
-                                                hide-details="auto"
-                                            />
-                                        </div>
-                                    </template>
-
-                                    <div v-else class="col-xs-12 nop-impt as-text-center as-padding-space-4">
-                                        <v-icon size="48" color="grey-lighten-1">mdi-tag-off-outline</v-icon>
-                                        <p class="as-margin-top-space-2">Ingen versjon opprettet</p>
-                                        <p style="color: var(--color-primary-grey-dark);">Klikk «Opprett versjon» for å legge til versjonsinformasjon og brødtekst.</p>
-                                    </div>
-
-                                </div>
-                            </v-tabs-window-item>
+                            <!-- <v-tabs-window-item value="versjon">
+                                
+                            </v-tabs-window-item> -->
 
                         </v-tabs-window>
 
