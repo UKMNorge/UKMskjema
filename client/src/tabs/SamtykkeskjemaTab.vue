@@ -15,7 +15,7 @@
             </v-btn>
         </div>
 
-        <div class="as-padding-left-space-1 as-padding-right-space-1 as-margin-top-space-2 as-margin-bottom-space-2">
+        <div v-if="alleSamtykkeskjemaer.length" class="as-padding-left-space-1 as-padding-right-space-1 as-margin-top-space-2 as-margin-bottom-space-2">
             <h4>Samtykker</h4>
         </div>
 
