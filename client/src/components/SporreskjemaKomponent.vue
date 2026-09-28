@@ -220,22 +220,22 @@
                                     </v-expand-transition>
 
                                     <!-- Spørsmål (flat liste, dra for rekkefølge) -->
-                                    <template v-if="skjema.sporsmal.length">
+                                    <draggable
+                                        v-if="skjema.sporsmal.length"
+                                        v-model="skjema.sporsmal"
+                                        :item-key="sporsmalRowKey"
+                                        handle=".sporsmal-drag-handle"
+                                        :animation="180"
+                                        @end="oppdaterSporsmalRekkefolge"
+                                    >
+                                        <template #item="{ element: s, index }">
                                         <div
-                                            v-for="(s, index) in skjema.sporsmal"
-                                            :key="sporsmalRowKey(s, index)"
                                             class="col-xs-12 sporsmal-item as-margin-bottom-space-2 nop-impt-fix"
-                                            :class="{ 'sporsmal-item--source-drag': sporsmalDraggingIndex === index }"
-                                            @dragover.prevent="sporsmalDragOverRow($event, index)"
-                                            @drop.prevent="sporsmalDropOnRow(index)"
                                         >
                                             <div class="col-xs-12 nop-impt d-flex align-start">
                                                 <div
                                                     class="sporsmal-drag-handle mr-2 mt-1"
                                                     title="Dra for å flytte"
-                                                    draggable="true"
-                                                    @dragstart="sporsmalDragStart($event, index)"
-                                                    @dragend="sporsmalDragEnd"
                                                 >
                                                     <div class="as-display-flex">
                                                         <h5 class="as-margin-auto-impt">{{ index + 1 }}</h5>
@@ -302,7 +302,8 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    </template>
+                                        </template>
+                                    </draggable>
 
                                     <div v-else-if="!visNyttSporsmalForm" class="col-xs-12 nop-impt as-text-center as-padding-space-4">
                                         <v-icon size="48" color="grey-lighten-1">mdi-comment-question-outline</v-icon>
@@ -387,13 +388,18 @@
 
 <script lang="ts">
 import type { PropType } from 'vue';
+import draggable from 'vuedraggable';
 import type { SporreSkjema, SporsmalData } from '../objects/SporreSkjema';
 import { slettSporsmal as apiSlettSporsmal } from '../services/sporreskjemaService';
 import { PermanentNotification } from 'ukm-components-vue3';
 
+const sporsmalClientKeys = new WeakMap<SporsmalData, number>();
+let sporsmalClientKeySeq = 0;
+
 export default {
     components: {
         PermanentNotification,
+        draggable,
     },
     
     props: {
@@ -438,8 +444,23 @@ export default {
     },
 
     methods: {
-        sporsmalRowKey(s: SporsmalData, index: number): string {
-            return s.id > 0 ? `id-${s.id}` : `ny-${index}-${s.tittel}`;
+        sporsmalRowKey(s: SporsmalData): string {
+            if (s.id > 0) {
+                return `id-${s.id}`;
+            }
+            let n = sporsmalClientKeys.get(s);
+            if (n === undefined) {
+                sporsmalClientKeySeq += 1;
+                n = sporsmalClientKeySeq;
+                sporsmalClientKeys.set(s, n);
+            }
+            return `ny-${n}`;
+        },
+
+        oppdaterSporsmalRekkefolge(): void {
+            this.skjema.sporsmal.forEach((row, i) => {
+                row.rekkefolge = i + 1;
+            });
         },
 
         sporsmalRemoveDragGhost(): void {
