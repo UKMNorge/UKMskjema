@@ -224,8 +224,13 @@
                                         v-if="skjema.sporsmal.length"
                                         v-model="skjema.sporsmal"
                                         :item-key="sporsmalRowKey"
+                                        class="sporsmal-liste"
+                                        :class="{ 'sporsmal-liste--sorting': sporsmalSorterer }"
                                         handle=".sporsmal-drag-handle"
+                                        chosen-class="sporsmal-item--chosen"
+                                        ghost-class="sporsmal-item--chosen"
                                         :animation="180"
+                                        @start="sporsmalSorterer = true"
                                         @end="oppdaterSporsmalRekkefolge"
                                     >
                                         <template #item="{ element: s, index }">
@@ -424,6 +429,7 @@ export default {
             bekreftSlett:       false,
             visNyttSporsmalForm: false,
             sporsmalLoading:    false,
+            sporsmalSorterer:   false,
             /** HTML5 DnD: kildeindeks i skjema.sporsmal, null når ikke aktiv */
             sporsmalDragFromIndex: null as number | null,
             /** Rad som visuelt «løftes» (klasse på kilden) */
@@ -458,6 +464,7 @@ export default {
         },
 
         oppdaterSporsmalRekkefolge(): void {
+            this.sporsmalSorterer = false;
             this.skjema.sporsmal.forEach((row, i) => {
                 row.rekkefolge = i + 1;
             });
@@ -628,6 +635,12 @@ export default {
     border-radius: var(--radius-normal) !important;
     border: solid 1px var(--color-primary-grey-light);
     padding: calc(4 * var(--initial-space-box)) calc(2 * var(--initial-space-box)) !important;
+}
+.sporsmal-liste--sorting > .sporsmal-item {
+    opacity: 0.5;
+}
+.sporsmal-liste--sorting > .sporsmal-item.sporsmal-item--chosen {
+    opacity: 1;
 }
 /* Kilden mens man drar — tydelig «tom» plass */
 .sporsmal-item--source-drag {
