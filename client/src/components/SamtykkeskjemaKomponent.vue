@@ -171,7 +171,7 @@
                                             <div class="tidspunkt-tittel as-margin-top-space-4">
                                                 <h5>Innhold</h5>
                                             </div>
-                                            <div class="col-xs-12 nop-impt as-margin-bottom-space-3 as-margin-top-space-2 tab-section-header">
+                                            <div class="col-xs-12 nop-impt as-margin-top-space-2 tab-section-header">
                                                 <v-btn
                                                     v-if="!skjema.versjon"
                                                     class="v-btn-as v-btn-bla"
@@ -181,7 +181,7 @@
                                                     @click="skjema.versjon = { versjon_nr: '1.0', beskrivelse: null, body_text: null, file_path: null }"
                                                 >
                                                     <v-icon start>mdi-plus</v-icon>
-                                                    Opprett versjon
+                                                    Opprett innhold
                                                 </v-btn>
                                             </div>
 
@@ -202,7 +202,7 @@
                                                     <div class="col-xs-6 nop-impt">
                                                         <v-text-field
                                                             v-model="skjema.versjon.beskrivelse"
-                                                            label="Beskrivelse"
+                                                            label="Beskrivelse (valgfritt)"
                                                             variant="outlined"
                                                             class="v-text-field-arr-sys"
                                                             density="comfortable"

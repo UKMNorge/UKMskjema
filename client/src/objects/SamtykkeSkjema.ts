@@ -48,7 +48,7 @@ export class SamtykkeSkjema {
         this.type       = data?.type ?? 'vanlig';
         this.subtype    = data?.subtype ?? 'standard';
         this.prosjekter = data?.prosjekter ?? [];
-        this.versjon    = data?.versjon ?? null;
+        this.versjon    = data?.versjon ?? { versjon_nr: '1.0', beskrivelse: null, body_text: null, file_path: null };
     }
 
     toJSON(): SamtykkeSkjemaData {
