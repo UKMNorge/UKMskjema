@@ -139,9 +139,9 @@
                                     <!-- Add-question form -->
                                     <v-expand-transition>
                                         <div v-if="visNyttSporsmalForm" class="col-xs-12 col-xs-inner-box as-margin-bottom-space-3 nop-impt-fix">
-                                            <div class="tidspunkt-tittel as-margin-bottom-space-3">
-                                                <h5>Nytt spørsmål</h5>
-                                            </div>
+                                            <!-- <div class="tidspunkt-tittel as-margin-bottom-space-3">
+                                                <h5>{{ nyttSporsmal.tittel }}</h5>
+                                            </div> -->
                                             <div class="col-xs-12 nop-impt">
                                                 <div class="col-xs-3 nop-impt as-margin-right-space-2">
                                                     <v-select
