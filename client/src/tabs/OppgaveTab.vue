@@ -10,14 +10,29 @@
         />
 
         <template v-else>
-        <div class="section-header as-margin-bottom-space-5">
-            <div class="as-padding-left-space-1">
+         <!-- Section header -->
+         <div class="section-header as-margin-bottom-space-5">
+            <v-btn
+                class="v-btn-as v-btn-hvit"
+                prepend-icon="mdi-plus"
+                color="#000"
+                rounded="large"
+                variant="outlined"
+                size="x-large"
+                @click="leggTilOppgave"
+            >
+                Legg til oppgave
+            </v-btn>
+        </div>
+
+        <div class="section-header as-margin-bottom-space-3">
+            <div v-if="oppgaver.length > 0" class="as-padding-left-space-1">
                 <h4>Oppgaver</h4>
             </div>
         </div>
 
         <!-- Ny oppgave -->
-        <div class="as-margin-bottom-space-4 as-card-1 as-padding-space-3">
+        <div v-if="showNyOppgave" class="as-margin-bottom-space-4 as-card-1 as-padding-space-3">
             <h4>Ny oppgave</h4>
             <div class="as-margin-top-space-4">
                 <v-text-field
@@ -101,8 +116,22 @@
         >
             <div class="d-flex flex-wrap align-center justify-space-between gap-2">
                 <div>
-                    <div class="d-flex align-center gap-1">
+                    <div class="d-flex align-center gap-1 as-margin-bottom-space-1">
                         <h4>{{ o.name }}</h4>
+                        <v-chip
+                            v-if="o.locked"
+                            size="small"
+                            color="success"
+                            class="as-margin-left-space-1">
+                                Publisert
+                        </v-chip>
+                        <v-chip
+                            v-if="!o.locked"
+                            size="small"
+                            color="warning"
+                            class="as-margin-left-space-1">
+                                Ikke publisert
+                        </v-chip>
                     </div>
                     <v-chip
                         v-if="o.arrangement_navn"
@@ -129,42 +158,53 @@
                 </div>
                 <div v-if="isAtLocalArrangement(o)" class="oppgave-actions">
                     <v-btn
-                        class="v-btn-as v-btn-bla"
-                        :class="{ 'v-btn-success': o.locked }"
-                        variant="outlined"
-                        size="small"
-                        rounded="large"
-                        :loading="lockOppgaveId === o.id"
-                        @click="toggleLock(o)"
-                    >
-                        <v-icon class="as-margin-right-space-1" size="small">
-                            {{ !o.locked ? 'mdi-lock-open-variant-outline' : 'mdi-check-circle-outline' }}
-                        </v-icon>
-                        {{ o.locked ? 'Låst' : 'Lås' }}
-                    </v-btn>
-
-                    <v-btn
                         class="v-btn-as v-btn-hvit"
                         variant="outlined"
                         size="small"
                         rounded="large"
                         @click="forhaandsvisOppgave(o)"
                     >
-                        <v-icon class="as-margin-right-space-1" size="small">
-                            mdi-eye-outline
-                        </v-icon>
-                        Forhåndsvis
+                    Forhåndsvis
+                    <v-icon class="as-margin-left-space-1" size="small">
+                        mdi-eye-outline
+                    </v-icon>
                     </v-btn>
 
                     <v-btn
-                        class="v-btn-as v-btn-error"
-                        icon
+                        v-if="o.locked"
+                        class="v-btn-as v-btn-bla"
                         variant="text"
                         size="small"
                         :loading="slettOppgaveId === o.id"
+                        @click="toggleLock(o)"
+                    >
+                        Rediger
+                        <v-icon class="as-margin-left-space-1" size="small">mdi-pencil-outline</v-icon>
+                    </v-btn>
+
+                    <v-btn
+                        v-if="!o.locked"
+                        class="v-btn-as v-btn-success"
+                        rounded="large"
+                        size="small"
+                        variant="outlined"
+                        @click="toggleLock(o)"
+                    >
+                        Publiser
+                        <v-icon class="as-margin-left-space-1" size="small">mdi-send-outline</v-icon>
+                    </v-btn>
+            
+                    <v-btn
+                        v-if="!o.locked"
+                        class="v-btn-as v-btn-error"
+                        rounded="large"
+                        size="small"
+                        variant="outlined"
+                        :loading="slettOppgaveId === o.id"
                         @click="bekreftSlettOppgave(o)"
                     >
-                        <v-icon>mdi-delete-outline</v-icon>
+                        Slett
+                        <v-icon class="as-margin-left-space-1" size="small">mdi-delete-outline</v-icon>
                     </v-btn>
                 </div>
             </div>
@@ -409,6 +449,7 @@ export default {
                 type: null as string | null,
                 consent_age_requirement: '' as OppgaveConsentAgeRequirement | '',
             },
+            showNyOppgave: false,
             appendModel: {} as Record<number, { skjemaType: string | null; skjemaId: number | null }>,
             infoUtvidetIds: {} as Record<number, boolean>,
             leggTilUtvidetIds: {} as Record<number, boolean>,
@@ -454,6 +495,9 @@ export default {
     },
 
     methods: {
+        leggTilOppgave(): void {
+            this.showNyOppgave = true;
+        },
         forhaandsvisOppgave(o: OppgaveData): void {
             window.open(`https://delta.ukm.no/ukmid/oppgaveliste/${this.plId}/preview`, '_blank');       
         },
@@ -806,7 +850,7 @@ export default {
 
         async leggTilLedd(o: OppgaveData): Promise<void> {
             if (o.locked) {
-                this.$emit('feil', 'Oppgaven er låst.');
+                this.$emit('feil', 'Oppgaven er publisert og kan ikke endres direkte. Klikk på rediger for å endre oppgaven.');
                 return;
             }
             this.sikreAppendModel(o.id);
@@ -832,7 +876,7 @@ export default {
 
         async fjernLedd(o: OppgaveData, ledd: OppgaveSkjemaKjedeItem): Promise<void> {
             if (o.locked) {
-                this.$emit('feil', 'Oppgaven er låst.');
+                this.$emit('feil', 'Oppgaven er publisert og kan ikke endres direkte. Klikk på rediger for å endre oppgaven.');
                 return;
             }
             this.slettLeddId = ledd.id;
@@ -952,7 +996,7 @@ export default {
     box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.22);
 }
 .kjede-chip.chip-sporsmal {
-    background-color: var(--as-color-primary-warning-lightest);
+    background-color: var(--as-color-primary-success-lightest);
 }
 .kjede-chip.chip-samtykke {
     background-color: var(--as-color-primary-info-lightest);

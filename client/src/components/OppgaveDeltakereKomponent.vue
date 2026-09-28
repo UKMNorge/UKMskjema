@@ -2,10 +2,10 @@
     <div class="oppgave-deltakere as-margin-top-space-4">
     <template v-if="!locked">
         <PermanentNotification class="as-margin-bottom-space-2" 
-            :typeNotification="'info'" 
-            :tittel="'Oppgaven er ikke tilgjengelig for deltakere/respondenter enda'" 
+            :typeNotification="'warning'" 
+            :tittel="'Når oppgaven ikke er publisert, er den ikke tilgjengelig for deltakere/respondenter'" 
             :isHTML="true"
-            :description="'<p>Oppgaven er ikke låst og derfor ikke tilgjengelig for deltakere/respondenter.</p><p>Når du er ferdig med oppsetting av oppgaven, må du låse den og den vil da bli tilgjengelig for deltakere/respondenter.</p><br><p>Bruk <b>LÅS</b> knappen på toppen av høyre side</p>'" />
+            :description="'<p>Oppgaven er <b>ikke publisert</b> og derfor ikke tilgjengelig for deltakere/respondenter.</p><p>Når du er ferdig med oppsetting av oppgaven, må du publisere den og den vil da bli tilgjengelig for deltakere/respondenter.</p><br><p>Bruk <b>PUBLISER</b> knappen på toppen av høyre side</p>'" />
     </template>
     <template v-else>
         <button
