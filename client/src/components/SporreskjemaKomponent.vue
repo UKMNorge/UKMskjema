@@ -149,7 +149,7 @@
                                                         :items="sporsmalTypeOptions"
                                                         item-title="label"
                                                         item-value="value"
-                                                        label="Type *"
+                                                        label="Svartype"
                                                         variant="outlined"
                                                         class="v-autocomplete-arr-sys"
                                                         hide-details="auto"
