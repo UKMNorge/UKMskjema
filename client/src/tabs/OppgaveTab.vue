@@ -214,79 +214,85 @@
             <div v-if="isAtLocalArrangement(o)" class="as-margin-top-space-3">
                 <p class="kjede-tittel">Skjemarekkefølge</p>
                 <p v-if="o.skjema_kjede.length > 0" class="kjede-hjelp">
-                    Dra et skjema for å flytte det. Slipp på et annet for å bytte plass.
+                    Dra håndtaket for å endre rekkefølgen.
                 </p>
-                <div
+                <draggable
+                    v-model="o.skjema_kjede"
+                    item-key="id"
+                    tag="div"
+                    direction="horizontal"
                     class="kjede-baand"
-                    :class="{ 'kjede-baand--busy': reorderOppgaveId === o.id }"
+                    :class="{
+                        'kjede-baand--busy': reorderOppgaveId === o.id,
+                        'kjede-baand--sorting': sortererOppgaveId === o.id,
+                    }"
+                    handle=".kjede-chip__grip"
+                    chosen-class="kjede-ledd--chosen"
+                    ghost-class="kjede-ledd--chosen"
+                    :disabled="o.locked || reorderOppgaveId === o.id"
+                    :animation="180"
+                    @start="onKjedeSortStart(o)"
+                    @end="onKjedeSortEnd(o)"
                 >
-                    <div
-                        v-for="(ledd, index) in o.skjema_kjede"
-                        :key="ledd.id"
-                        class="kjede-gruppe"
-                    >
-                        <span
-                            v-if="index > 0"
-                            class="kjede-separator"
-                            aria-hidden="true"
-                        >→</span>
-                        <div
-                            class="kjede-chip"
-                            :class="{
-                                'kjede-chip--dragging': dragKilde?.radId === ledd.id,
-                                'kjede-chip--over': dragOverRadId === ledd.id && dragKilde?.radId !== ledd.id,
-                                'chip-sporsmal': ledd.skjema_type === 'ukm_videresending_skjema',
-                                'chip-samtykke': ledd.skjema_type === 'samtykkeskjema'
-                            }"
-                            :draggable="!o.locked"
-                            @dragstart="onKjedeDragStart(o, ledd, $event)"
-                            @dragend="onKjedeDragEnd"
-                            @dragover.prevent="onKjedeDragOver(o, ledd, $event)"
-                            @dragleave="onKjedeDragLeave(ledd)"
-                            @drop.prevent="onKjedeDrop(o, ledd, $event)"
-                        >
-                            <v-icon size="small" class="kjede-chip__grip" aria-hidden="true">
-                                mdi-drag-vertical
-                            </v-icon>
-                            <span class="kjede-chip__tekst" :title="skjemaFullTekst(ledd)">
-                                <span class="kjede-chip__type">{{ skjemaTypeLabel(ledd.skjema_type) }}</span>
-                                <span class="kjede-chip__navn">{{ skjemaNavn(ledd) }}</span>
-                            </span>
-                            <v-btn
-                                icon
-                                size="x-small"
-                                variant="text"
-                                color="error"
-                                class="kjede-chip__fjern"
-                                :loading="slettLeddId === ledd.id"
-                                tabindex="-1"
-                                @click.stop="fjernLedd(o, ledd)"
+                    <template #item="{ element: ledd, index }">
+                        <div class="kjede-ledd">
+                            <span
+                                v-if="index > 0"
+                                class="kjede-separator"
+                                aria-hidden="true"
+                            >→</span>
+                            <div
+                                class="kjede-chip"
+                                :class="{
+                                    'chip-sporsmal': ledd.skjema_type === 'ukm_videresending_skjema',
+                                    'chip-samtykke': ledd.skjema_type === 'samtykkeskjema'
+                                }"
                             >
-                                <v-icon size="small">mdi-close</v-icon>
-                            </v-btn>
+                                <v-icon size="small" class="kjede-chip__grip" aria-hidden="true">
+                                    mdi-drag-vertical
+                                </v-icon>
+                                <span class="kjede-chip__tekst" :title="skjemaFullTekst(ledd)">
+                                    <span class="kjede-chip__type">{{ skjemaTypeLabel(ledd.skjema_type) }}</span>
+                                    <span class="kjede-chip__navn">{{ skjemaNavn(ledd) }}</span>
+                                </span>
+                                <v-btn
+                                    icon
+                                    size="x-small"
+                                    variant="text"
+                                    color="error"
+                                    class="kjede-chip__fjern"
+                                    :loading="slettLeddId === ledd.id"
+                                    tabindex="-1"
+                                    @click.stop="fjernLedd(o, ledd)"
+                                >
+                                    <v-icon size="small">mdi-close</v-icon>
+                                </v-btn>
+                            </div>
                         </div>
-                    </div>
-                    <div class="kjede-gruppe">
-                        <span
-                            v-if="o.skjema_kjede.length"
-                            class="kjede-separator"
-                            aria-hidden="true"
-                        >→</span>
-                        <button
-                            type="button"
-                            class="kjede-chip kjede-chip--legg-til"
-                            :class="{ 'kjede-chip--legg-til-open': isLeggTilUtvidet(o.id) }"
-                            :disabled="o.locked"
-                            :aria-expanded="isLeggTilUtvidet(o.id)"
-                            aria-label="Legg til skjema"
-                            @click="toggleLeggTilUtvidet(o.id)"
-                        >
-                            <v-icon>
-                                {{ isLeggTilUtvidet(o.id) ? 'mdi-minus' : 'mdi-plus' }}
-                            </v-icon>
-                        </button>
-                    </div>
-                </div>
+                    </template>
+                    <template #footer>
+                        <div class="kjede-gruppe">
+                            <span
+                                v-if="o.skjema_kjede.length"
+                                class="kjede-separator"
+                                aria-hidden="true"
+                            >→</span>
+                            <button
+                                type="button"
+                                class="kjede-chip kjede-chip--legg-til"
+                                :class="{ 'kjede-chip--legg-til-open': isLeggTilUtvidet(o.id) }"
+                                :disabled="o.locked"
+                                :aria-expanded="isLeggTilUtvidet(o.id)"
+                                aria-label="Legg til skjema"
+                                @click="toggleLeggTilUtvidet(o.id)"
+                            >
+                                <v-icon>
+                                    {{ isLeggTilUtvidet(o.id) ? 'mdi-minus' : 'mdi-plus' }}
+                                </v-icon>
+                            </button>
+                        </div>
+                    </template>
+                </draggable>
 
                 <v-expand-transition>
                     <div v-if="isLeggTilUtvidet(o.id)" class="legg-til-rad as-margin-top-space-3">
@@ -343,6 +349,7 @@
 </template>
 
 <script lang="ts">
+import draggable from 'vuedraggable';
 import { PermanentNotification } from 'ukm-components-vue3';
 import OppgaveDeltakereKomponent from '../components/OppgaveDeltakereKomponent.vue';
 import OppgaveSvar from '../components/OppgaveSvar.vue';
@@ -372,7 +379,7 @@ const OPP_TYPE_FYLKESKONTAKTER = 'fylkeskontakter';
 const OPP_TYPE_DELTAKERE = 'deltakere';
 
 export default {
-    components: { PermanentNotification, OppgaveDeltakereKomponent, OppgaveSvar },
+    components: { PermanentNotification, OppgaveDeltakereKomponent, OppgaveSvar, draggable },
 
     emits: ['feil'],
 
@@ -393,6 +400,7 @@ export default {
             consentAgeRequirementLagretId: null as number | null,
             consentAgeRequirementLagretTimer: null as ReturnType<typeof setTimeout> | null,
             reorderOppgaveId: null as number | null,
+            sortererOppgaveId: null as number | null,
             dragKilde: null as { oppgaveId: number; radId: number } | null,
             dragOverRadId: null as number | null,
             nyOppgave: {
@@ -517,6 +525,37 @@ export default {
 
         skjemaFullTekst(ledd: OppgaveSkjemaKjedeItem): string {
             return `${this.skjemaTypeLabel(ledd.skjema_type)}: ${this.skjemaNavn(ledd)}`;
+        },
+
+        onKjedeSortStart(o: OppgaveData): void {
+            this.sortererOppgaveId = o.id;
+            (this as unknown as { _kjedeForSort: OppgaveSkjemaKjedeItem[] | null })._kjedeForSort = o.skjema_kjede.slice();
+        },
+
+        async onKjedeSortEnd(o: OppgaveData): Promise<void> {
+            this.sortererOppgaveId = null;
+            if (o.locked) {
+                return;
+            }
+            const oIdx = this.oppgaver.findIndex((x) => x.id === o.id);
+            if (oIdx === -1) {
+                return;
+            }
+            const radIds = this.oppgaver[oIdx].skjema_kjede.map((x) => x.id);
+            this.reorderOppgaveId = o.id;
+            try {
+                const oppdatert = await reorderOppgaveKjede(o.id, radIds);
+                this.oppgaver[oIdx].skjema_kjede = oppdatert;
+            } catch (err: any) {
+                const forrige = (this as unknown as { _kjedeForSort: OppgaveSkjemaKjedeItem[] | null })._kjedeForSort;
+                if (forrige) {
+                    this.oppgaver[oIdx].skjema_kjede = forrige;
+                }
+                this.$emit('feil', err.message ?? 'Kunne ikke endre rekkefølge');
+            } finally {
+                (this as unknown as { _kjedeForSort: OppgaveSkjemaKjedeItem[] | null })._kjedeForSort = null;
+                this.reorderOppgaveId = null;
+            }
         },
 
         onKjedeDragStart(o: OppgaveData, ledd: OppgaveSkjemaKjedeItem, e: DragEvent): void {
@@ -853,6 +892,17 @@ export default {
     align-items: center;
     gap: 0.15rem;
 }
+.kjede-ledd {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+}
+.kjede-baand--sorting > .kjede-ledd {
+    opacity: 0.5;
+}
+.kjede-baand--sorting > .kjede-ledd.kjede-ledd--chosen {
+    opacity: 1;
+}
 .kjede-baand--busy {
     opacity: 0.65;
     pointer-events: none;
@@ -886,7 +936,6 @@ export default {
     border: 1px solid rgba(0, 0, 0, 0.12);
     border-radius: var(--radius-high, 10px);
     background: rgba(255, 255, 255, 0.95);
-    cursor: grab;
     transition:
         border-color 0.15s ease,
         box-shadow 0.15s ease,
@@ -909,6 +958,7 @@ export default {
     background-color: var(--as-color-primary-info-lightest);
 }
 .kjede-chip__grip {
+    cursor: grab;
     opacity: 0.5;
     flex-shrink: 0;
 }
