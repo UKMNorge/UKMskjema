@@ -121,7 +121,7 @@
                                         <div class="tidspunkt-tittel">
                                             <h5>Spørsmål i skjemaet</h5>
                                             <p v-if="skjema.sporsmal.length" class="sporsmal-dnd-hint item-id-label mt-1 mb-0">
-                                                Dra håndtaket til venstre for å endre rekkefølge. Husk «Lagre skjemaet».
+                                                Dra håndtaket til venstre for å endre rekkefølge.
                                             </p>
                                         </div>
                                         <v-btn
@@ -255,10 +255,11 @@
                                                                 :items="sporsmalTypeOptions"
                                                                 item-title="label"
                                                                 item-value="value"
-                                                                label="Type"
+                                                                label="Svartype"
                                                                 variant="outlined"
                                                                 class="v-autocomplete-arr-sys"
                                                                 hide-details
+                                                                @update:model-value="$emit('lagre-kun-sporsmal', skjema)"
                                                             />
                                                         </div>
                                                         <div class="col-xs-12 col-sm-6 nop-impt flex-grow-1 as-margin-right-space-2 mb-2 mb-sm-0">
@@ -269,6 +270,7 @@
                                                                 class="v-text-field-arr-sys"
                                                                 density="compact"
                                                                 hide-details
+                                                                @blur="$emit('lagre-kun-sporsmal', skjema)"
                                                             />
                                                         </div>
                                                         <div class="col-xs-12 col-sm-2 nop-impt as-margin-right-space-2 mb-2 mb-sm-0 d-flex align-center">
@@ -277,6 +279,7 @@
                                                                 label="Påkrevd"
                                                                 hide-details
                                                                 density="compact"
+                                                                @update:model-value="$emit('lagre-kun-sporsmal', skjema)"
                                                             />
                                                         </div>
                                                         <div class="col-xs-12 col-sm-1 nop-impt sporsmal-delete-col">
@@ -299,6 +302,7 @@
                                                             class="v-text-field-arr-sys"
                                                             density="compact"
                                                             hide-details
+                                                            @blur="$emit('lagre-kun-sporsmal', skjema)"
                                                         />
                                                     </div>
                                                     <!-- <div v-if="s.id" class="col-xs-12 nop-impt as-margin-top-space-1 item-id-label">
@@ -331,7 +335,7 @@
                                 :loading="loading"
                                 @click="$emit('lagre', skjema)"
                             >
-                                Lagre skjemaet
+                                Lagre
                             </v-btn>
 
                             <v-btn
@@ -418,7 +422,7 @@ export default {
         },
     },
 
-    emits: ['opprett', 'lagre', 'fjern', 'slett', 'feil'],
+    emits: ['opprett', 'lagre', 'fjern', 'slett', 'feil', 'lagre-kun-sporsmal'],
 
     beforeUnmount() {
         this.sporsmalRemoveDragGhost();
@@ -468,6 +472,7 @@ export default {
             this.skjema.sporsmal.forEach((row, i) => {
                 row.rekkefolge = i + 1;
             });
+            this.$emit('lagre-kun-sporsmal', this.skjema);
         },
 
         sporsmalRemoveDragGhost(): void {
@@ -563,6 +568,7 @@ export default {
                 is_required:this.nyttSporsmal.is_required,
             } as SporsmalData);
             this.avbrytNyttSporsmal();
+            this.$emit('lagre-kun-sporsmal', this.skjema);
         },
 
         avbrytNyttSporsmal(): void {
@@ -590,6 +596,7 @@ export default {
 
             this.skjema.sporsmal.splice(idx, 1);
             this.skjema.sporsmal.forEach((s, i) => { s.rekkefolge = i + 1; });
+            this.$emit('lagre-kun-sporsmal', this.skjema);
         },
     },
 };

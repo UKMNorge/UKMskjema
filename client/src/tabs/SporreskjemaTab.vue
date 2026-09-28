@@ -39,6 +39,7 @@
                     :loading="skjemaLoading"
                     @opprett="opprettSporreskjema"
                     @lagre="lagreSporreskjema"
+                    @lagre-kun-sporsmal="lagreSporreskjema(s, true)"
                     @fjern="fjernNyttSporreskjema"
                     @slett="slettSporreskjema"
                     @feil="$emit('feil', $event)"
@@ -129,14 +130,14 @@ export default {
             }
         },
 
-        async lagreSporreskjema(skjema: SporreSkjema): Promise<void> {
+        async lagreSporreskjema(skjema: SporreSkjema, kunSporsmal: boolean = false): Promise<void> {
             if (!skjema.id) {
                 this.$emit('feil', 'Opprett et skjema før du lagrer data.');
                 return;
             }
             this.skjemaLoading = true;
             try {
-                const data = await apiLagre(skjema.id, skjema.sporsmal, skjema.navn);
+                const data = await apiLagre(skjema.id, skjema.sporsmal, kunSporsmal ? undefined : skjema.navn);
                 const oppdatert = new SporreSkjema(data);
                 oppdatert.expanded  = true;
                 oppdatert.activeTab = skjema.activeTab;
