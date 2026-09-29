@@ -116,7 +116,7 @@ export default {
         async opprettSamtykkeskjema(skjema: SamtykkeSkjema): Promise<void> {
             this.skjemaLoading = true;
             try {
-                const data = await apiOpprett(skjema.navn, skjema.type, skjema.subtype);
+                const data = await apiOpprett(skjema.navn, skjema.type, skjema.subtype, skjema.parent_consent_requirement);
                 this.fjernNyttSamtykkeskjema();
                 
                 const res = await this.hentAlle();
@@ -153,7 +153,8 @@ export default {
                     skjema.type,
                     skjema.subtype,
                     skjema.prosjekter,
-                    skjema.versjon
+                    skjema.versjon,
+                    skjema.parent_consent_requirement
                 );
                 const oppdatert = new SamtykkeSkjema(data);
                 oppdatert.expanded  = true;

@@ -57,6 +57,18 @@
                             </div>
                             <div class="col-xs-4 as-padding-left-space-2">
                                 <v-select
+                                    v-model="skjema.parent_consent_requirement"
+                                    :items="parentConsentOptions"
+                                    item-title="title"
+                                    item-value="value"
+                                    label="Foresattesamtykke"
+                                    variant="outlined"
+                                    class="v-autocomplete-arr-sys"
+                                    hide-details="auto"
+                                />
+                            </div>
+                            <div class="col-xs-4 as-padding-left-space-2">
+                                <v-select
                                     style="visibility: hidden;"
                                     v-model="skjema.subtype"
                                     :items="subtypeOptions"
@@ -148,6 +160,18 @@
                                                 item-title="title"
                                                 item-value="value"
                                                 label="Type"
+                                                variant="outlined"
+                                                class="v-autocomplete-arr-sys"
+                                                hide-details="auto"
+                                            />
+                                        </div>
+                                        <div class="col-xs-4 as-padding-left-space-2">
+                                            <v-select
+                                                v-model="skjema.parent_consent_requirement"
+                                                :items="parentConsentOptions"
+                                                item-title="title"
+                                                item-value="value"
+                                                label="Foresattesamtykke"
                                                 variant="outlined"
                                                 class="v-autocomplete-arr-sys"
                                                 hide-details="auto"
@@ -511,6 +535,11 @@ export default {
             subtypeOptions: [
                 { title: 'Standard', value: 'standard' },
                 // { title: 'Bilde og film', value: 'bilde_film' },
+            ],
+            parentConsentOptions: [
+                { title: 'Ingen', value: null },
+                { title: 'Under 15 år', value: 'u15' },
+                { title: 'Under 18 år', value: 'u18' },
             ],
         };
     },

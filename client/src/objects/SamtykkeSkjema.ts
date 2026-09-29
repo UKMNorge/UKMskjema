@@ -16,12 +16,14 @@ export interface SamtykkeVersjonData {
 }
 
 export type SamtykkeSkjemaSubtype = 'standard' | 'bilde_film';
+export type ParentConsentRequirement = 'u15' | 'u18';
 
 export interface SamtykkeSkjemaData {
     id: number;
     navn: string;
     type?: 'vanlig' | 'med-kommentar' | 'janei';
     subtype?: SamtykkeSkjemaSubtype | null;
+    parent_consent_requirement?: ParentConsentRequirement | null;
     prosjekter?: SamtykkeProsjektData[];
     versjon?: SamtykkeVersjonData | null;
 }
@@ -31,6 +33,7 @@ export class SamtykkeSkjema {
     navn: string;
     type: 'vanlig' | 'med-kommentar' | 'janei';
     subtype: SamtykkeSkjemaSubtype | null;
+    parent_consent_requirement: ParentConsentRequirement | null;
     prosjekter: SamtykkeProsjektData[];
     versjon: SamtykkeVersjonData | null;
 
@@ -47,6 +50,7 @@ export class SamtykkeSkjema {
         this.navn       = data?.navn ?? '';
         this.type       = data?.type ?? 'vanlig';
         this.subtype    = data?.subtype ?? 'standard';
+        this.parent_consent_requirement = data?.parent_consent_requirement ?? null;
         this.prosjekter = data?.prosjekter ?? [];
         this.versjon    = data?.versjon ?? { versjon_nr: '1.0', beskrivelse: null, body_text: null, file_path: null };
     }
@@ -57,6 +61,7 @@ export class SamtykkeSkjema {
             navn:       this.navn,
             type:       this.type,
             subtype:    this.subtype,
+            parent_consent_requirement: this.parent_consent_requirement,
             prosjekter: this.prosjekter,
             versjon:    this.versjon,
         };

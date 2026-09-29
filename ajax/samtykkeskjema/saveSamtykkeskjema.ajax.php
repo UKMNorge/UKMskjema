@@ -7,12 +7,13 @@ use UKMNorge\OAuth2\HandleAPICall;
 $arrangementId = get_option('pl_id');
 $skjemaer = SamtykkeSkjema::getAllByArrangementId($arrangementId);
 
-$handleCall = new HandleAPICall(['skjema_id', 'navn'], ['type', 'subtype'], ['POST'], false);
+$handleCall = new HandleAPICall(['skjema_id', 'navn'], ['type', 'subtype', 'parent_consent_requirement'], ['POST'], false);
 
 $skjemaId = (int) $handleCall->getArgument('skjema_id');
 $navn = $handleCall->getArgument('navn');
 $type = $handleCall->getOptionalArgument('type');
 $subtype = $handleCall->getOptionalArgument('subtype');
+$parentConsentRequirement = $handleCall->getOptionalArgument('parent_consent_requirement');
 
 $skjema = null;
 foreach($skjemaer as $s) {
@@ -33,6 +34,9 @@ if ($type !== null) {
 if ($subtype !== null) {
     $skjema->setSubtype($subtype !== '' ? $subtype : null);
 }
+if ($parentConsentRequirement !== null) {
+    $skjema->setParentConsentRequirement($parentConsentRequirement !== '' ? $parentConsentRequirement : null);
+}
 $skjema = Write::save($skjema);
 
 $handleCall->sendToClient([
@@ -40,5 +44,6 @@ $handleCall->sendToClient([
     'navn'    => $skjema->getNavn(),
     'type'    => $skjema->getType(),
     'subtype' => $skjema->getSubtype(),
+    'parent_consent_requirement' => $skjema->getParentConsentRequirement(),
     'success' => true,
 ]);

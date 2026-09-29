@@ -1,4 +1,4 @@
-import type { SamtykkeSkjemaData, SamtykkeProsjektData, SamtykkeVersjonData } from '../objects/SamtykkeSkjema';
+import type { ParentConsentRequirement, SamtykkeSkjemaData, SamtykkeProsjektData, SamtykkeVersjonData } from '../objects/SamtykkeSkjema';
 
 
 function getAjaxUrl(): string {
@@ -45,8 +45,9 @@ export async function hentAlleSamtykkeskjemaer(): Promise<SamtykkeskjemaListeRes
 export async function opprettSamtykkeskjema(
     navn: string,
     type?: string,
-    subtype?: string | null
-): Promise<{ id: number; navn: string; type?: string; subtype?: string | null }> {
+    subtype?: string | null,
+    parentConsentRequirement?: ParentConsentRequirement | null
+): Promise<{ id: number; navn: string; type?: string; subtype?: string | null; parent_consent_requirement?: ParentConsentRequirement | null }> {
     var spaInteraction = (<any>window).spaInteraction;
 
     var data : any = {
@@ -61,6 +62,9 @@ export async function opprettSamtykkeskjema(
     if (subtype !== undefined && subtype !== null) {
         data.subtype = subtype;
     }
+    if (parentConsentRequirement) {
+        data.parent_consent_requirement = parentConsentRequirement;
+    }
 
     var res = await spaInteraction.runAjaxCall('/', 'POST', data);
 
@@ -68,7 +72,7 @@ export async function opprettSamtykkeskjema(
         throw new Error(res.message ?? 'Kunne ikke opprette samtykkeskjema');
     }
 
-    return res as { id: number; navn: string; type?: string; subtype?: string | null };
+    return res as { id: number; navn: string; type?: string; subtype?: string | null; parent_consent_requirement?: ParentConsentRequirement | null };
 }
 
 /**
@@ -83,7 +87,8 @@ export async function lagreAllDataSamtykkeskjema(
     type?: string,
     subtype?: string | null,
     prosjekter?: SamtykkeProsjektData[],
-    versjon?: SamtykkeVersjonData | null
+    versjon?: SamtykkeVersjonData | null,
+    parentConsentRequirement?: ParentConsentRequirement | null
 ): Promise<any> {
     var spaInteraction = (<any>window).spaInteraction;
 
@@ -99,6 +104,9 @@ export async function lagreAllDataSamtykkeskjema(
     }
     if (subtype !== undefined) {
         data.subtype = subtype ?? '';
+    }
+    if (parentConsentRequirement !== undefined) {
+        data.parent_consent_requirement = parentConsentRequirement ?? '';
     }
 
     const res = await spaInteraction.runAjaxCall('/', 'POST', data);
