@@ -7,7 +7,7 @@
             variant="outlined"
             @click="tilbakeTilOppgaveliste">
             <v-icon>mdi-arrow-left</v-icon>
-            Tilbake til oppgaveliste
+            Tilbake til svar
         </v-btn>
         <div class="oppgave-svar__header">
             <h4 class="oppgave-svar__tittel">{{ visningsNavn }}</h4>

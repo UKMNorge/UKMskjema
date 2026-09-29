@@ -1,15 +1,5 @@
 <template>
     <div>
-        <OppgaveSvar
-            v-if="respondentFraUrl"
-            :oppgave-id="respondentFraUrl.oppgaveId"
-            :arrangementId="plId"
-            :phone="respondentFraUrl.phone"
-            @feil="$emit('feil', $event)"
-            @tilbake="synkRespondentFraUrl"
-        />
-
-        <template v-else>
          <!-- Section header -->
          <div class="section-header as-margin-bottom-space-5">
             <v-btn
@@ -208,7 +198,7 @@
                         typeNotification="info"
                         :tittel="'Hvorfor ser du denne oppgaven?'"
                         :isHTML="true"
-                        :description="'<p>Du ser denne oppgaven fordi du har videresendt deltakere som skal svare på den. Du kan se svarene fra dine deltakere eller personer du har nominert eller sendt videre.</p>'"
+                        :description="'<p>Du ser denne oppgaven fordi du har videresendt deltakere som skal svare på den. Svarene fra dine deltakere eller personer du har nominert eller sendt videre ligger under <b>Følg opp svar</b>.</p>'"
                     />
                 </div>
             </v-expand-transition>
@@ -275,7 +265,7 @@
                         <div class="kjede-gruppe">
                             <span
                                 v-if="o.skjema_kjede.length"
-                                class="kjede-separator"
+                                class="kjede-separator static-separator"
                                 aria-hidden="true"
                             >→</span>
                             <button
@@ -335,29 +325,13 @@
                     </div>
                 </v-expand-transition>
             </div>
-
-            <OppgaveDeltakereKomponent
-                :oppgave-id="o.id"
-                :oppgave-type="o.type"
-                :arrangement-id="plId"
-                :kan-importere="erLandArrangement"
-                :locked="o.locked"
-                @feil="$emit('feil', $event)"
-            />
         </div>
-        </template>
     </div>
 </template>
 
 <script lang="ts">
 import draggable from 'vuedraggable';
 import { PermanentNotification } from 'ukm-components-vue3';
-import OppgaveDeltakereKomponent from '../components/OppgaveDeltakereKomponent.vue';
-import OppgaveSvar from '../components/OppgaveSvar.vue';
-import {
-    readRespondentSvarFromUrl,
-    type RespondentSvarUrlParams,
-} from '../utils/oppgaveUrl';
 import {
     hentOppgaveOversikt,
     opprettOppgave as apiOpprettOppgave,
@@ -378,7 +352,7 @@ const OPP_TYPE_FYLKESKONTAKTER = 'fylkeskontakter';
 const OPP_TYPE_DELTAKERE = 'deltakere';
 
 export default {
-    components: { PermanentNotification, OppgaveDeltakereKomponent, OppgaveSvar, draggable },
+    components: { PermanentNotification, draggable },
 
     emits: ['feil'],
 
@@ -415,19 +389,10 @@ export default {
                 { label: 'Samtykkeskjema', value: SK_SAMTYKKE },
                 { label: 'Spørreskjema', value: SK_VIDERESENDING },
             ],
-            respondentFraUrl: null as RespondentSvarUrlParams | null,
         };
     },
 
-    computed: {
-        erLandArrangement(): boolean {
-            return this.arrangementType === 'land';
-        },
-    },
-
     mounted() {
-        this.synkRespondentFraUrl();
-        window.addEventListener('popstate', this.synkRespondentFraUrl);
         this.hentAlt();
 
         if(this.arrangementType === 'land') {
@@ -435,10 +400,6 @@ export default {
             this.oppgaveTypeValg.push({ label: 'Reiseledere', value: OPP_TYPE_REISELEDERE });
             this.oppgaveTypeValg.push({ label: 'Fylkeskontakter', value: OPP_TYPE_FYLKESKONTAKTER });
         }
-    },
-
-    unmounted() {
-        window.removeEventListener('popstate', this.synkRespondentFraUrl);
     },
 
     methods: {
@@ -467,9 +428,6 @@ export default {
 
         toggleLeggTilUtvidet(oppgaveId: number): void {
             this.leggTilUtvidetIds[oppgaveId] = !this.leggTilUtvidetIds[oppgaveId];
-        },
-        synkRespondentFraUrl(): void {
-            this.respondentFraUrl = readRespondentSvarFromUrl();
         },
 
         typeLabel(type: string): string {
@@ -847,6 +805,7 @@ export default {
     display: inline-flex;
     align-items: center;
     gap: 0.15rem;
+    margin-top: 10px;
 }
 .kjede-baand--sorting > .kjede-ledd {
     opacity: 0.5;
@@ -936,6 +895,9 @@ export default {
 }
 .kjede-chip__fjern {
     flex-shrink: 0;
+}
+.kjede-chip--legg-til, .kjede-separator.static-separator {
+    margin-top: 10px;
 }
 .kjede-chip--legg-til,
 .kjede-chip--legg-til:active {

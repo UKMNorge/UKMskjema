@@ -1,7 +1,10 @@
 import { Director } from 'ukm-spa/Director';
 
-/** v-tabs index for «Oppgaver» in App.vue */
+/** v-tabs index for «Publiser oppgaver» in App.vue */
 export const OPPGAVE_TAB_INDEX = 1;
+
+/** v-tabs index for «Følg opp svar» in App.vue */
+export const SVAR_TAB_INDEX = 2;
 
 export const PARAM_OPGAVE_ID = 'oppgave_id';
 export const PARAM_PHONE = 'phone';
@@ -28,7 +31,7 @@ export function readRespondentSvarFromUrl(): RespondentSvarUrlParams | null {
 
 export function buildRespondentSvarUrl(oppgaveId: number, phone: string): string {
     const params = new URLSearchParams(window.location.search);
-    params.set('tab', String(OPPGAVE_TAB_INDEX));
+    params.set('tab', String(SVAR_TAB_INDEX));
     params.set(PARAM_OPGAVE_ID, String(oppgaveId));
     params.set(PARAM_PHONE, phone.trim());
     return `${window.location.pathname}?${params.toString()}`;
@@ -36,7 +39,7 @@ export function buildRespondentSvarUrl(oppgaveId: number, phone: string): string
 
 export function setRespondentSvarUrl(oppgaveId: number, phone: string): void {
     const director = getDirector();
-    director.addParam('tab', String(OPPGAVE_TAB_INDEX));
+    director.addParam('tab', String(SVAR_TAB_INDEX));
     director.addParam(PARAM_OPGAVE_ID, String(oppgaveId));
     director.addParam(PARAM_PHONE, phone.trim());
 }

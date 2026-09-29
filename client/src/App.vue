@@ -57,7 +57,8 @@ import { watch } from 'vue';
 import { Director } from 'ukm-spa/Director';
 import SkjemaerTab from './tabs/SkjemaerTab.vue';
 import OppgaveTab from './tabs/OppgaveTab.vue';
-import { OPPGAVE_TAB_INDEX, readRespondentSvarFromUrl } from './utils/oppgaveUrl';
+import SvarTab from './tabs/SvarTab.vue';
+import { SVAR_TAB_INDEX, readRespondentSvarFromUrl } from './utils/oppgaveUrl';
 
 const director = new Director();
 
@@ -65,6 +66,7 @@ export default {
     components: {
         SkjemaerTab,
         OppgaveTab,
+        SvarTab,
     },
 
     data() {
@@ -77,12 +79,11 @@ export default {
     mounted() {
         const savedTab = director.getParam('tab');
         if (readRespondentSvarFromUrl()) {
-            this.tab = OPPGAVE_TAB_INDEX;
-            director.addParam('tab', String(OPPGAVE_TAB_INDEX));
+            this.tab = SVAR_TAB_INDEX;
+            director.addParam('tab', String(SVAR_TAB_INDEX));
         } else {
             const parsed = savedTab !== null ? Number(savedTab) : 0;
-            // Previous layout used index 2 for Oppgaver.
-            this.tab = parsed >= OPPGAVE_TAB_INDEX ? OPPGAVE_TAB_INDEX : 0;
+            this.tab = parsed === 0 || parsed === 1 || parsed === SVAR_TAB_INDEX ? parsed : 0;
         }
 
         watch(() => this.tab, (newTab) => {
