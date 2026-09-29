@@ -32,8 +32,47 @@
             />
         </template>
 
+        <template v-else-if="!skjemaListe.length">
+            <div class="skjema-filter as-margin-bottom-space-2">
+                <v-chip
+                    v-for="valg in typeFilterValg"
+                    :key="valg.value"
+                    class="skjema-filter__chip"
+                    size="small"
+                    :variant="typeFilter === valg.value ? 'flat' : 'outlined'"
+                    :color="valg.color"
+                    role="button"
+                    tabindex="0"
+                    @click="typeFilter = valg.value"
+                    @keyup.enter="typeFilter = valg.value"
+                >
+                    {{ valg.label }}: {{ valg.antall }}
+                </v-chip>
+            </div>
+            <p class="tom-liste-tekst as-margin-top-space-2">
+                Ingen skjemaer av denne typen.
+            </p>
+        </template>
+
         <v-card v-else class="mx-auto skjema-card">
+            
             <v-list lines="three" class="skjema-list">
+                <div class="skjema-filter as-margin-bottom-space-2">
+                    <v-chip
+                        v-for="valg in typeFilterValg"
+                        :key="valg.value"
+                        class="skjema-filter__chip"
+                        size="small"
+                        :variant="typeFilter === valg.value ? 'flat' : 'outlined'"
+                        :color="valg.color"
+                        role="button"
+                        tabindex="0"
+                        @click="typeFilter = valg.value"
+                        @keyup.enter="typeFilter = valg.value"
+                    >
+                        {{ valg.label }}: {{ valg.antall }}
+                    </v-chip>
+                </div>
                 <template v-for="rad in skjemaListe" :key="rad.key">
                     <SamtykkeskjemaKomponent
                         v-if="rad.kind === 'samtykke'"
@@ -79,6 +118,9 @@ import {
 import SamtykkeskjemaKomponent from '../components/SamtykkeskjemaKomponent.vue';
 import SporreskjemaKomponent from '../components/SporreskjemaKomponent.vue';
 
+type SkjemaKind = 'samtykke' | 'sporreskjema';
+type SkjemaTypeFilter = 'alle' | SkjemaKind;
+
 type SkjemaRad =
     | { kind: 'samtykke'; key: string; skjema: SamtykkeSkjema }
     | { kind: 'sporreskjema'; key: string; skjema: SporreSkjema };
@@ -101,10 +143,27 @@ export default {
             sporreLoading:        false as boolean,
             utkastTeller:         0 as number,
             utkastStamp:          {} as Record<string, number>,
+            typeFilter:           'alle' as SkjemaTypeFilter,
         };
     },
 
     computed: {
+        antallSamtykker(): number {
+            return this.alleSamtykkeskjemaer.filter((s) => s.id !== -1).length;
+        },
+
+        antallSporreskjemaer(): number {
+            return this.alleSporreskjemaer.filter((s) => s.id !== -1).length;
+        },
+
+        typeFilterValg(): { value: SkjemaTypeFilter; label: string; color: string; antall: number }[] {
+            return [
+                { value: 'alle', label: 'Alle', color: 'primary', antall: this.antallSamtykker + this.antallSporreskjemaer },
+                { value: 'samtykke', label: 'Samtykke', color: 'primary', antall: this.antallSamtykker },
+                { value: 'sporreskjema', label: 'Spørreskjema', color: 'secondary', antall: this.antallSporreskjemaer },
+            ];
+        },
+
         skjemaListe(): SkjemaRad[] {
             const rader: SkjemaRad[] = [
                 ...this.alleSamtykkeskjemaer.map((skjema) => ({
@@ -124,7 +183,11 @@ export default {
             const lagret = rader
                 .filter((rad) => rad.skjema.id !== -1)
                 .sort((a, b) => a.skjema.navn.localeCompare(b.skjema.navn, 'nb'));
-            return [...utkast, ...lagret];
+            const alle = [...utkast, ...lagret];
+            if (this.typeFilter === 'alle') {
+                return alle;
+            }
+            return alle.filter((rad) => rad.kind === this.typeFilter);
         },
     },
 
@@ -159,6 +222,9 @@ export default {
         },
 
         leggTilSamtykkeskjema(): void {
+            if (this.typeFilter === 'sporreskjema') {
+                this.typeFilter = 'samtykke';
+            }
             for (const s of this.alleSamtykkeskjemaer) {
                 if (s.id === -1) { s.expanded = true; return; }
             }
@@ -242,6 +308,9 @@ export default {
         },
 
         leggTilSporreskjema(): void {
+            if (this.typeFilter === 'samtykke') {
+                this.typeFilter = 'sporreskjema';
+            }
             for (const s of this.alleSporreskjemaer) {
                 if (s.id === -1) { s.expanded = true; return; }
             }
@@ -322,6 +391,20 @@ export default {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.skjema-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.skjema-filter__chip {
+    cursor: pointer;
+}
+.tom-liste-tekst {
+    color: var(--color-primary-grey-dark);
+    margin-top: calc(2 * var(--initial-space-box));
 }
 .skjema-list,
 .skjema-card {
