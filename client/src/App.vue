@@ -11,7 +11,8 @@
                 class="as-card-1 nosh-impt"
             >
                 <v-tab text="Lag oppgaver" />
-                <v-tab text="Oppgaver" />
+                <v-tab text="Publiser oppgaver" />
+                <v-tab text="Følg opp svar" />
             </v-tabs>
         </div>
 
@@ -37,6 +38,10 @@
 
                         <v-tabs-window-item>
                             <OppgaveTab @feil="feil = $event" />
+                        </v-tabs-window-item>
+
+                        <v-tabs-window-item>
+                            <SvarTab @feil="feil = $event" />
                         </v-tabs-window-item>
 
                     </v-tabs-window>

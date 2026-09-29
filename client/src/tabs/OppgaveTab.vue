@@ -21,7 +21,7 @@
                 size="x-large"
                 @click="leggTilOppgave"
             >
-                Legg til oppgave
+                Legg til publisering
             </v-btn>
         </div>
 
