@@ -6,11 +6,12 @@ use UKMNorge\OAuth2\HandleAPICall;
 
 require_once('UKM/Autoloader.php');
 
-$handleCall = new HandleAPICall(['skjema_id'], ['sporsmal', 'navn'], ['POST'], false);
+$handleCall = new HandleAPICall(['skjema_id'], ['sporsmal', 'navn', 'parent_consent_requirement'], ['POST'], false);
 
 $skjemaId     = (int) $handleCall->getArgument('skjema_id');
 $sporsmalRaw  = $handleCall->getOptionalArgument('sporsmal');
 $navnRaw      = $handleCall->getOptionalArgument('navn');
+$parentConsentRequirement = $handleCall->getOptionalArgument('parent_consent_requirement');
 $arrangementId = (int) get_option('pl_id');
 
 // Finn skjemaet og valider at det tilhører dette arrangementet
@@ -20,6 +21,17 @@ if ($navnRaw !== null) {
     try {
         Write::saveSkjemaNavn($skjema, trim((string) $navnRaw));
         $skjema->setNavn(trim((string) $navnRaw));
+    } catch (Exception $e) {
+        $handleCall->sendErrorToClient($e->getMessage(), $e->getCode() ?: 500);
+    }
+}
+
+if ($parentConsentRequirement !== null) {
+    try {
+        Write::saveParentConsentRequirement(
+            $skjema,
+            $parentConsentRequirement !== '' ? $parentConsentRequirement : null
+        );
     } catch (Exception $e) {
         $handleCall->sendErrorToClient($e->getMessage(), $e->getCode() ?: 500);
     }
@@ -97,6 +109,7 @@ $handleCall->sendToClient([
     'navn'           => $skjema->getNavn(),
     'arrangement_id' => (int) $skjema->getArrangementId(),
     'type'           => $skjema->getType(),
+    'parent_consent_requirement' => $skjema->getParentConsentRequirement(),
     'sporsmal'       => $savedSporsmal,
 ]);
 

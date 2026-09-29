@@ -107,6 +107,18 @@
                                             hide-details="auto"
                                         />
                                     </div>
+                                    <div class="col-xs-4 nop-impt as-margin-top-space-3">
+                                        <v-select
+                                            v-model="skjema.parent_consent_requirement"
+                                            :items="parentConsentOptions"
+                                            item-title="title"
+                                            item-value="value"
+                                            label="Foresattesamtykke"
+                                            variant="outlined"
+                                            class="v-autocomplete-arr-sys"
+                                            hide-details="auto"
+                                        />
+                                    </div>
                                     <!-- <div class="col-xs-12 nop-impt as-margin-top-space-2 item-id-label">
                                         ID #{{ skjema.id }} · Arrangement ID #{{ skjema.arrangementId }}
                                     </div> -->
@@ -440,6 +452,11 @@ export default {
             sporsmalDraggingIndex: null as number | null,
             nyttSporsmal: { type: 'kort_tekst', tittel: '', tekst: '', is_required: true } as { type: string; tittel: string; tekst: string; is_required: boolean },
 
+            parentConsentOptions: [
+                { title: 'Ingen', value: null },
+                { title: 'Under 15 år', value: 'u15' },
+                { title: 'Under 18 år', value: 'u18' },
+            ],
             sporsmalTypeOptions: [
                 { value: 'kontakt',       label: 'Kontaktinformasjon (navn, epost, mobil)' },
                 { value: 'janei',         label: 'Ja / nei' },

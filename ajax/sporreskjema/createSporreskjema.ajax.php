@@ -30,5 +30,6 @@ $handleCall->sendToClient([
     'navn'           => $skjema->getNavn(),
     'arrangement_id' => (int) $skjema->getArrangementId(),
     'type'           => $skjema->getType(),
+    'parent_consent_requirement' => $skjema->getParentConsentRequirement(),
     'sporsmal'       => [],
 ]);

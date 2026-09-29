@@ -13,12 +13,15 @@ export interface GruppeData {
     sporsmal: SporsmalData[];
 }
 
+export type ParentConsentRequirement = 'u15' | 'u18';
+
 export interface SporreSkjemaData {
     id: number;
     arrangement_id: number;
     /** Alltid oppgave-spørreskjema i denne flyten */
     type: 'oppgave';
     navn?: string;
+    parent_consent_requirement?: ParentConsentRequirement | null;
     sporsmal?: SporsmalData[];
 }
 
@@ -27,6 +30,7 @@ export class SporreSkjema {
     arrangementId: number;
     type: 'oppgave';
     navn: string;
+    parent_consent_requirement: ParentConsentRequirement | null;
     sporsmal: SporsmalData[];
 
     // UI state (not serialised)
@@ -38,6 +42,7 @@ export class SporreSkjema {
         this.arrangementId = data?.arrangement_id ?? 0;
         this.type          = 'oppgave';
         this.navn          = data?.navn ?? '';
+        this.parent_consent_requirement = data?.parent_consent_requirement ?? null;
         this.sporsmal      = data?.sporsmal ?? [];
     }
 
@@ -118,6 +123,7 @@ export class SporreSkjema {
             arrangement_id: this.arrangementId,
             type:           this.type,
             navn:           this.navn,
+            parent_consent_requirement: this.parent_consent_requirement,
             sporsmal:       this.sporsmal,
         };
     }

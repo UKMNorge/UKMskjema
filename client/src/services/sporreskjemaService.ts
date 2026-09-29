@@ -1,4 +1,4 @@
-import type { SporreSkjemaData, SporsmalData } from '../objects/SporreSkjema';
+import type { ParentConsentRequirement, SporreSkjemaData, SporsmalData } from '../objects/SporreSkjema';
 
 function getSpaInteraction(): any {
     return (window as any).spaInteraction;
@@ -53,7 +53,8 @@ export async function opprettSporreskjema(navn: string): Promise<SporreSkjemaDat
 export async function lagreSporreskjema(
     skjemaId: number,
     sporsmal: SporsmalData[],
-    navn?: string
+    navn?: string,
+    parentConsentRequirement?: ParentConsentRequirement | null
 ): Promise<SporreSkjemaData> {
     const payload: Record<string, unknown> = {
         action:     'UKMskjema_ajax',
@@ -63,6 +64,9 @@ export async function lagreSporreskjema(
     };
     if (navn !== undefined) {
         payload.navn = navn;
+    }
+    if (parentConsentRequirement !== undefined) {
+        payload.parent_consent_requirement = parentConsentRequirement ?? '';
     }
     const res = await getSpaInteraction().runAjaxCall('/', 'POST', payload);
 

@@ -137,7 +137,12 @@ export default {
             }
             this.skjemaLoading = true;
             try {
-                const data = await apiLagre(skjema.id, skjema.sporsmal, kunSporsmal ? undefined : skjema.navn);
+                const data = await apiLagre(
+                    skjema.id,
+                    skjema.sporsmal,
+                    kunSporsmal ? undefined : skjema.navn,
+                    kunSporsmal ? undefined : skjema.parent_consent_requirement
+                );
                 const oppdatert = new SporreSkjema(data);
                 oppdatert.expanded  = true;
                 oppdatert.activeTab = skjema.activeTab;
