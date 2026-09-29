@@ -1,7 +1,7 @@
 import { Director } from 'ukm-spa/Director';
 
 /** v-tabs index for «Oppgaver» in App.vue */
-export const OPPGAVE_TAB_INDEX = 2;
+export const OPPGAVE_TAB_INDEX = 1;
 
 export const PARAM_OPGAVE_ID = 'oppgave_id';
 export const PARAM_PHONE = 'phone';

@@ -10,8 +10,7 @@
                 bg-color="#fff"
                 class="as-card-1 nosh-impt"
             >
-                <v-tab text="Samtykker" />
-                <v-tab text="Spørreskjemaer" />
+                <v-tab text="Lag oppgaver" />
                 <v-tab text="Oppgaver" />
             </v-tabs>
         </div>
@@ -33,11 +32,7 @@
                     <v-tabs-window v-model="tab">
 
                         <v-tabs-window-item>
-                            <SamtykkeskjemaTab @feil="feil = $event" />
-                        </v-tabs-window-item>
-
-                        <v-tabs-window-item>
-                            <SporreskjemaTab @feil="feil = $event" />
+                            <SkjemaerTab @feil="feil = $event" />
                         </v-tabs-window-item>
 
                         <v-tabs-window-item>
@@ -55,8 +50,7 @@
 <script lang="ts">
 import { watch } from 'vue';
 import { Director } from 'ukm-spa/Director';
-import SamtykkeskjemaTab from './tabs/SamtykkeskjemaTab.vue';
-import SporreskjemaTab from './tabs/SporreskjemaTab.vue';
+import SkjemaerTab from './tabs/SkjemaerTab.vue';
 import OppgaveTab from './tabs/OppgaveTab.vue';
 import { OPPGAVE_TAB_INDEX, readRespondentSvarFromUrl } from './utils/oppgaveUrl';
 
@@ -64,8 +58,7 @@ const director = new Director();
 
 export default {
     components: {
-        SamtykkeskjemaTab,
-        SporreskjemaTab,
+        SkjemaerTab,
         OppgaveTab,
     },
 
@@ -82,7 +75,9 @@ export default {
             this.tab = OPPGAVE_TAB_INDEX;
             director.addParam('tab', String(OPPGAVE_TAB_INDEX));
         } else {
-            this.tab = savedTab !== null ? Number(savedTab) : 0;
+            const parsed = savedTab !== null ? Number(savedTab) : 0;
+            // Previous layout used index 2 for Oppgaver.
+            this.tab = parsed >= OPPGAVE_TAB_INDEX ? OPPGAVE_TAB_INDEX : 0;
         }
 
         watch(() => this.tab, (newTab) => {

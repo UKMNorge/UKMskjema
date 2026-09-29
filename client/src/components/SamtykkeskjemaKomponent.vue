@@ -7,9 +7,19 @@
             class="skjema-item nop-impt as-card-1 as-padding-space-3"
         >
             <div class="d-flex justify-space-between align-center">
-                <v-list-item-title class="text-h6">
-                    {{ skjema.navn }}
-                </v-list-item-title>
+                <div class="d-flex align-center flex-wrap">
+                    <v-list-item-title class="text-h6">
+                        {{ skjema.navn }}
+                    </v-list-item-title>
+                    <v-chip
+                        size="small"
+                        variant="tonal"
+                        color="primary"
+                        class="as-margin-left-space-2"
+                    >
+                        Samtykke
+                    </v-chip>
+                </div>
             </div>
 
             <template v-slot:prepend>
