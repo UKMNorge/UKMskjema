@@ -61,7 +61,6 @@ try {
             'type'             => $oppgave->getType(),
             'pl_id'            => $oppgavePlId,
             'description'      => $oppgave->getDescription(),
-            'consent_age_requirement' => $oppgave->getConsentAgeRequirement(),
             'locked'           => $oppgave->isLocked(),
             'skjema_kjede'     => $kjede,
         ];

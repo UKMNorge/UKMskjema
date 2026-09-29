@@ -13,8 +13,6 @@ export interface OppgaveSkjemaKjedeItem {
     neste_id: number | null;
 }
 
-export type OppgaveConsentAgeRequirement = 'u15' | 'u18';
-
 export interface OppgaveData {
     id: number;
     name: string;
@@ -22,7 +20,6 @@ export interface OppgaveData {
     pl_id: number;
     arrangement_navn?: string;
     description: string | null;
-    consent_age_requirement: OppgaveConsentAgeRequirement | null;
     locked: boolean;
     skjema_kjede: OppgaveSkjemaKjedeItem[];
 }
@@ -299,8 +296,7 @@ export async function hentRespondentSvarStatus(
 export async function opprettOppgave(
     name: string,
     type: string | null,
-    description: string | null,
-    consentAgeRequirement: OppgaveConsentAgeRequirement | null = null
+    description: string | null
 ): Promise<{ id: number }> {
     const payload: Record<string, unknown> = {
         action: 'UKMskjema_ajax',
@@ -312,9 +308,6 @@ export async function opprettOppgave(
     }
     if (description) {
         payload.description = description;
-    }
-    if (consentAgeRequirement) {
-        payload.consent_age_requirement = consentAgeRequirement;
     }
 
     const res = await getSpaInteraction().runAjaxCall('/', 'POST', payload);
@@ -434,25 +427,6 @@ export async function sendBeskjed(
         sendt_til: Array.isArray(res.sendt_til) ? res.sendt_til : [],
         feil: Array.isArray(res.feil) ? res.feil : [],
     };
-}
-
-export async function settOppgaveConsentAgeRequirement(
-    oppgaveId: number,
-    consentAgeRequirement: OppgaveConsentAgeRequirement | null
-): Promise<OppgaveConsentAgeRequirement | null> {
-    const res = await getSpaInteraction().runAjaxCall('/', 'POST', {
-        action: 'UKMskjema_ajax',
-        controller: 'oppgave/setConsentAgeRequirement',
-        oppgave_id: oppgaveId,
-        consent_age_requirement: consentAgeRequirement ?? '',
-    });
-
-    if (!res.success) {
-        throw new Error(res.message ?? res.result ?? 'Kunne ikke oppdatere alderskrav for samtykke');
-    }
-
-    const lagret = res.consent_age_requirement;
-    return lagret === 'u15' || lagret === 'u18' ? lagret : null;
 }
 
 export async function toggleOppgaveLock(oppgaveId: number, locked: boolean): Promise<boolean> {

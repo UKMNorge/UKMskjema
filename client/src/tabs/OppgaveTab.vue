@@ -62,17 +62,6 @@
                     density="comfortable"
                     clearable
                     hide-details="auto"
-                    class="v-autocomplete-arr-sys as-margin-bottom-space-2"
-                />
-                <v-select
-                    v-model="nyOppgave.consent_age_requirement"
-                    :items="consentAgeRequirementValg"
-                    item-title="label"
-                    item-value="value"
-                    label="Krev samtykke fra foresatte for deltakere under"
-                    variant="outlined"
-                    density="comfortable"
-                    hide-details="auto"
                     class="v-autocomplete-arr-sys"
                 />
             </div>
@@ -212,34 +201,6 @@
                 <span v-if="o.type">{{ typeLabel(o.type) }}</span>
                 <span v-if="o.type && o.description"> · </span>
                 <span v-if="o.description">{{ o.description }}</span>
-            </div>
-            <div
-                v-if="isAtLocalArrangement(o)"
-                class="consent-age-requirement-rad as-margin-top-space-4"
-            >
-                <v-select
-                    :model-value="consentAgeRequirementSelectValue(o.consent_age_requirement)"
-                    :items="consentAgeRequirementValg"
-                    item-title="label"
-                    item-value="value"
-                    label="Krev samtykke fra foresatte for deltakere under"
-                    variant="outlined"
-                    density="comfortable"
-                    hide-details="auto"
-                    :disabled="o.locked || consentAgeRequirementOppgaveId === o.id"
-                    :loading="consentAgeRequirementOppgaveId === o.id"
-                    class="v-autocomplete-arr-sys consent-age-requirement-felt"
-                    @update:model-value="endreConsentAgeRequirement(o, $event)"
-                />
-                <span
-                    v-if="consentAgeRequirementLagretId === o.id"
-                    class="consent-age-requirement-lagret"
-                >
-                    Lagret
-                </span>
-            </div>
-            <div v-else class="as-margin-top-space-1">
-                Alderskrav for samtykke: {{ consentAgeRequirementLabel(o.consent_age_requirement) }}
             </div>
             <v-expand-transition>
                 <div v-if="!isAtLocalArrangement(o) && isInfoUtvidet(o.id)" class="">
@@ -405,8 +366,6 @@ import {
     fjernSkjemaFraKjede,
     reorderOppgaveKjede,
     toggleOppgaveLock,
-    settOppgaveConsentAgeRequirement,
-    type OppgaveConsentAgeRequirement,
     type OppgaveData,
     type OppgaveSkjemaKjedeItem,
 } from '../services/oppgaveService';
@@ -436,9 +395,6 @@ export default {
             slettOppgaveId: null as number | null,
             slettLeddId: null as number | null,
             lockOppgaveId: null as number | null,
-            consentAgeRequirementOppgaveId: null as number | null,
-            consentAgeRequirementLagretId: null as number | null,
-            consentAgeRequirementLagretTimer: null as ReturnType<typeof setTimeout> | null,
             reorderOppgaveId: null as number | null,
             sortererOppgaveId: null as number | null,
             dragKilde: null as { oppgaveId: number; radId: number } | null,
@@ -447,7 +403,6 @@ export default {
                 navn: '',
                 beskrivelse: '',
                 type: null as string | null,
-                consent_age_requirement: '' as OppgaveConsentAgeRequirement | '',
             },
             showNyOppgave: false,
             appendModel: {} as Record<number, { skjemaType: string | null; skjemaId: number | null }>,
@@ -459,11 +414,6 @@ export default {
             skjemaTypeValg: [
                 { label: 'Samtykkeskjema', value: SK_SAMTYKKE },
                 { label: 'Spørreskjema', value: SK_VIDERESENDING },
-            ],
-            consentAgeRequirementValg: [
-                { label: 'Ingen samtykke fra foresatte', value: '' },
-                { label: 'Under 15 år', value: 'u15' },
-                { label: 'Under 18 år', value: 'u18' },
             ],
             respondentFraUrl: null as RespondentSvarUrlParams | null,
         };
@@ -489,9 +439,6 @@ export default {
 
     unmounted() {
         window.removeEventListener('popstate', this.synkRespondentFraUrl);
-        if (this.consentAgeRequirementLagretTimer) {
-            clearTimeout(this.consentAgeRequirementLagretTimer);
-        }
     },
 
     methods: {
@@ -539,16 +486,6 @@ export default {
                 return 'Deltakere';
             }
             return type;
-        },
-
-        consentAgeRequirementSelectValue(value: string | null | undefined): string {
-            return value === 'u15' || value === 'u18' ? value : '';
-        },
-
-        consentAgeRequirementLabel(value: string | null | undefined): string {
-            const key = this.consentAgeRequirementSelectValue(value);
-            const funnet = this.consentAgeRequirementValg.find((x) => x.value === key);
-            return funnet ? funnet.label : 'Ingen samtykke fra foresatte';
         },
 
         skjemaTypeLabel(t: string): string {
@@ -723,33 +660,6 @@ export default {
             }
         },
 
-        async endreConsentAgeRequirement(o: OppgaveData, value: string | null): Promise<void> {
-            const neste = value === 'u15' || value === 'u18' ? value : null;
-            if (o.consent_age_requirement === neste || o.locked) {
-                return;
-            }
-            this.consentAgeRequirementOppgaveId = o.id;
-            try {
-                o.consent_age_requirement = await settOppgaveConsentAgeRequirement(o.id, neste);
-                this.visConsentAgeRequirementLagret(o.id);
-            } catch (e: any) {
-                this.$emit('feil', e.message ?? 'Kunne ikke oppdatere alderskrav for samtykke');
-            } finally {
-                this.consentAgeRequirementOppgaveId = null;
-            }
-        },
-
-        visConsentAgeRequirementLagret(oppgaveId: number): void {
-            if (this.consentAgeRequirementLagretTimer) {
-                clearTimeout(this.consentAgeRequirementLagretTimer);
-            }
-            this.consentAgeRequirementLagretId = oppgaveId;
-            this.consentAgeRequirementLagretTimer = setTimeout(() => {
-                this.consentAgeRequirementLagretId = null;
-                this.consentAgeRequirementLagretTimer = null;
-            }, 2500);
-        },
-
         async toggleLock(o: OppgaveData): Promise<void> {
             this.lockOppgaveId = o.id;
             try {
@@ -789,11 +699,8 @@ export default {
             this.opprettLoading = true;
             try {
                 const besk = this.nyOppgave.beskrivelse.trim() || null;
-                const alder = this.nyOppgave.consent_age_requirement === 'u15' || this.nyOppgave.consent_age_requirement === 'u18'
-                    ? this.nyOppgave.consent_age_requirement
-                    : null;
-                const opprettet = await apiOpprettOppgave(navn, type, besk, alder);
-                this.nyOppgave = { navn: '', beskrivelse: '', type: null, consent_age_requirement: '' };
+                const opprettet = await apiOpprettOppgave(navn, type, besk);
+                this.nyOppgave = { navn: '', beskrivelse: '', type: null };
                 try {
                     await this.leggTilAlleSkjemaer(opprettet.id);
                 } catch (e: any) {
@@ -1057,21 +964,6 @@ export default {
 .legg-til-rad .felt {
     flex: 1 1 180px;
     min-width: 160px;
-}
-.consent-age-requirement-rad {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.75rem;
-}
-.consent-age-requirement-felt {
-    max-width: 27rem;
-    flex: 1 1 12rem;
-}
-.consent-age-requirement-lagret {
-    color: var(--as-color-primary-success, #2e7d32);
-    font-size: 0.875rem;
-    font-weight: 600;
 }
 .skjema-skeleton {
     border-radius: var(--radius-high) !important;
