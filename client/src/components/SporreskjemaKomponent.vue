@@ -123,7 +123,7 @@
                                             :items="parentConsentOptions"
                                             item-title="title"
                                             item-value="value"
-                                            label="Foresattesamtykke"
+                                            label="Krever foresattsamtykke"
                                             variant="outlined"
                                             class="v-autocomplete-arr-sys"
                                             hide-details="auto"
@@ -463,7 +463,7 @@ export default {
             nyttSporsmal: { type: 'kort_tekst', tittel: '', tekst: '', is_required: true } as { type: string; tittel: string; tekst: string; is_required: boolean },
 
             parentConsentOptions: [
-                { title: 'Ingen', value: null },
+                { title: 'Nei', value: null },
                 { title: 'Under 15 år', value: 'u15' },
                 { title: 'Under 18 år', value: 'u18' },
             ],

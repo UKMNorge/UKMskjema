@@ -11,7 +11,7 @@
                 size="x-large"
                 @click="leggTilOppgave"
             >
-                Legg til publisering
+                Legg til
             </v-btn>
         </div>
 
@@ -65,6 +65,14 @@
                 @click="opprettOppgave"
             >
                 Opprett oppgave
+            </v-btn>
+            <v-btn
+                class="v-btn-as v-btn-grey as-margin-top-space-4 as-margin-left-space-1"
+                rounded="large"
+                variant="outlined"
+                @click="showNyOppgave = false;"
+            >
+                Avbryt
             </v-btn>
         </div>
 
@@ -288,25 +296,13 @@
                 <v-expand-transition>
                     <div v-if="isLeggTilUtvidet(o.id)" class="legg-til-rad as-margin-top-space-3">
                         <v-select
-                            v-model="appendModel[o.id].skjemaType"
-                            :items="skjemaTypeValg"
-                            item-title="label"
-                            item-value="value"
-                            label="Skjematype"
-                            variant="outlined"
-                            hide-details="auto"
-                            class="felt v-autocomplete-arr-sys"
-                            @update:model-value="nullstillSkjemaId(o.id)"
-                        />
-                        <v-select
-                            v-model="appendModel[o.id].skjemaId"
+                            v-model="appendModel[o.id].skjemaKey"
                             :items="skjemaIdValgFor(o.id)"
-                            item-title="navn"
-                            item-value="id"
+                            item-title="label"
+                            item-value="key"
                             label="Skjema"
                             variant="outlined"
                             hide-details="auto"
-                            :disabled="!appendModel[o.id].skjemaType"
                             class="felt v-autocomplete-arr-sys"
                         />
                         <div class="as-margin-auto">
@@ -379,15 +375,11 @@ export default {
                 type: null as string | null,
             },
             showNyOppgave: false,
-            appendModel: {} as Record<number, { skjemaType: string | null; skjemaId: number | null }>,
+            appendModel: {} as Record<number, { skjemaKey: string | null }>,
             infoUtvidetIds: {} as Record<number, boolean>,
             leggTilUtvidetIds: {} as Record<number, boolean>,
             oppgaveTypeValg: [
                 { label: 'Deltakere', value: OPP_TYPE_DELTAKERE },
-            ],
-            skjemaTypeValg: [
-                { label: 'Samtykkeskjema', value: SK_SAMTYKKE },
-                { label: 'Spørreskjema', value: SK_VIDERESENDING },
             ],
         };
     },
@@ -448,7 +440,7 @@ export default {
 
         skjemaTypeLabel(t: string): string {
             if (t === SK_SAMTYKKE) {
-                return 'Samtykkeskjema';
+                return 'Samtykke';
             }
             if (t === SK_VIDERESENDING) {
                 return 'Spørreskjema';
@@ -575,30 +567,61 @@ export default {
             }
         },
 
-        nullstillSkjemaId(oppgaveId: number): void {
-            this.sikreAppendModel(oppgaveId);
-            this.appendModel[oppgaveId].skjemaId = null;
-        },
-
         sikreAppendModel(oppgaveId: number): void {
             if (!this.appendModel[oppgaveId]) {
-                this.appendModel[oppgaveId] = { skjemaType: null, skjemaId: null };
+                this.appendModel[oppgaveId] = { skjemaKey: null };
             }
         },
 
-        skjemaIdValgFor(oppgaveId: number): { id: number; navn: string }[] {
-            this.sikreAppendModel(oppgaveId);
-            const t = this.appendModel[oppgaveId].skjemaType;
-            if (!t) {
-                return [];
+        skjemaFraKey(key: string | null): { type: string; id: number } | null {
+            if (!key) {
+                return null;
             }
-            return this.skjemaValg[t] ?? [];
+            const sep = key.indexOf(':');
+            if (sep === -1) {
+                return null;
+            }
+            const type = key.slice(0, sep);
+            const id = Number(key.slice(sep + 1));
+            if (!type || !Number.isFinite(id) || id <= 0) {
+                return null;
+            }
+            return { type, id };
+        },
+        _getOppgaveById(oppgaveId: number): OppgaveData | undefined {
+            return this.oppgaver.find((o) => o.id === oppgaveId);
+        },
+        skjemaIdValgFor(oppgaveId: number): { id: number; navn: string; type: string; key: string; label: string }[] {
+            this.sikreAppendModel(oppgaveId);
+            const oppgave = this._getOppgaveById(oppgaveId);
+            const typer = [
+                SK_SAMTYKKE,
+                SK_VIDERESENDING,
+                ...Object.keys(this.skjemaValg).filter((t) => t !== SK_SAMTYKKE && t !== SK_VIDERESENDING),
+            ];
+            const addItems = [];
+            for (const type of typer) {
+                for (const skjema of this.skjemaValg[type] ?? []) {
+                    const allerede = oppgave?.skjema_kjede.some(
+                        (x) => x.skjema_type === type && x.skjema_id == skjema.id,
+                    );
+                    if (!allerede) {
+                        addItems.push({
+                            id: skjema.id,
+                            navn: skjema.navn,
+                            type,
+                            key: `${type}:${skjema.id}`,
+                            label: `${skjema.navn} (${this.skjemaTypeLabel(type)})`,
+                        });
+                    }
+                }
+            }
+            return addItems;
         },
 
         kanLeggeTil(oppgaveId: number): boolean {
             this.sikreAppendModel(oppgaveId);
-            const m = this.appendModel[oppgaveId];
-            return !!(m.skjemaType && m.skjemaId != null && m.skjemaId > 0);
+            return this.skjemaFraKey(this.appendModel[oppgaveId].skjemaKey) != null;
         },
 
         async hentAlt(): Promise<void> {
@@ -719,18 +742,18 @@ export default {
                 return;
             }
             this.sikreAppendModel(o.id);
-            const m = this.appendModel[o.id];
-            if (!this.kanLeggeTil(o.id) || !m.skjemaType || m.skjemaId == null) {
+            const valgt = this.skjemaFraKey(this.appendModel[o.id].skjemaKey);
+            if (!valgt) {
                 return;
             }
             this.appendLoadingId = o.id;
             try {
-                const kjede = await leggTilSkjemaIKjede(o.id, m.skjemaType, m.skjemaId);
+                const kjede = await leggTilSkjemaIKjede(o.id, valgt.type, valgt.id);
                 const idx = this.oppgaver.findIndex((x) => x.id === o.id);
                 if (idx !== -1) {
                     this.oppgaver[idx].skjema_kjede = kjede;
                 }
-                m.skjemaId = null;
+                this.appendModel[o.id].skjemaKey = null;
                 this.leggTilUtvidetIds[o.id] = false;
             } catch (e: any) {
                 this.$emit('feil', e.message ?? 'Kunne ikke legge til skjema');

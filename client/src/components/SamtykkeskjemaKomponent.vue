@@ -71,7 +71,7 @@
                                     :items="parentConsentOptions"
                                     item-title="title"
                                     item-value="value"
-                                    label="Foresattesamtykke"
+                                    label="Krever foresattsamtykke"
                                     variant="outlined"
                                     class="v-autocomplete-arr-sys"
                                     hide-details="auto"
@@ -181,7 +181,7 @@
                                                 :items="parentConsentOptions"
                                                 item-title="title"
                                                 item-value="value"
-                                                label="Foresattesamtykke"
+                                                label="Krever foresattsamtykke"
                                                 variant="outlined"
                                                 class="v-autocomplete-arr-sys"
                                                 hide-details="auto"
@@ -547,7 +547,7 @@ export default {
                 // { title: 'Bilde og film', value: 'bilde_film' },
             ],
             parentConsentOptions: [
-                { title: 'Ingen', value: null },
+                { title: 'Nei', value: null },
                 { title: 'Under 15 år', value: 'u15' },
                 { title: 'Under 18 år', value: 'u18' },
             ],

@@ -8,7 +8,7 @@
             :description="'<p>Oppgaven er <b>ikke publisert</b> og derfor ikke tilgjengelig for deltakere/respondenter.</p><p>Publiser oppgaven under <b>Publiser oppgaver</b> for å gjøre svarene tilgjengelige her.</p>'" />
     </template>
     <template v-else>
-        <button
+        <!-- <button
             type="button"
             class="deltakere-header as-margin-top-space-1"
             :aria-expanded="utvidet"
@@ -18,7 +18,7 @@
             <v-icon size="small" class="deltakere-header__pil">
                 {{ utvidet ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
             </v-icon>
-        </button>
+        </button> -->
 
         <v-expand-transition>
             <div v-if="utvidet" class="deltakere-innhold as-card-2 as-padding-space-2 as-margin-top-space-2 nosh-impt">
@@ -837,6 +837,10 @@ export default {
             this.smsBekreftRolle = 'deltaker';
             this.smsResultat = '';
         },
+    },
+
+    mounted(): void {
+        this.toggleUtvidet();
     },
 
     computed: {
