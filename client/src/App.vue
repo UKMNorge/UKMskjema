@@ -41,7 +41,7 @@
                         </v-tabs-window-item>
 
                         <v-tabs-window-item>
-                            <SvarTab @feil="feil = $event" />
+                            <SvarTab :aktiv="svarTabAktiv" @feil="feil = $event" />
                         </v-tabs-window-item>
 
                     </v-tabs-window>
@@ -74,6 +74,12 @@ export default {
             tab:  null as number | null,
             feil: '' as string,
         };
+    },
+
+    computed: {
+        svarTabAktiv(): boolean {
+            return this.tab === SVAR_TAB_INDEX;
+        },
     },
 
     mounted() {

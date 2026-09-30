@@ -107,6 +107,13 @@ export default {
 
     emits: ['feil'],
 
+    props: {
+        aktiv: {
+            type: Boolean,
+            default: false,
+        },
+    },
+
     data() {
         return {
             oppgaver: [] as OppgaveData[],
@@ -124,10 +131,20 @@ export default {
         },
     },
 
+    watch: {
+        aktiv: {
+            immediate: true,
+            handler(erAktiv: boolean) {
+                if (erAktiv) {
+                    this.hentAlt(this.hentet);
+                }
+            },
+        },
+    },
+
     mounted() {
         this.synkRespondentFraUrl();
         window.addEventListener('popstate', this.synkRespondentFraUrl);
-        this.hentAlt();
     },
 
     unmounted() {
@@ -155,8 +172,10 @@ export default {
             return type;
         },
 
-        async hentAlt(): Promise<void> {
-            this.listeLoading = true;
+        async hentAlt(stille = false): Promise<void> {
+            if (!stille) {
+                this.listeLoading = true;
+            }
             try {
                 const data = await hentOppgaveOversikt();
                 this.oppgaver = data.oppgaver;
