@@ -331,12 +331,12 @@
                 </v-card-title>
                 <v-card-text class="px-5">
                     <p v-if="publiserOppgave">
-                        Når du publiserer «{{ publiserOppgave.name }}», blir oppgaven tilgjengelig for deltakerene eller respondentene.
+                        Når du publiserer «{{ publiserOppgave.name }}», blir oppgaven tilgjengelig for deltakerne eller respondentene.
                     </p>
                     <v-checkbox
                         v-model="sendSmsVedPublisering"
                         class="publiser-sms__valg"
-                        label="Send SMS til alle respondentene"
+                        label="Send SMS til alle deltakere eller respondentene"
                         hide-details
                         density="compact"
                         :disabled="publiserLaster || publiserFerdig || publiserRespondenterLaster"
