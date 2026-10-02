@@ -76,17 +76,6 @@
             </v-btn>
         </div>
 
-        <div class="as-padding-left-space-1 as-padding-right-space-1 as-margin-bottom-space-2">
-            <div v-if="hentet && oppgaver.length < 1 && !listeLoading">
-                <PermanentNotification
-                    typeNotification="info"
-                    :tittel="'Hva er en oppgave?'"
-                    :isHTML="true"
-                    :description="'<p>En oppgave brukes til å hente inn informasjon fra deltakere gjennom samtykkeskjemaer og spørreskjemaer.</p> </p>Oppgaven kan bestå av ett eller flere skjemaer som deltakeren må fullføre i rekkefølge</p></br><p><b>For eksempel:</p></b><ul><li>1. Samtykke festivalregler.</li><li>2. Spørsmål om mat allergier og spesielle behov.</li></ul><p>'"
-                />
-            </div>
-        </div>
-
         <template v-if="listeLoading">
             <v-skeleton-loader
                 v-for="n in 2"
@@ -322,6 +311,16 @@
                 </v-expand-transition>
             </div>
         </div>
+        <div class="as-margin-bottom-space-2">
+            <div>
+                <PermanentNotification
+                    typeNotification="info"
+                    :tittel="'Hva er en oppgave?'"
+                    :isHTML="true"
+                    :description="'<p>En oppgave brukes til å hente inn informasjon fra deltakere eller andre gjennom samtykkeskjemaer og spørreskjemaer.</p> </p>Oppgaven kan bestå av ett eller flere skjemaer som deltakeren må fullføre i rekkefølge</p></br><p><b>For eksempel:</p></b><ul><li>1. Samtykke til festivalregler.</li><li>2. Spørsmål om allergier og spesielle behov.</li></ul><p>'"
+                />
+            </div>
+        </div>
     </div>
 </template>
 
@@ -399,7 +398,7 @@ export default {
             this.showNyOppgave = true;
         },
         forhaandsvisOppgave(o: OppgaveData): void {
-            window.open(`https://delta.ukm.no/ukmid/oppgaveliste/${this.plId}/preview`, '_blank');       
+            window.open(`https://delta.ukm.no/public/oppgaveliste/${this.plId}/preview`, '_blank');       
         },
 
         isAtLocalArrangement(o: OppgaveData): boolean {
@@ -662,7 +661,12 @@ export default {
                 this.$emit('feil', 'Navn er påkrevd.');
                 return;
             }
-            const type = this.nyOppgave.type || null;
+            let type = this.nyOppgave.type || null;
+
+            if(!type && this.oppgaveTypeValg.length === 1) {
+                // Select automatically the first type if it is just 1
+                type = this.oppgaveTypeValg[0].value;
+            }
 
             // Allow only one oppgave per type (if type is set)
             if (type) {
@@ -692,6 +696,7 @@ export default {
                 this.$emit('feil', e.message ?? 'Kunne ikke opprette oppgave');
             } finally {
                 this.opprettLoading = false;
+                this.showNyOppgave = false;
             }
         },
 

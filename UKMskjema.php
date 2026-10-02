@@ -132,7 +132,7 @@ class UKMskjema extends Modul
         $page = add_submenu_page(
             'ukm_kommunikasjon',   // slug of the main item, not its label
             'Skjemaer',
-            'Skjemaer',
+            'Innhent svar og samtykker',
             'editor',
             'UKMskjema',
             ['UKMskjema', 'renderAdmin']

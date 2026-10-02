@@ -10,7 +10,7 @@
                 bg-color="#fff"
                 class="as-card-1 nosh-impt"
             >
-                <v-tab text="Lag oppgaver" />
+                <v-tab text="Lag skjemaer" />
                 <v-tab text="Publiser oppgaver" />
                 <v-tab text="Følg opp svar" />
             </v-tabs>
