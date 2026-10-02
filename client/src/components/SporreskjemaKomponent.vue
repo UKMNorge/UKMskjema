@@ -117,7 +117,7 @@
                                             hide-details="auto"
                                         />
                                     </div>
-                                    <div class="col-xs-4 nop-impt as-margin-top-space-3">
+                                    <div class="col-xs-4 nop-impt as-margin-top-space-3 as-display-flex">
                                         <v-select
                                             v-model="skjema.parent_consent_requirement"
                                             :items="parentConsentOptions"
@@ -128,6 +128,20 @@
                                             class="v-autocomplete-arr-sys"
                                             hide-details="auto"
                                         />
+                                        <div class="as-margin-auto">
+                                                <v-btn @click="foresattsamtykke_beskjed = !foresattsamtykke_beskjed" class="vuetify-icon-button as-margin-left-space-1" density="compact" icon variant="tonal">
+                                                    <v-icon>mdi-information-slab-symbol</v-icon>
+                                                </v-btn>
+                                            </div>
+                                        </div>
+                                        <div v-if="foresattsamtykke_beskjed" class="col-xs-12 nop-impt">
+                                            <!--Varsel-->
+                                            <PermanentNotification 
+                                                :typeNotification="'info'" 
+                                                :tittel="'Krever foresattsamtykke info'" 
+                                                :description="getForesattsamtykkeBeskjed()" 
+                                                :isHTML="true" 
+                                            />
                                     </div>
                                     <!-- <div class="col-xs-12 nop-impt as-margin-top-space-2 item-id-label">
                                         ID #{{ skjema.id }} · Arrangement ID #{{ skjema.arrangementId }}
@@ -477,6 +491,7 @@ export default {
                 { value: 'kontaktajourfore', label: 'Bekreftelse av brukerdata' },
                 { value: 'innslagdatabekreftelse', label: 'Bekreftelse av innslagsdata' },
             ],
+            foresattsamtykke_beskjed: false,
         };
     },
 
@@ -545,6 +560,17 @@ export default {
             dt.setDragImage(clone, offsetX, offsetY);
 
             (this as unknown as { _sporsmalDragGhostEl: HTMLElement | null })._sporsmalDragGhostEl = clone;
+        },
+
+        getForesattsamtykkeBeskjed(): string {
+            return `
+                <p>Funksjonen lar deg velge om foresatte må samtykke til bruk av svarene fra deltakere eller respondenter under 15 år eller under 18 år, eller om det ikke skal kreves foresattesamtykke.</p>
+                <br>
+                <ul>
+                    <li>Under 15 år: Krev foresattes samtykke for respondenter som ikke har fylt 15 år.</li>
+                    <li> Under 18 år: Krev foresattes samtykke for respondenter som ikke har fylt 18 år.</li>
+                    <li> Ingen: Ikke krev foresattes samtykke.</li>
+                </ul>`;
         },
 
         sporsmalDragEnd(): void {

@@ -65,7 +65,7 @@
                                     hide-details="auto"
                                 />
                             </div>
-                            <div class="col-xs-4 as-padding-left-space-2">
+                            <div class="col-xs-4 as-padding-left-space-2 as-display-flex">
                                 <v-select
                                     v-model="skjema.parent_consent_requirement"
                                     :items="parentConsentOptions"
@@ -76,10 +76,26 @@
                                     class="v-autocomplete-arr-sys"
                                     hide-details="auto"
                                 />
+                                <div class="as-margin-auto">
+                                    <v-btn @click="foresattsamtykke_beskjed = !foresattsamtykke_beskjed" class="vuetify-icon-button as-margin-left-space-1" density="compact" icon variant="tonal">
+                                        <v-icon>mdi-information-slab-symbol</v-icon>
+                                    </v-btn>
+                                </div>
                             </div>
+                            <div v-if="foresattsamtykke_beskjed" class="col-xs-12 nop-impt">
+                                <!--Varsel-->
+                                <PermanentNotification 
+                                    :typeNotification="'info'" 
+                                    :tittel="'Krever foresattsamtykke info'" 
+                                    :description="getForesattsamtykkeBeskjed()" 
+                                    :isHTML="true" 
+                                />
+                            </div>
+
+
                             <div class="col-xs-4 as-padding-left-space-2">
                                 <v-select
-                                    style="visibility: hidden;"
+                                    style="visibility: hidden; display: none;"
                                     v-model="skjema.subtype"
                                     :items="subtypeOptions"
                                     item-title="title"
@@ -175,7 +191,7 @@
                                                 hide-details="auto"
                                             />
                                         </div>
-                                        <div class="col-xs-4 as-padding-left-space-2">
+                                        <div class="col-xs-4 as-padding-left-space-2 as-display-flex">
                                             <v-select
                                                 v-model="skjema.parent_consent_requirement"
                                                 :items="parentConsentOptions"
@@ -186,10 +202,24 @@
                                                 class="v-autocomplete-arr-sys"
                                                 hide-details="auto"
                                             />
+                                            <div class="as-margin-auto">
+                                                <v-btn @click="foresattsamtykke_beskjed = !foresattsamtykke_beskjed" class="vuetify-icon-button as-margin-left-space-1" density="compact" icon variant="tonal">
+                                                    <v-icon>mdi-information-slab-symbol</v-icon>
+                                                </v-btn>
+                                            </div>
+                                        </div>
+                                        <div v-if="foresattsamtykke_beskjed" class="col-xs-12 nop-impt">
+                                            <!--Varsel-->
+                                            <PermanentNotification 
+                                                :typeNotification="'info'" 
+                                                :tittel="'Krever foresattsamtykke info'" 
+                                                :description="getForesattsamtykkeBeskjed()" 
+                                                :isHTML="true" 
+                                            />
                                         </div>
                                         <div class="col-xs-4 as-padding-left-space-2">
                                             <v-select
-                                                style="visibility: hidden;"
+                                                style="visibility: hidden; display: none;"
                                                 v-model="skjema.subtype"
                                                 :items="subtypeOptions"
                                                 item-title="title"
@@ -519,8 +549,13 @@
 <script lang="ts">
 import type { PropType } from 'vue';
 import type { SamtykkeSkjema } from '../objects/SamtykkeSkjema';
+import { PermanentNotification } from 'ukm-components-vue3';
+
 
 export default {
+    components: {
+        PermanentNotification,
+    },
     props: {
         skjema: {
             type: Object as PropType<SamtykkeSkjema>,
@@ -551,6 +586,7 @@ export default {
                 { title: 'Under 15 år', value: 'u15' },
                 { title: 'Under 18 år', value: 'u18' },
             ],
+            foresattsamtykke_beskjed: false,
         };
     },
 
@@ -564,6 +600,17 @@ export default {
         avbrytNyProsjekt(): void {
             this.skjema.nyProsjekt = { navn: '', beskrivelse: null, arrangement_id: null };
             this.skjema.visNyProsjektForm = false;
+        },
+
+        getForesattsamtykkeBeskjed(): string {
+            return `
+                <p>Funksjonen lar deg velge om foresatte må samtykke til bruk av svarene fra deltakere eller respondenter under 15 år eller under 18 år, eller om det ikke skal kreves foresattesamtykke.</p>
+                <br>
+                <ul>
+                    <li>Under 15 år: Krev foresattes samtykke for respondenter som ikke har fylt 15 år.</li>
+                    <li> Under 18 år: Krev foresattes samtykke for respondenter som ikke har fylt 18 år.</li>
+                    <li> Ingen: Ikke krev foresattes samtykke.</li>
+                </ul>`;
         },
     },
 };
