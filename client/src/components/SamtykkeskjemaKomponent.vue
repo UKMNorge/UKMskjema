@@ -516,7 +516,7 @@
                 </v-card-title>
                 <v-card-text class="px-5">
                     Er du sikker på at du vil slette <strong>{{ skjema.navn || 'dette skjemaet' }}</strong>?
-                    Alle tilknyttede versjoner og prosjekter vil også bli slettet. Handlingen kan ikke angres.
+                    Handlingen kan ikke angres.
                 </v-card-text>
                 <v-card-actions class="px-5 pb-5">
                     <v-spacer />
