@@ -220,8 +220,8 @@
                                             </div>
 
                                             <template v-if="skjema.versjon">
-                                                <div class="col-xs-12 nop-impt">
-                                                    <!-- <div class="col-xs-4 nop-impt as-margin-right-space-2">
+                                                <!-- <div class="col-xs-12 nop-impt">
+                                                    <div class="col-xs-4 nop-impt as-margin-right-space-2">
                                                         <v-text-field
                                                             v-model="skjema.versjon.versjon_nr"
                                                             label="Versjonsnummer *"
@@ -232,7 +232,7 @@
                                                             :disabled="true"
                                                             hide-details="auto"
                                                         />
-                                                    </div> -->
+                                                    </div>
                                                     <div class="col-xs-6 nop-impt">
                                                         <v-text-field
                                                             v-model="skjema.versjon.beskrivelse"
@@ -243,7 +243,7 @@
                                                             hide-details="auto"
                                                         />
                                                     </div>
-                                                </div>
+                                                </div> -->
 
                                                 <div class="col-xs-12 col-xs-inner-box as-margin-top-space-3 nop-impt-fix">
                                                     <div class="col-xs-12 nop-impt">
