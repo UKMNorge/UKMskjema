@@ -37,7 +37,7 @@
                         </v-tabs-window-item>
 
                         <v-tabs-window-item>
-                            <OppgaveTab @feil="feil = $event" />
+                            <OppgaveTab :aktiv="oppgaveTabAktiv" @feil="feil = $event" />
                         </v-tabs-window-item>
 
                         <v-tabs-window-item>
@@ -58,7 +58,7 @@ import { Director } from 'ukm-spa/Director';
 import SkjemaerTab from './tabs/SkjemaerTab.vue';
 import OppgaveTab from './tabs/OppgaveTab.vue';
 import SvarTab from './tabs/SvarTab.vue';
-import { SVAR_TAB_INDEX, readRespondentSvarFromUrl } from './utils/oppgaveUrl';
+import { OPPGAVE_TAB_INDEX, SVAR_TAB_INDEX, readRespondentSvarFromUrl } from './utils/oppgaveUrl';
 
 const director = new Director();
 
@@ -77,6 +77,9 @@ export default {
     },
 
     computed: {
+        oppgaveTabAktiv(): boolean {
+            return this.tab === OPPGAVE_TAB_INDEX;
+        },
         svarTabAktiv(): boolean {
             return this.tab === SVAR_TAB_INDEX;
         },

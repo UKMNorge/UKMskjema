@@ -351,6 +351,13 @@ export default {
 
     emits: ['feil'],
 
+    props: {
+        aktiv: {
+            type: Boolean,
+            default: false,
+        },
+    },
+
     data() {
         return {
             oppgaver: [] as OppgaveData[],
@@ -383,14 +390,15 @@ export default {
         };
     },
 
-    mounted() {
-        this.hentAlt();
-
-        if(this.arrangementType === 'land') {
-            this.oppgaveTypeValg.push({ label: 'Videresending', value: OPP_TYPE_VIDERESENDING });
-            this.oppgaveTypeValg.push({ label: 'Reiseledere', value: OPP_TYPE_REISELEDERE });
-            this.oppgaveTypeValg.push({ label: 'Fylkeskontakter', value: OPP_TYPE_FYLKESKONTAKTER });
-        }
+    watch: {
+        aktiv: {
+            immediate: true,
+            handler(erAktiv: boolean) {
+                if (erAktiv) {
+                    this.hentAlt(this.hentet);
+                }
+            },
+        },
     },
 
     methods: {
@@ -623,14 +631,33 @@ export default {
             return this.skjemaFraKey(this.appendModel[oppgaveId].skjemaKey) != null;
         },
 
-        async hentAlt(): Promise<void> {
-            this.listeLoading = true;
+        syncOppgaveTypeValg(): void {
+            if (this.arrangementType !== 'land') {
+                return;
+            }
+            const ekstra = [
+                { label: 'Videresending', value: OPP_TYPE_VIDERESENDING },
+                { label: 'Reiseledere', value: OPP_TYPE_REISELEDERE },
+                { label: 'Fylkeskontakter', value: OPP_TYPE_FYLKESKONTAKTER },
+            ];
+            for (const valg of ekstra) {
+                if (!this.oppgaveTypeValg.some((x) => x.value === valg.value)) {
+                    this.oppgaveTypeValg.push(valg);
+                }
+            }
+        },
+
+        async hentAlt(stille = false): Promise<void> {
+            if (!stille) {
+                this.listeLoading = true;
+            }
             try {
                 const data = await hentOppgaveOversikt();
                 this.oppgaver = data.oppgaver;
                 this.plId = data.pl_id;
                 this.arrangementType = data.arrangement_type;
                 this.skjemaValg = data.skjema_valg || {};
+                this.syncOppgaveTypeValg();
                 this.oppgaver.forEach((o) => this.sikreAppendModel(o.id));
                 this.hentet = true;
             } catch (e: any) {
