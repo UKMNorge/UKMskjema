@@ -68,11 +68,15 @@ function normalizeRespondenterListe(respondenter: unknown): OppgaveRespondent[] 
         .filter((r) => r.id > 0);
 }
 
-export async function hentAlleRespondenter(oppgaveId: number): Promise<OppgaveRespondent[]> {
+export async function hentAlleRespondenter(
+    oppgaveId: number,
+    utelatFullfort = false
+): Promise<OppgaveRespondent[]> {
     const res = await getSpaInteraction().runAjaxCall('/', 'POST', {
         action: 'UKMskjema_ajax',
         controller: 'oppgave/getAlleRespondenter',
         oppgave_id: oppgaveId,
+        utelat_fullfort: utelatFullfort ? 1 : 0,
     });
 
     if (!res.success) {

@@ -8,7 +8,7 @@ use UKMNorge\Samtykkeskjema\OppgaveBeskjed;
 
 require_once 'UKM/Autoloader.php';
 
-$handleCall = new HandleAPICall(['oppgave_id'], [], ['GET', 'POST'], false);
+$handleCall = new HandleAPICall(['oppgave_id'], ['utelat_fullfort'], ['GET', 'POST'], false);
 
 $plId = (int) get_option('pl_id');
 if (!$plId) {
@@ -40,10 +40,15 @@ $sisteEtterRolle = OppgaveBeskjed::getSistePerTelefonEtterRolleForOppgave($oppga
 $sisteDeltaker = $sisteEtterRolle[BeskjedSuper::ROLLE_DELTAKER] ?? [];
 $sisteForesatt = $sisteEtterRolle[BeskjedSuper::ROLLE_FORESATT] ?? [];
 
+$utelatFullfort = (string) $handleCall->getOptionalArgument('utelat_fullfort') === '1';
+
 $respondenterUt = [];
 $isVideresending = $oppgave->getType() === Oppgave::TYPE_VIDERESENDING;
 foreach ($oppgave->getAlleRespondenter($isVideresending ? true : false, $oppgaveFromAnotherArrangement != null ? $plId : null) as $respondent) {
     if (!($respondent instanceof DeltaRespondent)) {
+        continue;
+    }
+    if ($utelatFullfort && $oppgave->erOppgaveFulfort($respondent->getMobil())) {
         continue;
     }
     $beskjedDeltaker = OppgaveBeskjed::velgSisteForTelefoner(

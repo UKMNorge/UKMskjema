@@ -349,11 +349,13 @@
                             <template v-if="publiserSmsMottakerIds.length < 1">
                                 <v-alert
                                     class="mt-3"
-                                    type="success"
+                                    :type="publiserRespondenter.length > 0 ? 'success' : 'info'"
                                     variant="tonal"
                                     density="compact"
                                 >
-                                    Alle respondenter har allerede fått SMS om oppgaven.
+                                    {{ publiserRespondenter.length > 0
+                                        ? 'Alle respondenter har allerede fått SMS om oppgaven.'
+                                        : 'Ingen respondenter venter på oppgaven.' }}
                                 </v-alert>
                             </template>
                             <template v-else>
@@ -858,7 +860,7 @@ export default {
             this.bekreftPubliser = true;
             this.publiserRespondenterLaster = true;
             try {
-                this.publiserRespondenter = await hentAlleRespondenter(o.id);
+                this.publiserRespondenter = await hentAlleRespondenter(o.id, true);
             } catch (e: any) {
                 this.sendSmsVedPublisering = false;
                 this.publiserSmsResultatType = 'error';

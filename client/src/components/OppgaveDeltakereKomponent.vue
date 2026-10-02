@@ -278,7 +278,7 @@
                             :typeNotification="'danger'" 
                             :tittel="'For at deltakere skal kunne svare, må du sende SMS-påminnelse'" 
                             :isHTML="true"
-                            :description="'<br><p>Når du har satt opp skjemaene og oppgaven er klar, må du sende en SMS-påminnelse til deltakere slik at de kan besvare oppgaven.</p><br><p>Husk at du som arrangør er ansvarlig for å sende SMS-påminnelse til deltakere og følge opp at deltakere har besvaret oppgaven.</p>'" />
+                            :description="'<p>Husk at du som arrangør er ansvarlig for å sende SMS-påminnelse til deltakere og følge opp at deltakere har besvaret oppgaven.</p>'" />
                     </div>
                     <div v-else>
                         <PermanentNotification class="as-margin-bottom-space-2" 
