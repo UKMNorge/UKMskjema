@@ -405,7 +405,8 @@ export interface SendBeskjedResultat {
 export async function sendBeskjed(
     oppgaveId: number,
     respondentIds: number[],
-    rolle: BeskjedRolle = 'deltaker'
+    rolle: BeskjedRolle = 'deltaker',
+    publisering = false
 ): Promise<SendBeskjedResultat> {
     const res = await getSpaInteraction().runAjaxCall('/', 'POST', {
         action: 'UKMskjema_ajax',
@@ -413,6 +414,7 @@ export async function sendBeskjed(
         oppgave_id: oppgaveId,
         respondenter_ids: JSON.stringify(respondentIds),
         rolle,
+        publisering: publisering ? 1 : 0,
     });
 
     if (!res || (res.success !== true && !(Number(res.sendt) > 0) && !(Number(res.hoppet_over) > 0))) {

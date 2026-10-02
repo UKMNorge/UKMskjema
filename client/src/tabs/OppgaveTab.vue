@@ -151,8 +151,8 @@
                         class="v-btn-as v-btn-bla"
                         variant="text"
                         size="small"
-                        :loading="slettOppgaveId === o.id"
-                        @click="toggleLock(o)"
+                        :loading="lockOppgaveId === o.id"
+                        @click="lasOpp(o)"
                     >
                         Rediger
                         <v-icon class="as-margin-left-space-1" size="small">mdi-pencil-outline</v-icon>
@@ -164,7 +164,8 @@
                         rounded="large"
                         size="small"
                         variant="outlined"
-                        @click="toggleLock(o)"
+                        :loading="publiserLaster && publiserOppgave !== null && publiserOppgave.id === o.id"
+                        @click="apnePubliser(o)"
                     >
                         Publiser
                         <v-icon class="as-margin-left-space-1" size="small">mdi-send-outline</v-icon>
@@ -321,22 +322,120 @@
                 />
             </div>
         </div>
+
+        <!-- Before publishing oppgave -->
+        <v-dialog v-model="bekreftPubliser" max-width="520" persistent>
+            <v-card rounded="lg">
+                <v-card-title class="text-h6 pt-5 px-5">
+                    Publiser oppgave
+                </v-card-title>
+                <v-card-text class="px-5">
+                    <p v-if="publiserOppgave">
+                        Når du publiserer «{{ publiserOppgave.name }}», blir oppgaven tilgjengelig for deltakerene eller respondenter.
+                    </p>
+                    <v-checkbox
+                        v-model="sendSmsVedPublisering"
+                        class="publiser-sms__valg"
+                        label="Send SMS til alle respondenter"
+                        hide-details
+                        density="compact"
+                        :disabled="publiserLaster || publiserFerdig || publiserRespondenterLaster"
+                    />
+                    <div v-if="sendSmsVedPublisering" class="publiser-sms">
+                        <p v-if="publiserRespondenterLaster">
+                            Henter respondenter …
+                        </p>
+                        <template v-else>
+                            <template v-if="publiserSmsMottakerIds.length < 1">
+                                <v-alert
+                                    class="mt-3"
+                                    type="success"
+                                    variant="tonal"
+                                    density="compact"
+                                >
+                                    Alle respondenter har allerede fått SMS om oppgaven.
+                                </v-alert>
+                            </template>
+                            <template v-else>
+                                <p>
+                                    SMS sendes til
+                                    <strong>{{ publiserSmsMottakerIds.length }}</strong>
+                                    {{ publiserSmsMottakerIds.length === 1 ? 'respondent' : 'respondenter' }}
+                                    og forteller at oppgaven venter.
+                                </p>
+                                <p v-if="publiserSmsAlleredeInformert > 0">
+                                    {{ publiserSmsAlleredeInformert }}
+                                    {{ publiserSmsAlleredeInformert === 1 ? 'respondent er allerede informert' : 'respondenter er allerede informert' }}
+                                    og får ikke SMS på nytt.
+                                </p>
+                                <p v-if="publiserSmsUtenMobil > 0">
+                                    {{ publiserSmsUtenMobil }}
+                                    {{ publiserSmsUtenMobil === 1 ? 'respondent mangler' : 'respondenter mangler' }}
+                                    mobilnummer.
+                                </p>
+                                <p class="publiser-sms__forhandsvisning">
+                                    Hei, [navn]! Du har en oppgave som du må besvare. Klikk på lenken for å besvare den: {{ publiserLenke }} -UKM
+                                </p>
+                            </template>
+                        </template>
+                    </div>
+                    <v-alert
+                        v-if="publiserSmsResultat"
+                        class="mt-3"
+                        :type="publiserSmsResultatType"
+                        variant="tonal"
+                        density="compact"
+                    >
+                        {{ publiserSmsResultat }}
+                    </v-alert>
+                </v-card-text>
+                <v-card-actions class="px-5 pb-5">
+                    <v-spacer />
+                    <v-btn
+                        v-if="!publiserFerdig"
+                        class="v-btn-as v-btn-grey"
+                        rounded="large"
+                        variant="outlined"
+                        :disabled="publiserLaster"
+                        @click="lukkPubliser"
+                    >
+                        Avbryt
+                    </v-btn>
+                    <v-btn
+                        class="v-btn-as v-btn-success ml-2"
+                        rounded="large"
+                        variant="outlined"
+                        :loading="publiserLaster"
+                        :disabled="!publiserFerdig && sendSmsVedPublisering && publiserRespondenterLaster"
+                        @click="bekreftOgPubliser"
+                    >
+                        {{ publiserKnappTekst }}
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+
+
     </div>
 </template>
 
 <script lang="ts">
 import draggable from 'vuedraggable';
 import { PermanentNotification } from 'ukm-components-vue3';
+import OppgaveRespondent from '../objects/OppgaveRespondent';
 import {
+    hentAlleRespondenter,
     hentOppgaveOversikt,
     opprettOppgave as apiOpprettOppgave,
     slettOppgave as apiSlettOppgave,
     leggTilSkjemaIKjede,
     fjernSkjemaFraKjede,
     reorderOppgaveKjede,
+    sendBeskjed,
     toggleOppgaveLock,
     type OppgaveData,
     type OppgaveSkjemaKjedeItem,
+    type SendBeskjedResultat,
 } from '../services/oppgaveService';
 
 const SK_SAMTYKKE = 'samtykkeskjema';
@@ -360,6 +459,15 @@ export default {
 
     data() {
         return {
+            bekreftPubliser: false,
+            publiserOppgave: null as OppgaveData | null,
+            publiserRespondenter: [] as OppgaveRespondent[],
+            publiserRespondenterLaster: false,
+            publiserLaster: false,
+            publiserFerdig: false,
+            sendSmsVedPublisering: true,
+            publiserSmsResultat: '',
+            publiserSmsResultatType: 'success' as 'success' | 'error' | 'warning',
             oppgaver: [] as OppgaveData[],
             plId: 0,
             arrangementType: '' as string,
@@ -388,6 +496,64 @@ export default {
                 { label: 'Deltakere', value: OPP_TYPE_DELTAKERE },
             ],
         };
+    },
+
+    computed: {
+        publiserSmsMottakerIds(): number[] {
+            const telefoner = new Set<string>();
+            const ids: number[] = [];
+            for (const respondent of this.publiserRespondenter) {
+                const telefon = respondent.mobil.replace(/\D/g, '');
+                if (
+                    respondent.id > 0
+                    && telefon
+                    && !respondent.siste_beskjed_deltaker
+                    && !telefoner.has(telefon)
+                ) {
+                    telefoner.add(telefon);
+                    ids.push(respondent.id);
+                }
+            }
+            return ids;
+        },
+
+        publiserSmsAlleredeInformert(): number {
+            const telefoner = new Set<string>();
+            let antall = 0;
+            for (const respondent of this.publiserRespondenter) {
+                const telefon = respondent.mobil.replace(/\D/g, '');
+                if (
+                    respondent.id > 0
+                    && telefon
+                    && respondent.siste_beskjed_deltaker
+                    && !telefoner.has(telefon)
+                ) {
+                    telefoner.add(telefon);
+                    antall += 1;
+                }
+            }
+            return antall;
+        },
+
+        publiserSmsUtenMobil(): number {
+            return this.publiserRespondenter.filter((respondent) => {
+                return respondent.id > 0 && !respondent.mobil.replace(/\D/g, '');
+            }).length;
+        },
+
+        publiserLenke(): string {
+            return `https://delta.ukm.no/ukmid/oppgaveliste/${this.plId}/`;
+        },
+
+        publiserKnappTekst(): string {
+            if (this.publiserFerdig) {
+                return 'Lukk';
+            }
+            if (this.sendSmsVedPublisering && this.publiserSmsMottakerIds.length > 0) {
+                return 'Publiser og send SMS';
+            }
+            return 'Publiser';
+        },
     },
 
     watch: {
@@ -667,10 +833,10 @@ export default {
             }
         },
 
-        async toggleLock(o: OppgaveData): Promise<void> {
+        async lasOpp(o: OppgaveData): Promise<void> {
             this.lockOppgaveId = o.id;
             try {
-                const ny = await toggleOppgaveLock(o.id, !o.locked);
+                const ny = await toggleOppgaveLock(o.id, false);
                 const idx = this.oppgaver.findIndex((x) => x.id === o.id);
                 if (idx !== -1) {
                     this.oppgaver[idx].locked = ny;
@@ -680,6 +846,102 @@ export default {
             } finally {
                 this.lockOppgaveId = null;
             }
+        },
+
+        async apnePubliser(o: OppgaveData): Promise<void> {
+            this.publiserOppgave = o;
+            this.sendSmsVedPublisering = true;
+            this.publiserFerdig = false;
+            this.publiserSmsResultat = '';
+            this.publiserSmsResultatType = 'success';
+            this.publiserRespondenter = [];
+            this.bekreftPubliser = true;
+            this.publiserRespondenterLaster = true;
+            try {
+                this.publiserRespondenter = await hentAlleRespondenter(o.id);
+            } catch (e: any) {
+                this.sendSmsVedPublisering = false;
+                this.publiserSmsResultatType = 'error';
+                this.publiserSmsResultat = e.message ?? 'Kunne ikke hente respondenter. Du kan publisere uten SMS.';
+            } finally {
+                this.publiserRespondenterLaster = false;
+            }
+        },
+
+        lukkPubliser(): void {
+            this.bekreftPubliser = false;
+            this.publiserOppgave = null;
+            this.publiserRespondenter = [];
+            this.publiserFerdig = false;
+            this.publiserSmsResultat = '';
+        },
+
+        async bekreftOgPubliser(): Promise<void> {
+            if (this.publiserFerdig) {
+                this.lukkPubliser();
+                return;
+            }
+            const o = this.publiserOppgave;
+            if (!o || this.publiserLaster) {
+                return;
+            }
+            if (this.sendSmsVedPublisering && this.publiserRespondenterLaster) {
+                return;
+            }
+
+            this.publiserLaster = true;
+            this.publiserSmsResultat = '';
+            try {
+                const ny = await toggleOppgaveLock(o.id, true);
+                const idx = this.oppgaver.findIndex((x) => x.id === o.id);
+                if (idx !== -1) {
+                    this.oppgaver[idx].locked = ny;
+                }
+
+                const mottakerIds = this.publiserSmsMottakerIds;
+                if (!this.sendSmsVedPublisering || mottakerIds.length === 0) {
+                    this.lukkPubliser();
+                    return;
+                }
+
+                const resultat = await sendBeskjed(o.id, mottakerIds, 'deltaker', true);
+                this.publiserFerdig = true;
+                this.publiserSmsResultatType = resultat.feilet > 0 || resultat.hoppet_over > 0 ? 'warning' : 'success';
+                this.publiserSmsResultat = this.publiserSmsTekst(resultat);
+            } catch (e: any) {
+                const idx = this.oppgaver.findIndex((x) => x.id === o.id);
+                const erPublisert = idx !== -1 && this.oppgaver[idx].locked;
+                const melding = e.message ?? (erPublisert ? 'Kunne ikke sende SMS' : 'Kunne ikke publisere oppgaven');
+                if (erPublisert) {
+                    this.publiserFerdig = true;
+                }
+                this.publiserSmsResultatType = 'error';
+                this.publiserSmsResultat = erPublisert ? `Oppgaven er publisert. ${melding}` : melding;
+            } finally {
+                this.publiserLaster = false;
+            }
+        },
+
+        publiserSmsTekst(resultat: SendBeskjedResultat): string {
+            const hoppet = resultat.hoppet_over;
+            if (resultat.sendt === 0 && resultat.feilet > 0) {
+                return `Oppgaven er publisert. SMS sendt til ${resultat.sendt} av ${resultat.sendt + resultat.feilet} respondenter. ${resultat.feilet} feilet.`;
+            }
+            if (resultat.sendt === 0 && hoppet > 0) {
+                return hoppet === 1
+                    ? 'Oppgaven er publisert. Respondenten er allerede informert.'
+                    : `Oppgaven er publisert. ${hoppet} respondenter er allerede informert.`;
+            }
+            let tekst = resultat.sendt === 1
+                ? 'Oppgaven er publisert. SMS er sendt til 1 respondent.'
+                : `Oppgaven er publisert. SMS er sendt til ${resultat.sendt} respondenter.`;
+            if (hoppet > 0) {
+                tekst += ` ${hoppet} var allerede informert.`;
+            }
+            if (resultat.feilet > 0) {
+                tekst += ` ${resultat.feilet} feilet.`;
+            }
+            return tekst;
         },
 
         async opprettOppgave(): Promise<void> {
@@ -984,5 +1246,22 @@ export default {
 }
 .skjema-skeleton {
     border-radius: var(--radius-high) !important;
+}
+.publiser-sms__valg {
+    margin-top: 0.75rem;
+    width: fit-content;
+}
+.publiser-sms {
+    margin-top: 0.25rem;
+    color: var(--color-primary-grey-dark, #444);
+}
+.publiser-sms p {
+    margin-bottom: 0.5rem;
+}
+.publiser-sms__forhandsvisning {
+    padding: 0.75rem;
+    border-radius: var(--radius-high, 10px);
+    background: rgba(0, 0, 0, 0.04);
+    font-size: 0.9rem;
 }
 </style>

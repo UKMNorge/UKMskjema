@@ -10,7 +10,7 @@ use UKMNorge\Samtykkeskjema\Write as SamtykkeWrite;
 require_once 'UKM/Autoloader.php';
 require_once 'UKM/sms.class.php';
 
-$handleCall = new HandleAPICall(['oppgave_id', 'respondenter_ids'], ['rolle'], ['POST'], false);
+$handleCall = new HandleAPICall(['oppgave_id', 'respondenter_ids'], ['rolle', 'publisering'], ['POST'], false);
 
 $plId = (int) get_option('pl_id');
 if (!$plId) {
@@ -34,6 +34,7 @@ if ($oppgave->getPlId() !== $plId) {
 
 $rolleRaw = $handleCall->getOptionalArgument('rolle');
 $rolle = ($rolleRaw === null || $rolleRaw === '') ? BeskjedSuper::ROLLE_DELTAKER : (string) $rolleRaw;
+$erPublisering = (string) $handleCall->getOptionalArgument('publisering') === '1';
 try {
     $rolle = BeskjedSuper::validateRolle($rolle);
 } catch (Exception $e) {
@@ -91,7 +92,7 @@ $hoppetOver = [];
 $nyligSendt = [];
 
 foreach ($valgte as $respondent) {
-    $navn = trim($respondent->getNavn() . ' ' . $respondent->getEtternavn());
+    $navn = trim($respondent->getNavn());
     if ($navn === '') {
         $navn = 'du';
     }
@@ -101,7 +102,7 @@ foreach ($valgte as $respondent) {
         $message = 'Hei! Du er oppgitt som foresatt for ' . $navn . '. Du må derfor godkjenne noen samtykker og opplysninger. Klikk på lenken for å godkjenne: ' . $lenke;
     } else {
         $phone = (string) preg_replace('/\D/', '', (string) $respondent->getMobil());
-        $message = 'Hei, ' . $navn . '! Du har en oppgave som du må besvare. Klikk på lenken for å besvare oppgaven: ' . $lenke;
+        $message = 'Hei, ' . $navn . '! Du har en oppgave som du må besvare. Klikk på lenken for å besvare den: ' . $lenke . ' -UKM';
     }
 
     if ($phone === '') {
@@ -121,8 +122,21 @@ foreach ($valgte as $respondent) {
         continue;
     }
 
+    if (isset($nyligSendt[$phone])) {
+        continue;
+    }
+
     $sisteBeskjed = $sistePerTelefon[$phone] ?? null;
-    if (isset($nyligSendt[$phone]) || ($sisteBeskjed !== null && $sisteBeskjed->erSendtSisteDogn())) {
+    if ($erPublisering) {
+        if ($sisteBeskjed !== null) {
+            $hoppetOver[] = [
+                'id'    => (int) $respondent->getId(),
+                'navn'  => $navn,
+                'error' => 'Respondenten er allerede informert.',
+            ];
+            continue;
+        }
+    } elseif ($sisteBeskjed !== null && $sisteBeskjed->erSendtSisteDogn()) {
         $hoppetOver[] = [
             'id'    => (int) $respondent->getId(),
             'navn'  => $navn,
