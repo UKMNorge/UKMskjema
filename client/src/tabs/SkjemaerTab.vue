@@ -242,8 +242,9 @@ export default {
 
         async opprettSamtykkeskjema(skjema: SamtykkeSkjema): Promise<void> {
             this.samtykkeLoading = true;
+            let data: any;
             try {
-                const data = await apiOpprettSamtykke(skjema.navn, skjema.type, skjema.subtype, skjema.parent_consent_requirement);
+                data = await apiOpprettSamtykke(skjema.navn, skjema.type, skjema.subtype, skjema.parent_consent_requirement);
                 this.fjernNyttSamtykkeskjema();
                 await this.hentSamtykker();
                 if (this.samtykkeHentet) {
@@ -263,6 +264,14 @@ export default {
                 this.$emit('feil', e.message ?? 'Feil ved oppretting av samtykkeskjema');
             } finally {
                 this.samtykkeLoading = false;
+            }
+            if (data?.id == null) return;
+            await this.$nextTick();
+            const element = document.querySelector(`[focus-id="skjema-samtykke-element-${data.id}"]`);
+            if (element instanceof HTMLElement) {
+                element.tabIndex = -1;
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                element.focus({ preventScroll: true });
             }
         },
 
@@ -328,8 +337,9 @@ export default {
 
         async opprettSporreskjema(skjema: SporreSkjema): Promise<void> {
             this.sporreLoading = true;
+            let data: any;
             try {
-                const data = await apiOpprettSporre(skjema.navn);
+                data = await apiOpprettSporre(skjema.navn);
                 this.fjernNyttSporreskjema();
                 await this.hentSporreskjemaer();
                 const opprettet = this.alleSporreskjemaer.find(s => s.id === data.id);
@@ -338,6 +348,14 @@ export default {
                 this.$emit('feil', e.message ?? 'Feil ved oppretting av spørreskjema');
             } finally {
                 this.sporreLoading = false;
+            }
+            if (data?.id == null) return;
+            await this.$nextTick();
+            const element = document.querySelector(`[focus-id="skjema-sporreskjema-element-${data.id}"]`);
+            if (element instanceof HTMLElement) {
+                element.tabIndex = -1;
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                element.focus({ preventScroll: true });
             }
         },
 

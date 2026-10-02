@@ -1,5 +1,5 @@
 <template>
-    <div class="as-card-1 nop-impt as-margin-bottom-space-2">
+    <div class="as-card-1 nop-impt as-margin-bottom-space-2" :focus-id="'skjema-sporreskjema-element-'+skjema.id">
 
         <!-- ── Header row (clickable) ─────────────────────────────── -->
         <v-list-item
