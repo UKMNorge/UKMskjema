@@ -90,7 +90,7 @@
             :key="o.id"
             class="as-margin-bottom-space-4 as-card-1 as-padding-space-3"
         >
-            <div class="d-flex flex-wrap align-center justify-space-between gap-2">
+            <div class="d-flex flex-wrap align-center justify-space-between gap-2 as-margin-bottom-space-2">
                 <div>
                     <div class="d-flex align-center gap-1 as-margin-bottom-space-1">
                         <h4>{{ o.name }}</h4>
