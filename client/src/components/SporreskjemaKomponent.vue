@@ -202,7 +202,7 @@
                                                     />
                                                 </div>
                                             </div>
-                                            <template v-if="nyttSporsmal.type == 'kontaktajourfore' || nyttSporsmal.type == 'innslagdatabekreftelse' || nyttSporsmal.type == 'epost_respondent'">
+                                            <template v-if="nyttSporsmal.type == 'kontaktajourfore' || nyttSporsmal.type == 'innslagdatabekreftelse' || nyttSporsmal.type == 'epost_respondent' || nyttSporsmal.type == 'kontakt'">
                                                 <div class="col-xs-12 nop-impt">
                                                     <PermanentNotification 
                                                         :typeNotification="'info'" 
