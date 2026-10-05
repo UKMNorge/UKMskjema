@@ -202,14 +202,13 @@
                                                     />
                                                 </div>
                                             </div>
-                                            <template v-if="nyttSporsmal.type == 'kontaktajourfore' || nyttSporsmal.type == 'innslagdatabekreftelse'">
+                                            <template v-if="nyttSporsmal.type == 'kontaktajourfore' || nyttSporsmal.type == 'innslagdatabekreftelse' || nyttSporsmal.type == 'epost_respondent'">
                                                 <div class="col-xs-12 nop-impt">
                                                     <PermanentNotification 
                                                         :typeNotification="'info'" 
-                                                        :tittel="nyttSporsmal.type == 'kontaktajourfore' ? 'Bekreft registrerte brukerdata' : 'Bekreft registrerte innslagsdata'" 
+                                                        :tittel="nyttSporsmalInfoTittel" 
                                                         :isHTML="true"
-                                                        :description="
-                                                            nyttSporsmal.type == 'kontaktajourfore' ? '<p>Brukeren får se sine registrerte personopplysninger og må kontrollere og bekrefte at de er riktige.</p>' : '<p>Brukeren får se sine registrerte innslagsdata og må kontrollere og bekrefte at de er riktige.</p>'" />
+                                                        :description="nyttSporsmalInfoBeskrivelse" />
                                                 </div>
                                             </template>
                                             <div class="col-xs-2 nop-impt as-margin-top-space-2">
@@ -474,7 +473,7 @@ export default {
             sporsmalDragFromIndex: null as number | null,
             /** Rad som visuelt «løftes» (klasse på kilden) */
             sporsmalDraggingIndex: null as number | null,
-            nyttSporsmal: { type: 'kort_tekst', tittel: '', tekst: '', is_required: true } as { type: string; tittel: string; tekst: string; is_required: boolean },
+            nyttSporsmal: { type: 'janei', tittel: '', tekst: '', is_required: true } as { type: string; tittel: string; tekst: string; is_required: boolean },
 
             parentConsentOptions: [
                 { title: 'Nei', value: null },
@@ -482,17 +481,45 @@ export default {
                 { title: 'Under 18 år', value: 'u18' },
             ],
             sporsmalTypeOptions: [
-                { value: 'kontakt',       label: 'Kontaktinformasjon (navn, epost, mobil)' },
                 { value: 'janei',         label: 'Ja / nei' },
                 { value: 'kort_tekst',    label: 'Kort tekst' },
                 { value: 'lang_tekst',    label: 'Lang tekst' },
                 { value: 'filopplasting', label: 'Filopplasting' },
                 { value: 'intoleranser', label: 'Intoleranser / allergier' },
+                { value: 'epost_respondent', label: 'E-postadresse' },
+                { value: 'kontakt',       label: 'Kontaktinformasjon (navn, epost, mobil)' },
                 { value: 'kontaktajourfore', label: 'Bekreftelse av brukerdata' },
                 { value: 'innslagdatabekreftelse', label: 'Bekreftelse av innslagsdata' },
             ],
             foresattsamtykke_beskjed: false,
         };
+    },
+
+    computed: {
+        nyttSporsmalInfoTittel(): string {
+            if (this.nyttSporsmal.type === 'kontaktajourfore') {
+                return 'Bekreft registrerte brukerdata';
+            }
+            if (this.nyttSporsmal.type === 'innslagdatabekreftelse') {
+                return 'Bekreft registrerte innslagsdata';
+            }
+            return 'E-postadresse';
+        },
+        nyttSporsmalInfoBeskrivelse(): string {
+            if(this.nyttSporsmal.type === 'kontakt') {
+                return '<p>Bruk denne for å innhente kontaktinformasjon på foresatte og andre</p>';
+            }
+            if (this.nyttSporsmal.type === 'kontaktajourfore') {
+                return '<p>Brukeren får se sine registrerte personopplysninger og må kontrollere og bekrefte at de er riktige.</p>';
+            }
+            if (this.nyttSporsmal.type === 'innslagdatabekreftelse') {
+                return '<p>Brukeren får se sine registrerte innslagsdata og må kontrollere og bekrefte at de er riktige.</p>';
+            }
+            if(this.nyttSporsmal.type === 'epost_respondent') {
+                return '<p>Bruk denne for å innhente epostadressen til deltakeren</p>';
+            }
+            return '';
+        },
     },
 
     methods: {
