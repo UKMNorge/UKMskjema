@@ -1206,6 +1206,7 @@ export default {
 }
 .kjede-chip__navn {
     font-size: 12px;
+    max-width: 200px;
     font-weight: 800;
     overflow: hidden;
     text-overflow: ellipsis;
