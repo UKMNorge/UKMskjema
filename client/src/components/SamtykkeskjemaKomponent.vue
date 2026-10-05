@@ -86,7 +86,7 @@
                                 <!--Varsel-->
                                 <PermanentNotification 
                                     :typeNotification="'info'" 
-                                    :tittel="'Krever foresattsamtykke info'" 
+                                    :tittel="'Når trenger du foresattsamtykke?'" 
                                     :description="getForesattsamtykkeBeskjed()" 
                                     :isHTML="true" 
                                 />
@@ -604,12 +604,11 @@ export default {
 
         getForesattsamtykkeBeskjed(): string {
             return `
-                <p>Funksjonen lar deg velge om foresatte må samtykke til bruk av svarene fra deltakere eller respondenter under 15 år eller under 18 år, eller om det ikke skal kreves foresattesamtykke.</p>
                 <br>
                 <ul>
-                    <li>Under 15 år: Krev foresattes samtykke for respondenter som ikke har fylt 15 år.</li>
-                    <li> Under 18 år: Krev foresattes samtykke for respondenter som ikke har fylt 18 år.</li>
-                    <li> Ingen: Ikke krev foresattes samtykke.</li>
+                    <li>- For samtykker som gjelder regler, betingelser eller forpliktelser, skal deltakere under 18 år som hovedregel ha samtykke fra foresatt. Velg «Under 18 år».</li>
+                    <li>- For bilder og video kan deltakere fra fylte 15 år samtykke selv. Velg «Under 15 år».</li>
+                    <li>- For samtykker uten reell betydning eller forpliktelse, for eksempel «Jeg forstår at det kan bli forsinkelser i prøveplanen», kan du velge «Ingen krav til foresattsamtykke».</li>
                 </ul>`;
         },
     },

@@ -318,7 +318,7 @@
                     typeNotification="info"
                     :tittel="'Hva er en oppgave?'"
                     :isHTML="true"
-                    :description="'<p>En oppgave brukes til å hente inn informasjon fra deltakere eller andre gjennom samtykkeskjemaer og spørreskjemaer.</p> </p>Oppgaven kan bestå av ett eller flere skjemaer som deltakeren må fullføre i rekkefølge</p></br><p><b>For eksempel:</p></b><ul><li>1. Samtykke til festivalregler.</li><li>2. Spørsmål om allergier og spesielle behov.</li></ul><p>'"
+                    :description="'<p>En oppgave brukes til å hente inn informasjon fra deltakere eller andre gjennom samtykkeskjemaer og spørreskjemaer.</p> </p>Oppgaven kan bestå av ett eller flere skjemaer</p></br><p><b>For eksempel:</p></b><ul><li>1. Samtykke til festivalregler.</li><li>2. Spørsmål om allergier og spesielle behov.</li></ul><p>'"
                 />
             </div>
         </div>
