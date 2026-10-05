@@ -1160,7 +1160,6 @@ export default {
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-    max-width: min(100%, 17.5rem);
     padding: 0.3rem 0.35rem 0.3rem 0.25rem;
     border: 1px solid rgba(0, 0, 0, 0.12);
     border-radius: var(--radius-high, 10px);
