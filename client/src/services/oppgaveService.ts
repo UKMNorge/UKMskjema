@@ -328,6 +328,29 @@ export async function opprettOppgave(
     return { id };
 }
 
+export async function oppdaterOppgave(
+    oppgaveId: number,
+    name: string,
+    description: string | null
+): Promise<{ name: string; description: string | null }> {
+    const res = await getSpaInteraction().runAjaxCall('/', 'POST', {
+        action: 'UKMskjema_ajax',
+        controller: 'oppgave/updateOppgave',
+        oppgave_id: oppgaveId,
+        name,
+        description: description ?? '',
+    });
+
+    if (!res.success) {
+        throw new Error(res.message ?? res.result ?? 'Kunne ikke oppdatere oppgave');
+    }
+
+    return {
+        name: String(res.name ?? name),
+        description: res.description ? String(res.description) : null,
+    };
+}
+
 export async function slettOppgave(oppgaveId: number): Promise<void> {
     const res = await getSpaInteraction().runAjaxCall('/', 'POST', {
         action: 'UKMskjema_ajax',

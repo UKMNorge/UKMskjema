@@ -185,11 +185,34 @@
                     </v-btn>
                 </div>
             </div>
-            <div v-if="o.type || o.description">
-                <span v-if="o.type">{{ typeLabel(o.type) }}</span>
-                <span v-if="o.type && o.description"> · </span>
-                <span v-if="o.description">{{ o.description }}</span>
-            </div>
+            <template v-if="!o.locked">
+                <!-- input -->
+                <v-text-field
+                    v-model="o.name"
+                    label="Navn"
+                    variant="outlined"
+                    density="comfortable"
+                    hide-details="auto"
+                    class="as-margin-bottom-space-2 v-text-field-arr-sys"
+                />
+                <v-textarea
+                    v-model="o.description"
+                    label="Beskrivelse (valgfritt)"
+                    variant="outlined"
+                    density="comfortable"
+                    rows="2"
+                    hide-details="auto"
+                    class="as-margin-bottom-space-2 v-text-field-arr-sys"
+                />
+            </template>
+            <template v-else>
+                <div v-if="o.type || o.description">
+                    <span v-if="o.type">{{ typeLabel(o.type) }}</span>
+                    <span v-if="o.type && o.description"> · </span>
+                    <span v-if="o.description">{{ o.description }}</span>
+                </div>
+            </template>
+            
             <v-expand-transition>
                 <div v-if="!isAtLocalArrangement(o) && isInfoUtvidet(o.id)" class="">
                     <PermanentNotification
@@ -429,6 +452,7 @@ import {
     hentAlleRespondenter,
     hentOppgaveOversikt,
     opprettOppgave as apiOpprettOppgave,
+    oppdaterOppgave as apiOppdaterOppgave,
     slettOppgave as apiSlettOppgave,
     leggTilSkjemaIKjede,
     fjernSkjemaFraKjede,
@@ -891,9 +915,21 @@ export default {
                 return;
             }
 
+            const navn = o.name.trim();
+            const beskrivelse = (o.description ?? '').trim();
+            if (!navn) {
+                this.publiserSmsResultatType = 'error';
+                this.publiserSmsResultat = 'Navn er påkrevd.';
+                return;
+            }
+
             this.publiserLaster = true;
             this.publiserSmsResultat = '';
             try {
+                const oppdatert = await apiOppdaterOppgave(o.id, navn, beskrivelse || null);
+                o.name = oppdatert.name;
+                o.description = oppdatert.description;
+
                 const ny = await toggleOppgaveLock(o.id, true);
                 const idx = this.oppgaver.findIndex((x) => x.id === o.id);
                 if (idx !== -1) {
