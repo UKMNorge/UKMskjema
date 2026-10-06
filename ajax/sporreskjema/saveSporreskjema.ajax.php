@@ -67,11 +67,24 @@ if ($sporsmalRaw) {
             $tittel     = $p['tittel'] ?? '';
             $tekst      = $p['tekst'] ?? '';
             $isRequired = isset($p['is_required']) ? (bool) $p['is_required'] : true;
+            $hasParentConsent = array_key_exists('parent_consent_requirement', $p);
+            $parentConsent = null;
+            if ($hasParentConsent) {
+                $rawConsent = $p['parent_consent_requirement'];
+                $parentConsent = ($rawConsent === null || $rawConsent === '') ? null : (string) $rawConsent;
+            }
 
             try {
                 if ($id === 0) {
                     // Nytt spørsmål
-                    $sporsmal = Write::createSporsmal($skjema, $rekkefolge, $type, $tittel, $tekst);
+                    $sporsmal = Write::createSporsmal(
+                        $skjema,
+                        $rekkefolge,
+                        $type,
+                        $tittel,
+                        $tekst,
+                        $hasParentConsent ? $parentConsent : null
+                    );
                     $sporsmal->setIsRequired($isRequired);
                     Write::saveSporsmal($sporsmal);
                 } else {
@@ -85,6 +98,9 @@ if ($sporsmalRaw) {
                     $sporsmal->setTekst($tekst);
                     $sporsmal->setRekkefolge($rekkefolge);
                     $sporsmal->setIsRequired($isRequired);
+                    if ($hasParentConsent) {
+                        $sporsmal->setParentConsentRequirement($parentConsent);
+                    }
                     Write::saveSporsmal($sporsmal);
                 }
                 $savedSporsmal[] = [
@@ -95,6 +111,7 @@ if ($sporsmalRaw) {
                     'tittel'     => $sporsmal->getTittel(),
                     'tekst'      => $sporsmal->getTekst(),
                     'is_required'=> (bool) $sporsmal->isRequired(),
+                    'parent_consent_requirement' => $sporsmal->getParentConsentRequirement(),
                 ];
             } catch (Exception $e) {
                 $handleCall->sendErrorToClient($e->getMessage(), $e->getCode() ?: 500);

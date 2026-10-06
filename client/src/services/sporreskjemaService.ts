@@ -100,7 +100,7 @@ export async function lagreSporsmal(
     skjemaId: number,
     sporsmal: Partial<SporsmalData>
 ): Promise<SporsmalData> {
-    const res = await getSpaInteraction().runAjaxCall('/', 'POST', {
+    const payload: Record<string, unknown> = {
         action:      'UKMskjema_ajax',
         controller:  'sporreskjema/saveSporsmal',
         skjema_id:   skjemaId,
@@ -110,7 +110,11 @@ export async function lagreSporsmal(
         tekst:       sporsmal.tekst ?? '',
         is_required: sporsmal.is_required,
         rekkefolge:  sporsmal.rekkefolge ?? 1,
-    });
+    };
+    if (sporsmal.parent_consent_requirement !== undefined) {
+        payload.parent_consent_requirement = sporsmal.parent_consent_requirement ?? '';
+    }
+    const res = await getSpaInteraction().runAjaxCall('/', 'POST', payload);
 
     if (!res.success) {
         throw new Error(res.message ?? 'Kunne ikke lagre spørsmål');

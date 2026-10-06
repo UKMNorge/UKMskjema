@@ -179,7 +179,7 @@
                                                 <h5>{{ nyttSporsmal.tittel }}</h5>
                                             </div> -->
                                             <div class="col-xs-12 nop-impt">
-                                                <div class="col-xs-3 nop-impt as-margin-right-space-2">
+                                                <div class="col-xs-12 col-sm-4 nop-impt as-margin-right-space-2">
                                                     <v-select
                                                         v-model="nyttSporsmal.type"
                                                         :items="sporsmalTypeOptions"
@@ -191,7 +191,7 @@
                                                         hide-details="auto"
                                                     />
                                                 </div>
-                                                <div class="col-xs-5 nop-impt">
+                                                <div class="col-xs-12 col-sm-7 nop-impt new-title-sporsmal-div">
                                                     <v-text-field
                                                         v-model="nyttSporsmal.tittel"
                                                         label="Tittel / spørsmålstekst *"
@@ -211,12 +211,26 @@
                                                         :description="nyttSporsmalInfoBeskrivelse" />
                                                 </div>
                                             </template>
-                                            <div class="col-xs-2 nop-impt as-margin-top-space-2">
-                                                <v-checkbox
-                                                    v-model="nyttSporsmal.is_required"
-                                                    label="Påkrevd (må besvares)"
-                                                    hide-details
-                                                    density="compact"
+                                            <div class="col-xs-12 nop-impt as-margin-top-space-2">
+                                                <div class="col-xs-2 nop-impt paakrevd-checkbox">
+                                                    <v-checkbox
+                                                        v-model="nyttSporsmal.is_required"
+                                                        label="Påkrevd (må besvares)"
+                                                        hide-details
+                                                        density="compact"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div class="col-xs-12 nop-impt as-margin-top-space-2">
+                                                <v-select
+                                                    v-model="nyttSporsmal.parent_consent_requirement"
+                                                    :items="parentConsentOptions"
+                                                    item-title="title"
+                                                    item-value="value"
+                                                    label="Krever foresattsamtykke"
+                                                    variant="outlined"
+                                                    class="v-autocomplete-arr-sys"
+                                                    hide-details="auto"
                                                 />
                                             </div>
                                             <div class="col-xs-12 nop-impt as-margin-top-space-2">
@@ -283,8 +297,8 @@
                                                     </div>
                                                 </div>
                                                 <div class="flex-grow-1 nop-impt">
-                                                    <div class="col-xs-12 nop-impt d-flex flex-wrap">
-                                                        <div class="col-xs-12 col-sm-2 nop-impt as-margin-right-space-2 mb-2 mb-sm-0">
+                                                    <div class="col-xs-10 nop-impt d-flex flex-wrap">
+                                                        <div class="col-xs-12 col-sm-4 nop-impt">
                                                             <v-select
                                                                 v-model="s.type"
                                                                 :items="sporsmalTypeOptions"
@@ -297,7 +311,7 @@
                                                                 @update:model-value="$emit('lagre-kun-sporsmal', skjema)"
                                                             />
                                                         </div>
-                                                        <div class="col-xs-12 col-sm-6 nop-impt flex-grow-1 as-margin-right-space-2 mb-2 mb-sm-0">
+                                                        <div class="col-xs-12 col-sm-8 button-sporsmaaltext">
                                                             <v-text-field
                                                                 v-model="s.tittel"
                                                                 label="Spørsmålstekst"
@@ -308,7 +322,7 @@
                                                                 @blur="$emit('lagre-kun-sporsmal', skjema)"
                                                             />
                                                         </div>
-                                                        <div class="col-xs-12 col-sm-2 nop-impt as-margin-right-space-2 mb-2 mb-sm-0 d-flex align-center">
+                                                        <div class="col-xs-12 col-sm-2 as-margin-top-space-1 nop-impt as-margin-right-space-2 mb-2 mb-sm-0 d-flex align-center">
                                                             <v-checkbox
                                                                 v-model="s.is_required"
                                                                 label="Påkrevd"
@@ -317,17 +331,30 @@
                                                                 @update:model-value="$emit('lagre-kun-sporsmal', skjema)"
                                                             />
                                                         </div>
-                                                        <div class="col-xs-12 col-sm-1 nop-impt sporsmal-delete-col">
-                                                            <v-btn
-                                                                class="v-btn-as v-btn-error"
-                                                                icon
-                                                                variant="text"
-                                                                size="small"
-                                                                @click="fjernSporsmal(s)"
-                                                            >
-                                                                <v-icon>mdi-delete-outline</v-icon>
-                                                            </v-btn>
-                                                        </div>
+                                                    </div>
+                                                    <div class="col-xs-2 as-display-flex">
+                                                        <v-btn
+                                                            class="v-btn-as v-btn-error remove-sporsmal-btn"
+                                                            icon
+                                                            variant="text"
+                                                            size="small"
+                                                            @click="fjernSporsmal(s)"
+                                                        >
+                                                            <v-icon>mdi-delete-outline</v-icon>
+                                                        </v-btn>
+                                                    </div>
+                                                    <div class="col-xs-4 nop-impt as-margin-top-space-2">
+                                                        <v-select
+                                                            v-model="s.parent_consent_requirement"
+                                                            :items="parentConsentOptions"
+                                                            item-title="title"
+                                                            item-value="value"
+                                                            label="Krever foresattsamtykke"
+                                                            variant="outlined"
+                                                            class="v-autocomplete-arr-sys"
+                                                            hide-details
+                                                            @update:model-value="$emit('lagre-kun-sporsmal', skjema)"
+                                                        />
                                                     </div>
                                                     <div v-if="s.tekst !== undefined" class="col-xs-12 nop-impt as-margin-top-space-2">
                                                         <v-text-field
@@ -433,7 +460,7 @@
 <script lang="ts">
 import type { PropType } from 'vue';
 import draggable from 'vuedraggable';
-import type { SporreSkjema, SporsmalData } from '../objects/SporreSkjema';
+import type { ParentConsentRequirement, SporreSkjema, SporsmalData } from '../objects/SporreSkjema';
 import { slettSporsmal as apiSlettSporsmal } from '../services/sporreskjemaService';
 import { PermanentNotification } from 'ukm-components-vue3';
 
@@ -473,7 +500,7 @@ export default {
             sporsmalDragFromIndex: null as number | null,
             /** Rad som visuelt «løftes» (klasse på kilden) */
             sporsmalDraggingIndex: null as number | null,
-            nyttSporsmal: { type: 'janei', tittel: '', tekst: '', is_required: true } as { type: string; tittel: string; tekst: string; is_required: boolean },
+            nyttSporsmal: { type: 'janei', tittel: '', tekst: '', is_required: true, parent_consent_requirement: null } as { type: string; tittel: string; tekst: string; is_required: boolean; parent_consent_requirement: ParentConsentRequirement | null },
 
             parentConsentOptions: [
                 { title: 'Nei', value: null },
@@ -657,13 +684,14 @@ export default {
                 tittel:     this.nyttSporsmal.tittel.trim(),
                 tekst:      this.nyttSporsmal.tekst.trim(),
                 is_required:this.nyttSporsmal.is_required,
+                parent_consent_requirement: this.nyttSporsmal.parent_consent_requirement,
             } as SporsmalData);
             this.avbrytNyttSporsmal();
             this.$emit('lagre-kun-sporsmal', this.skjema);
         },
 
         avbrytNyttSporsmal(): void {
-            this.nyttSporsmal = { type: 'kort_tekst', tittel: '', tekst: '', is_required: true };
+            this.nyttSporsmal = { type: 'kort_tekst', tittel: '', tekst: '', is_required: true, parent_consent_requirement: null };
             this.visNyttSporsmalForm = false;
         },
 
@@ -766,5 +794,26 @@ export default {
 }
 .extended-skjema-content {
     overflow: hidden;
+}
+.remove-sporsmal-btn {
+    margin: auto;
+    margin-right: 0;
+}
+.paakrevd-checkbox {
+    width: fit-content;
+}
+@media screen and (max-width: 768px) {
+    .sporsmal-text-field {
+        margin-top: calc(2 * var(--initial-space-box));
+    }
+    .button-sporsmaaltext {
+        margin-top: calc(2 * var(--initial-space-box));
+        padding: 0 !important;
+        margin-left: 0;
+        margin-right: 0;
+    }
+    .new-title-sporsmal-div {
+        margin-top: calc(2 * var(--initial-space-box));
+    }
 }
 </style>

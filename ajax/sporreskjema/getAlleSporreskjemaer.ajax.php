@@ -35,6 +35,7 @@ try {
                 'tittel'     => $s->getTittel(),
                 'tekst'      => $s->getTekst(),
                 'is_required'=> (bool) $s->isRequired(),
+                'parent_consent_requirement' => $s->getParentConsentRequirement(),
             ];
         }
         $result[] = [

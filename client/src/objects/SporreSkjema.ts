@@ -1,3 +1,5 @@
+export type ParentConsentRequirement = 'u15' | 'u18';
+
 export interface SporsmalData {
     id: number;
     skjema_id: number;
@@ -6,14 +8,13 @@ export interface SporsmalData {
     tittel: string;
     tekst: string;
     is_required: boolean;
+    parent_consent_requirement: ParentConsentRequirement | null;
 }
 
 export interface GruppeData {
     overskrift: SporsmalData | null;
     sporsmal: SporsmalData[];
 }
-
-export type ParentConsentRequirement = 'u15' | 'u18';
 
 export interface SporreSkjemaData {
     id: number;
@@ -43,7 +44,10 @@ export class SporreSkjema {
         this.type          = 'oppgave';
         this.navn          = data?.navn ?? '';
         this.parent_consent_requirement = data?.parent_consent_requirement ?? null;
-        this.sporsmal      = data?.sporsmal ?? [];
+        this.sporsmal      = (data?.sporsmal ?? []).map((s) => ({
+            ...s,
+            parent_consent_requirement: s.parent_consent_requirement ?? null,
+        }));
     }
 
     static fromData(data: Partial<SporreSkjemaData>): SporreSkjema {
