@@ -497,13 +497,22 @@ export default {
 
     computed: {
         nyttSporsmalInfoTittel(): string {
+            if(this.nyttSporsmal.type === 'intoleranser') {
+                return 'Intoleranser og allergier';
+            }
+            if(this.nyttSporsmal.type === 'kontakt') {
+                return 'Kontaktinformasjon';
+            }
             if (this.nyttSporsmal.type === 'kontaktajourfore') {
                 return 'Bekreft registrerte brukerdata';
             }
             if (this.nyttSporsmal.type === 'innslagdatabekreftelse') {
                 return 'Bekreft registrerte innslagsdata';
             }
-            return 'E-postadresse';
+            if(this.nyttSporsmal.type === 'epost_respondent') {
+                return 'E-postadresse';
+            }
+            return '';
         },
         nyttSporsmalInfoBeskrivelse(): string {
             if(this.nyttSporsmal.type === 'intoleranser') {
