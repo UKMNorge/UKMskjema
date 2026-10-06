@@ -356,6 +356,11 @@ export default {
                 element.tabIndex = -1;
                 element.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 element.focus({ preventScroll: true });
+                // Select spørsmål tab
+                const tab = document.querySelector(`[value="sporsmal"]`);
+                if (tab instanceof HTMLElement) {
+                    tab.click();
+                }
             }
         },
 
