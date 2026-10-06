@@ -165,7 +165,7 @@
                                             rounded="large"
                                             size="large"
                                             variant="outlined"
-                                            @click="visNyttSporsmalForm = !visNyttSporsmalForm"
+                                            @click="leggTilNyttSporsmal"
                                         >
                                             <v-icon start>mdi-plus</v-icon>
                                             Legg til spørsmål
@@ -562,6 +562,14 @@ export default {
     },
 
     methods: {
+        leggTilNyttSporsmal(): void {
+            if(this.nyttSporsmal.tittel.trim().length > 0) {
+                this.leggTilSporsmal();
+                this.visNyttSporsmalForm = true;
+            } else {
+                this.visNyttSporsmalForm = !this.visNyttSporsmalForm;
+            }
+        },
         sporsmalRowKey(s: SporsmalData): string {
             if (s.id > 0) {
                 return `id-${s.id}`;
