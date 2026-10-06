@@ -202,7 +202,7 @@
                                                     />
                                                 </div>
                                             </div>
-                                            <template v-if="nyttSporsmal.type == 'kontaktajourfore' || nyttSporsmal.type == 'innslagdatabekreftelse' || nyttSporsmal.type == 'epost_respondent' || nyttSporsmal.type == 'kontakt'">
+                                            <template v-if="nyttSporsmalInfoBeskrivelse.length > 0">
                                                 <div class="col-xs-12 nop-impt">
                                                     <PermanentNotification 
                                                         :typeNotification="'info'" 
@@ -506,6 +506,9 @@ export default {
             return 'E-postadresse';
         },
         nyttSporsmalInfoBeskrivelse(): string {
+            if(this.nyttSporsmal.type === 'intoleranser') {
+                return '<p>Den som skal svare, får opp et ferdig skjema der de kan krysse av for allergier, intoleranser og kosthold som vegetar, halal osv.</p>';
+            }
             if(this.nyttSporsmal.type === 'kontakt') {
                 return '<p>Bruk denne for å innhente kontaktinformasjon på foresatte og andre</p>';
             }
