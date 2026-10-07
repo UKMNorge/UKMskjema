@@ -117,32 +117,6 @@
                                             hide-details="auto"
                                         />
                                     </div>
-                                    <div class="col-xs-4 nop-impt as-margin-top-space-3 as-display-flex">
-                                        <v-select
-                                            v-model="skjema.parent_consent_requirement"
-                                            :items="parentConsentOptions"
-                                            item-title="title"
-                                            item-value="value"
-                                            label="Krever foresattsamtykke"
-                                            variant="outlined"
-                                            class="v-autocomplete-arr-sys"
-                                            hide-details="auto"
-                                        />
-                                        <div class="as-margin-auto">
-                                                <v-btn @click="foresattsamtykke_beskjed = !foresattsamtykke_beskjed" class="vuetify-icon-button as-margin-left-space-1" density="compact" icon variant="tonal">
-                                                    <v-icon>mdi-information-slab-symbol</v-icon>
-                                                </v-btn>
-                                            </div>
-                                        </div>
-                                        <div v-if="foresattsamtykke_beskjed" class="col-xs-12 nop-impt">
-                                            <!--Varsel-->
-                                            <PermanentNotification 
-                                                :typeNotification="'info'" 
-                                                :tittel="'Krever foresattsamtykke info'" 
-                                                :description="getForesattsamtykkeBeskjed()" 
-                                                :isHTML="true" 
-                                            />
-                                    </div>
                                     <!-- <div class="col-xs-12 nop-impt as-margin-top-space-2 item-id-label">
                                         ID #{{ skjema.id }} · Arrangement ID #{{ skjema.arrangementId }}
                                     </div> -->
@@ -221,7 +195,7 @@
                                                     />
                                                 </div>
                                             </div>
-                                            <div class="col-xs-12 nop-impt as-margin-top-space-2">
+                                            <div class="col-xs-12 nop-impt as-margin-top-space-2 as-display-flex">
                                                 <v-select
                                                     v-model="nyttSporsmal.parent_consent_requirement"
                                                     :items="parentConsentOptions"
@@ -231,6 +205,21 @@
                                                     variant="outlined"
                                                     class="v-autocomplete-arr-sys"
                                                     hide-details="auto"
+                                                />
+                                                
+                                                <div class="as-margin-auto">
+                                                    <v-btn @click="foresattsamtykke_beskjed = !foresattsamtykke_beskjed" class="vuetify-icon-button as-margin-left-space-1" density="compact" icon variant="tonal">
+                                                        <v-icon>mdi-information-slab-symbol</v-icon>
+                                                    </v-btn>
+                                                </div>
+                                            </div>
+                                            <div v-if="foresattsamtykke_beskjed" class="col-xs-12 nop-impt">
+                                                <!--Varsel-->
+                                                <PermanentNotification 
+                                                    :typeNotification="'info'" 
+                                                    :tittel="'Krever foresattsamtykke info'" 
+                                                    :description="getForesattsamtykkeBeskjed()" 
+                                                    :isHTML="true" 
                                                 />
                                             </div>
                                             <div class="col-xs-12 nop-impt as-margin-top-space-2">
