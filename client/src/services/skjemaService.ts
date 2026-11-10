@@ -120,6 +120,7 @@ export async function lagreAllDataSamtykkeskjema(
         await lagreVersjonSamtykkeskjema(skjemaId, versjon);
     }
 
+    spaInteraction.showMessage('Lagret!', 'Samtykkeskjemaet har blitt lagret.', 'success');
     // Endpointet `saveSamtykkeskjema` returnerer ikke versjon/prosjekter.
     // Returner alltid fersk skjema-json fra `getAlleSamtykkeskjemaer` slik at UI får med `versjon`.
     return await hentSamtykkeskjemaById(skjemaId);

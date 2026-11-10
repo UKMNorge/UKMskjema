@@ -74,6 +74,8 @@ export async function lagreSporreskjema(
         throw new Error(res.message ?? 'Kunne ikke lagre spørreskjema');
     }
 
+    getSpaInteraction().showMessage('Lagret!', 'Spørreskjemaet har blitt lagret.', 'success');
+
     return res as SporreSkjemaData;
 }
 
