@@ -50,7 +50,7 @@
                 </v-chip>
             </div>
             <p class="tom-liste-tekst as-margin-top-space-2">
-                Ingen skjemaer av denne typen.
+                Ingen skjemaer.
             </p>
         </template>
 
